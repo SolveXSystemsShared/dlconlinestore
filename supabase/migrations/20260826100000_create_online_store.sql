@@ -13,15 +13,11 @@ CREATE TABLE IF NOT EXISTS public.online_products (
   description text NULL,
   image_url text NULL,
   price_override numeric(10,2) NULL CHECK (price_override IS NULL OR price_override >= 0),
-  store_id text NULL REFERENCES public.stores(id),
   is_published boolean NOT NULL DEFAULT false,
   sort_order integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
-
-CREATE INDEX IF NOT EXISTS idx_online_products_published
-  ON public.online_products (is_published, store_id, sort_order);
 
 CREATE TABLE IF NOT EXISTS public.online_orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,7 +27,6 @@ CREATE TABLE IF NOT EXISTS public.online_orders (
   customer_phone text NOT NULL,
   delivery_address text NOT NULL,
   customer_notes text NULL,
-  fulfillment_store_id text NULL REFERENCES public.stores(id),
   channel text NOT NULL DEFAULT 'web' CHECK (channel IN ('web', 'whatsapp', 'staff')),
   status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'pending_payment', 'paid', 'preparing', 'ready', 'out_for_delivery', 'completed', 'cancelled', 'expired')),
   subtotal numeric(12,2) NOT NULL DEFAULT 0 CHECK (subtotal >= 0),
@@ -39,7 +34,6 @@ CREATE TABLE IF NOT EXISTS public.online_orders (
   total numeric(12,2) NOT NULL DEFAULT 0 CHECK (total >= 0),
   payment_reference text NULL,
   payment_details jsonb NOT NULL DEFAULT '[]'::jsonb,
-  exchange_id text NULL REFERENCES public.exchanges(id),
   idempotency_key text NULL,
   cancellation_reason text NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -74,7 +68,6 @@ CREATE INDEX IF NOT EXISTS idx_online_order_items_order
 CREATE TABLE IF NOT EXISTS public.online_inventory_reservations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id uuid NOT NULL REFERENCES public.online_orders(id) ON DELETE CASCADE,
-  inventory_item_id text NOT NULL REFERENCES public.inventory_items(id),
   quantity numeric(10,2) NOT NULL CHECK (quantity > 0),
   status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'released', 'consumed', 'expired')),
   reserved_at timestamptz NOT NULL DEFAULT now(),
@@ -83,9 +76,6 @@ CREATE TABLE IF NOT EXISTS public.online_inventory_reservations (
   consumed_at timestamptz NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_online_reservations_inventory_active
-  ON public.online_inventory_reservations (inventory_item_id, status)
-  WHERE status = 'active';
 CREATE INDEX IF NOT EXISTS idx_online_reservations_order
   ON public.online_inventory_reservations (order_id, status);
 
@@ -96,6 +86,60 @@ CREATE TABLE IF NOT EXISTS public.online_order_events (
   payload jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- ---------------------------------------------------------------------------
+-- Foreign keys into the existing CDASH tables.
+--
+-- CDASH is not consistent about id types: `stores.id` is text (Prisma wrote
+-- `id TEXT DEFAULT gen_random_uuid()`), while `exchanges.id` is a real uuid.
+-- Hard-coding either one breaks the other with "incompatible types", so each
+-- column copies the type of the column it points at instead of assuming.
+-- ---------------------------------------------------------------------------
+DO $link$
+DECLARE
+  r record;
+  v_type text;
+BEGIN
+  FOR r IN
+    SELECT * FROM (VALUES
+      ('online_products',               'store_id',          'stores',          'NULL'),
+      ('online_orders',                 'fulfillment_store_id', 'stores',       'NULL'),
+      ('online_orders',                 'exchange_id',       'exchanges',       'NULL'),
+      ('online_inventory_reservations', 'inventory_item_id', 'inventory_items', 'NOT NULL')
+    ) AS t(child_table, child_column, parent_table, nullability)
+  LOOP
+    SELECT format_type(a.atttypid, a.atttypmod) INTO v_type
+    FROM pg_attribute a
+    JOIN pg_class c ON c.oid = a.attrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname = r.parent_table
+      AND a.attname = 'id' AND a.attnum > 0 AND NOT a.attisdropped;
+
+    IF v_type IS NULL THEN
+      RAISE EXCEPTION 'CDASH table public.% is missing — apply this migration to the CDASH Supabase project', r.parent_table;
+    END IF;
+
+    EXECUTE format('ALTER TABLE public.%I ADD COLUMN IF NOT EXISTS %I %s %s',
+                   r.child_table, r.child_column, v_type, r.nullability);
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint
+      WHERE conname = format('%s_%s_fkey', r.child_table, r.child_column)
+    ) THEN
+      EXECUTE format('ALTER TABLE public.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES public.%I(id)',
+                     r.child_table, format('%s_%s_fkey', r.child_table, r.child_column),
+                     r.child_column, r.parent_table);
+    END IF;
+  END LOOP;
+END
+$link$;
+
+-- Indexes that depend on the columns added above.
+CREATE INDEX IF NOT EXISTS idx_online_products_published
+  ON public.online_products (is_published, store_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_online_reservations_inventory_active
+  ON public.online_inventory_reservations (inventory_item_id, status)
+  WHERE status = 'active';
 
 CREATE OR REPLACE FUNCTION public.online_store_touch_updated_at()
 RETURNS trigger LANGUAGE plpgsql AS $$
@@ -251,7 +295,7 @@ AS $$
 DECLARE
   v_order public.online_orders%ROWTYPE;
   v_reservation record;
-  v_exchange_id text;
+  v_exchange_id public.exchanges.id%TYPE;
   v_items jsonb;
 BEGIN
   SELECT * INTO v_order FROM public.online_orders WHERE id = p_order_id FOR UPDATE;
