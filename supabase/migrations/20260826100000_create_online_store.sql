@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.online_products (
   description text NULL,
   image_url text NULL,
   price_override numeric(10,2) NULL CHECK (price_override IS NULL OR price_override >= 0),
-  store_id uuid NULL REFERENCES public.stores(id),
+  store_id text NULL REFERENCES public.stores(id),
   is_published boolean NOT NULL DEFAULT false,
   sort_order integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.online_orders (
   customer_phone text NOT NULL,
   delivery_address text NOT NULL,
   customer_notes text NULL,
-  fulfillment_store_id uuid NULL REFERENCES public.stores(id),
+  fulfillment_store_id text NULL REFERENCES public.stores(id),
   channel text NOT NULL DEFAULT 'web' CHECK (channel IN ('web', 'whatsapp', 'staff')),
   status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'pending_payment', 'paid', 'preparing', 'ready', 'out_for_delivery', 'completed', 'cancelled', 'expired')),
   subtotal numeric(12,2) NOT NULL DEFAULT 0 CHECK (subtotal >= 0),
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.online_orders (
   total numeric(12,2) NOT NULL DEFAULT 0 CHECK (total >= 0),
   payment_reference text NULL,
   payment_details jsonb NOT NULL DEFAULT '[]'::jsonb,
-  exchange_id uuid NULL REFERENCES public.exchanges(id),
+  exchange_id text NULL REFERENCES public.exchanges(id),
   idempotency_key text NULL,
   cancellation_reason text NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -74,7 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_online_order_items_order
 CREATE TABLE IF NOT EXISTS public.online_inventory_reservations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id uuid NOT NULL REFERENCES public.online_orders(id) ON DELETE CASCADE,
-  inventory_item_id uuid NOT NULL REFERENCES public.inventory_items(id),
+  inventory_item_id text NOT NULL REFERENCES public.inventory_items(id),
   quantity numeric(10,2) NOT NULL CHECK (quantity > 0),
   status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'released', 'consumed', 'expired')),
   reserved_at timestamptz NOT NULL DEFAULT now(),
@@ -251,7 +251,7 @@ AS $$
 DECLARE
   v_order public.online_orders%ROWTYPE;
   v_reservation record;
-  v_exchange_id uuid;
+  v_exchange_id text;
   v_items jsonb;
 BEGIN
   SELECT * INTO v_order FROM public.online_orders WHERE id = p_order_id FOR UPDATE;

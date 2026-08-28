@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Reveal } from "@/components/reveal"
+import { MascotLoader } from "@/components/mascot-loader"
 import { money } from "@/lib/format"
 import type { CatalogProduct, CartLine } from "@/lib/types"
 
@@ -61,7 +62,7 @@ export default function StorePage() {
         <div className="hero-visual" aria-hidden="true">
           <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
           <div className="hero-spark spark-one">✦</div><div className="hero-spark spark-two">✦</div>
-          <div className="mascot-pedestal" style={{ transform: `translate3d(0, ${Math.min(scrollY * 0.12, 70)}px, 0)` }}><img src="/assets/dlc-mascot.png" alt="" /></div>
+          <div className="mascot-pedestal" style={{ transform: `translate3d(0, ${Math.min(scrollY * 0.12, 70)}px, 0)` }}><img src="/assets/dlc-mascot-3d.jpg" alt="" /></div>
           <div className="hero-sticker">DLC<br /><small>Since day one</small></div>
         </div>
       </div>
@@ -72,7 +73,7 @@ export default function StorePage() {
 
     <section className="content shop-section" id="shop">
       <Reveal className="section-heading shop-heading"><div><div className="eyebrow dark-eyebrow">The current drop</div><h2>Pick your mood.</h2></div><p>Live CDASH stock, always current.</p></Reveal>
-      {loading && <div className="catalog-grid"><div className="skeleton-card" /><div className="skeleton-card" /><div className="skeleton-card" /></div>}
+      {loading && <MascotLoader label="Loading the drop" size="lg" />}
       {error && <p className="error">{error}</p>}
       {!loading && !error && products.length === 0 && <p className="empty">There are no published products available right now.</p>}
       <div className="catalog-grid product-grid">

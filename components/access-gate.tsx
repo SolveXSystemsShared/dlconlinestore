@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { formatMemberId, isCompleteMemberId, MEMBER_ID_PREFIX } from "@/lib/format"
+import { MascotLoader } from "@/components/mascot-loader"
 
 type GateState = "age" | "member" | "allowed" | "blocked"
 
@@ -77,6 +78,8 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
   if (isRegistration && state === "member") return <>{children}</>
 
   return <div className="gate-screen">
+    {/* Greets on arrival, then picks up pulse rings while a request is in flight. */}
+    <div className="gate-figure"><MascotLoader size="lg" rings={busy} label={busy ? "One moment" : ""} /></div>
     <div className="gate-card">
       <img className="gate-mark" src="/assets/dlc-logo-black.png" alt="DLC" />
       <div className="eyebrow">DLC member store</div>

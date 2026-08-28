@@ -6,7 +6,6 @@ import { notifyStaff } from "@/lib/notify-staff"
 import { isPreviewMode } from "@/lib/preview"
 import {
   ageInYears,
-  generateMemberNumber,
   MEMBER_ID_COLUMN,
   ONLINE_REGISTRATION_SOURCE,
   PENDING_STATUS,
@@ -44,10 +43,16 @@ export async function POST(request: NextRequest) {
     if (age < 18) return NextResponse.json({ error: "You must be 18 or older to register" }, { status: 403 })
     if (age > 120) return NextResponse.json({ error: "Enter a valid date of birth" }, { status: 400 })
 
-    const memberNumber = generateMemberNumber()
+    // CDASH derives member_id from the last four digits of the mobile number
+    // (trigger_members_generate_member_id). Fewer than four digits makes the
+    // trigger raise, so catch it here and say something useful.
+    const mobileDigits = body.mobileNumber.replace(/\D/g, "")
+    if (mobileDigits.length < 4) return NextResponse.json({ error: "Enter a valid mobile number" }, { status: 400 })
+
     const signatureDate = new Date().toISOString().slice(0, 10)
 
     if (isPreviewMode()) {
+      const memberNumber = `DLC-${mobileDigits.slice(-4)}-01`
       await notifyStaff({
         event: "member.registration.pending",
         title: `New online registration awaiting approval: ${body.fullName}`,
@@ -69,10 +74,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "That email is already registered. Ask the team to resend your Member ID." }, { status: 409 })
     }
 
-    const { error } = await supabase
+    // member_id is deliberately omitted: the CDASH trigger generates it as
+    // DLC-<last 4 of mobile>-<random 01-99> and guarantees uniqueness. Reading
+    // it back is what tells the customer their real Member ID.
+    const { data: created, error } = await supabase
       .from("members")
       .insert({
-        [MEMBER_ID_COLUMN]: memberNumber,
         full_name: body.fullName,
         email: body.email.toLowerCase(),
         mobile_number: body.mobileNumber,
@@ -85,7 +92,11 @@ export async function POST(request: NextRequest) {
         registered_by: ONLINE_REGISTRATION_SOURCE,
         status: PENDING_STATUS,
       })
+      .select(MEMBER_ID_COLUMN)
+      .single()
     if (error) throw error
+
+    const memberNumber = (created as unknown as Record<string, string | null> | null)?.[MEMBER_ID_COLUMN] ?? ""
 
     // Registration succeeds even if the notification does not — staff can still
     // see the pending row in CDASH.
