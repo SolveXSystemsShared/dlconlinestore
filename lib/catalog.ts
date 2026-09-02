@@ -19,6 +19,7 @@ type InventoryRow = {
   product_type: string
   strain_name: string
   grade: string | null
+  brand: string | null
   quantity: number | null
   online_price: number | null
   exchange_price: number | null
@@ -51,7 +52,7 @@ export async function getCatalog(storeId = process.env.DEFAULT_STORE_ID || null)
   // view, so the catalogue can never advertise something checkout will refuse.
   let inventoryQuery = supabase
     .from("online_sellable_inventory")
-    .select("id, product_type, strain_name, grade, quantity, online_price, exchange_price, store_id, date_received")
+    .select("id, product_type, strain_name, grade, brand, quantity, online_price, exchange_price, store_id, date_received")
     .limit(INVENTORY_PAGE_SIZE)
   if (storeId) inventoryQuery = inventoryQuery.or(`store_id.eq.${storeId},store_id.is.null`)
 
@@ -106,12 +107,20 @@ export async function getCatalog(storeId = process.env.DEFAULT_STORE_ID || null)
     const price = product.price_override ?? Number(matches[0]?.online_price ?? matches[0]?.exchange_price ?? 0)
     if (price <= 0) continue
 
+    // Brand lives on the stock row, not the product, and most rows leave it
+    // empty — take the first batch that names one rather than the oldest, which
+    // is usually blank. For most categories the brand is carried in `grade`
+    // anyway ("Jane's", "Awaken", "OCB"), which is why that is the filter the
+    // store leads with.
+    const brand = matches.find((row) => (row.brand || "").trim())?.brand?.trim() || null
+
     result.push({
       id: product.id,
       slug: product.slug,
       name: product.display_name,
       productType: product.product_type,
       grade: product.grade,
+      brand,
       description: product.description,
       imageUrl: product.image_url,
       price,

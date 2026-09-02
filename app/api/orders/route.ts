@@ -13,6 +13,37 @@ const input = z.object({
   items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().positive().max(100) })).min(1).max(50),
 })
 
+/**
+ * The member's own order history.
+ *
+ * Scoped to the verified member from the signed cookie rather than anything the
+ * caller sends, so one member can never read another's orders.
+ */
+export async function GET() {
+  const access = await getMemberAccess()
+  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+  const { data, error } = await getSupabaseAdmin()
+    .from("online_orders")
+    .select("id, order_number, status, subtotal, delivery_fee, total, created_at, online_order_items(quantity)")
+    .eq("member_id", access.memberId)
+    .order("created_at", { ascending: false })
+    .limit(100)
+  if (error) {
+    console.error("Order history error", error)
+    return NextResponse.json({ error: "Could not load your orders" }, { status: 500 })
+  }
+  return NextResponse.json({
+    orders: (data || []).map((order) => ({
+      id: order.id,
+      orderNumber: order.order_number,
+      status: order.status,
+      total: Number(order.total),
+      createdAt: order.created_at,
+      itemCount: (order.online_order_items || []).reduce((sum: number, line: { quantity: number }) => sum + Number(line.quantity), 0),
+    })),
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const access = await getMemberAccess()

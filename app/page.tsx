@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Reveal } from "@/components/reveal"
 import { MascotLoader } from "@/components/mascot-loader"
+import { applyFilters, Filters, NO_FILTERS, StoreFilters } from "@/components/store-filters"
 import { money } from "@/lib/format"
 import type { CatalogProduct, CartLine } from "@/lib/types"
 
@@ -12,6 +13,8 @@ const artClasses = ["art-lime", "art-sand", "art-blue", "art-berry"]
 export default function StorePage() {
   const [products, setProducts] = useState<CatalogProduct[]>([])
   const [cart, setCart] = useState<CartLine[]>([])
+  const [saved, setSaved] = useState<Set<string>>(new Set())
+  const [filters, setFilters] = useState<Filters>(NO_FILTERS)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [scrollY, setScrollY] = useState(0)
@@ -27,6 +30,16 @@ export default function StorePage() {
       .finally(() => setLoading(false))
   }, [])
 
+  // The bag and saved items live on the member, not the browser, so both come
+  // back on a different device. Neither is worth an error message if it fails —
+  // the store still works without them.
+  useEffect(() => {
+    fetch("/api/cart").then((r) => r.ok ? r.json() : null).then((d) => d && setCart(d.lines)).catch(() => {})
+    fetch("/api/wishlist").then((r) => r.ok ? r.json() : null)
+      .then((d) => d && setSaved(new Set((d.items as CatalogProduct[]).map((item) => item.id))))
+      .catch(() => {})
+  }, [])
+
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY)
     window.addEventListener("scroll", onScroll, { passive: true })
@@ -34,19 +47,43 @@ export default function StorePage() {
   }, [])
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart])
-  const addToCart = (product: CatalogProduct) => {
-    setCart((current) => {
-      const found = current.find((item) => item.id === product.id)
-      if (!found) return [...current, { ...product, quantity: 1 }]
-      return current.map((item) => item.id === product.id ? { ...item, quantity: Math.min(item.quantity + 1, product.availableQuantity) } : item)
+  const visible = useMemo(() => applyFilters(products, filters), [products, filters])
+
+  // Move the stepper first so the bag responds immediately, then let the
+  // server's answer be the truth — it is the one that knows what is left.
+  const addToCart = useCallback(async (product: CatalogProduct) => {
+    const current = cart.find((item) => item.id === product.id)?.quantity ?? 0
+    const next = Math.min(current + 1, product.availableQuantity)
+    if (next === current) return
+    setCart((lines) => {
+      const found = lines.find((item) => item.id === product.id)
+      return found
+        ? lines.map((item) => item.id === product.id ? { ...item, quantity: next } : item)
+        : [...lines, { ...product, quantity: next }]
     })
-  }
+    try {
+      const response = await fetch("/api/cart", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: product.id, quantity: next }) })
+      if (response.ok) setCart((await response.json()).lines)
+    } catch { /* the optimistic line stands; the next load reconciles it */ }
+  }, [cart])
+
+  const toggleSaved = useCallback(async (product: CatalogProduct) => {
+    const on = saved.has(product.id)
+    setSaved((current) => {
+      const next = new Set(current)
+      if (on) next.delete(product.id); else next.add(product.id)
+      return next
+    })
+    try {
+      await fetch("/api/wishlist", { method: on ? "DELETE" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: product.id }) })
+    } catch { /* same posture as the bag */ }
+  }, [saved])
 
   return <main className="shell store-page">
     <header className="topbar floating-nav">
       <Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link>
-      <nav className="desktop-nav" aria-label="Store navigation"><a href="#shop">Shop</a><a href="#why-dlc">Why DLC</a><a href="#drops">Drops</a></nav>
-      <Link className="cart-pill" href={{ pathname: "/checkout", query: { cart: JSON.stringify(cart.map(({ id, quantity }) => ({ id, quantity }))) } }}><span>Bag</span><b>{String(cartCount).padStart(2, "0")}</b></Link>
+      <nav className="desktop-nav" aria-label="Store navigation"><a href="#shop">Shop</a><a href="#why-dlc">Why DLC</a><a href="#drops">Drops</a><Link href="/account">Account</Link></nav>
+      <Link className="cart-pill" href="/checkout"><span>Bag</span><b>{String(cartCount).padStart(2, "0")}</b></Link>
     </header>
 
     <section className="hero hero-reworked">
@@ -76,10 +113,14 @@ export default function StorePage() {
       {loading && <MascotLoader label="Loading the drop" size="lg" />}
       {error && <p className="error">{error}</p>}
       {!loading && !error && products.length === 0 && <p className="empty">There are no published products available right now.</p>}
+      {!loading && !error && products.length > 0 && <StoreFilters products={products} filters={filters} onChange={setFilters} resultCount={visible.length} />}
+      {!loading && !error && products.length > 0 && visible.length === 0 && <p className="empty">Nothing matches those filters. Try clearing one.</p>}
       <div className="catalog-grid product-grid">
-        {products.map((product, index) => <Reveal key={product.id} delay={(index % 4) * 70}><article className="card product-card product-card-new">
-          <div className={`product-art ${artClasses[index % artClasses.length]}`}><span>{product.productType}</span><div className="art-ring" /><div className="art-dot" /></div>
-          <div className="product-details"><div><div className="product-kicker">{product.grade || "DLC selection"}</div><h3>{product.name}</h3></div><div className="product-bottom"><span className="price">{money(product.price)}</span><button className="add-button" aria-label={`Add ${product.name}`} onClick={() => addToCart(product)}>+</button></div></div>
+        {visible.map((product, index) => <Reveal key={product.id} delay={(index % 4) * 70}><article className="card product-card product-card-new">
+          <div className={`product-art ${artClasses[index % artClasses.length]}`}><span>{product.productType}</span><div className="art-ring" /><div className="art-dot" />
+            <button type="button" className={`save-button ${saved.has(product.id) ? "save-on" : ""}`} aria-pressed={saved.has(product.id)} aria-label={saved.has(product.id) ? `Remove ${product.name} from saved` : `Save ${product.name}`} onClick={() => toggleSaved(product)}>{saved.has(product.id) ? "♥" : "♡"}</button>
+          </div>
+          <div className="product-details"><div><div className="product-kicker">{product.grade || product.brand || "DLC selection"}</div><h3>{product.name}</h3></div><div className="product-bottom"><span className="price">{money(product.price)}</span><button className="add-button" aria-label={`Add ${product.name}`} onClick={() => addToCart(product)}>+</button></div></div>
         </article></Reveal>)}
       </div>
     </section>

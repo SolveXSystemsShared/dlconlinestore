@@ -2,16 +2,22 @@
 
 import { FormEvent, Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { formatMemberId, isCompleteMemberId, money, MEMBER_ID_PREFIX } from "@/lib/format"
-import type { CartLine, CatalogProduct } from "@/lib/types"
+import type { CatalogProduct, SavedAddress } from "@/lib/types"
+
+/** One line of text for the order, from the parts the member filled in. */
+function formatAddress(entry: SavedAddress) {
+  return [entry.line1, entry.line2, entry.suburb, entry.city, entry.postalCode, entry.notes].filter(Boolean).join(", ")
+}
 
 type CheckoutItem = Pick<CatalogProduct, "id" | "name" | "productType" | "grade" | "price" | "availableQuantity"> & { quantity: number }
 
 function CheckoutForm() {
   const router = useRouter()
-  const params = useSearchParams()
   const [cart, setCart] = useState<CheckoutItem[]>([])
+  const [addresses, setAddresses] = useState<SavedAddress[]>([])
+  const [addressId, setAddressId] = useState("")
   const [memberId, setMemberId] = useState(MEMBER_ID_PREFIX)
   const [member, setMember] = useState<{ memberId: string; name: string } | null>(null)
   const [phone, setPhone] = useState("")
@@ -20,20 +26,35 @@ function CheckoutForm() {
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
 
+  // The bag is the member's saved one, already reconciled against live stock by
+  // the API, so checkout never has to trust a number that came in on a URL.
   useEffect(() => {
-    const raw = params.get("cart")
-    if (!raw) return
-    try {
-      const requested = JSON.parse(raw) as Array<{ id: string; quantity: number }>
-      fetch("/api/catalog").then((response) => response.json()).then((data) => {
-        const products = data.products as CatalogProduct[]
-        setCart(requested.map((line) => {
-          const product = products.find((item) => item.id === line.id)
-          return product ? { ...product, quantity: Math.min(Math.max(Number(line.quantity) || 1, 1), product.availableQuantity) } : null
-        }).filter(Boolean) as CheckoutItem[])
+    fetch("/api/cart")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data) return
+        setCart(data.lines as CheckoutItem[])
+        if (data.removed) setMessage(`${data.removed} item${data.removed === 1 ? " is" : "s are"} no longer available and ${data.removed === 1 ? "was" : "were"} removed from your bag.`)
       })
-    } catch { setMessage("Your cart could not be loaded. Please return to the store.") }
-  }, [params])
+      .catch(() => setMessage("Your bag could not be loaded. Please return to the store."))
+  }, [])
+
+  // Saved addresses fill the delivery field in one tap. Typing a different one
+  // stays possible — a member sending an order somewhere new should not have to
+  // save it first.
+  useEffect(() => {
+    fetch("/api/profile/addresses")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data?.addresses?.length) return
+        setAddresses(data.addresses)
+        const preferred = (data.addresses as SavedAddress[]).find((entry) => entry.isDefault) ?? data.addresses[0]
+        setAddressId(preferred.id)
+        setAddress(formatAddress(preferred))
+        if (!phone) setPhone(preferred.phone)
+      })
+      .catch(() => {})
+  }, [])
 
   // The gate already verified this member, so checkout reads that session
   // instead of asking for the same Member ID a second time.
@@ -50,8 +71,23 @@ function CheckoutForm() {
     return () => { cancelled = true }
   }, [])
 
+  function chooseAddress(id: string) {
+    setAddressId(id)
+    const found = addresses.find((entry) => entry.id === id)
+    if (!found) return
+    setAddress(formatAddress(found))
+    setPhone(found.phone)
+  }
+
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart])
-  const updateQuantity = (id: string, quantity: number) => setCart((current) => current.map((item) => item.id === id ? { ...item, quantity: Math.max(1, Math.min(quantity, item.availableQuantity)) } : item))
+  const updateQuantity = (id: string, quantity: number) => {
+    const item = cart.find((line) => line.id === id)
+    if (!item) return
+    const next = Math.max(1, Math.min(quantity, item.availableQuantity))
+    setCart((current) => current.map((line) => line.id === id ? { ...line, quantity: next } : line))
+    // Keep the saved bag in step, so leaving checkout does not lose the edit.
+    fetch("/api/cart", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: id, quantity: next }) }).catch(() => {})
+  }
 
   // The "DLC-" prefix is furniture, not editable text: keep the caret after it
   // and stop Backspace from eating into it.
@@ -112,7 +148,7 @@ function CheckoutForm() {
             {member
               ? <div className="field"><label htmlFor="memberId">DLC Member ID</label><input id="memberId" value={member.memberId} readOnly aria-describedby="memberVerified" /><p id="memberVerified" className="notice">Verified member: <strong>{member.name}</strong></p></div>
               : <div className="field"><label htmlFor="memberId">DLC Member ID</label><div style={{ display: "flex", gap: 8 }}><input id="memberId" inputMode="numeric" value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" required /><button type="button" className="button secondary" onClick={verifyMember} disabled={!isCompleteMemberId(memberId)}>Verify</button></div></div>}
-            <div className="form-row"><div className="field"><label htmlFor="phone">Mobile number</label><input id="phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="For order updates" required /></div><div className="field"><label htmlFor="address">Delivery / collection details</label><input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Address or collection note" required /></div></div>
+            <div className="form-row"><div className="field"><label htmlFor="phone">Mobile number</label><input id="phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="For order updates" required /></div><div className="field"><label htmlFor="address">Delivery / collection details</label>{addresses.length > 0 && <select className="address-picker" aria-label="Use a saved address" value={addressId} onChange={(event) => chooseAddress(event.target.value)}><option value="">Type a new address…</option>{addresses.map((entry) => <option key={entry.id} value={entry.id}>{entry.label || entry.recipient}{entry.isDefault ? " (default)" : ""}</option>)}</select>}<input id="address" value={address} onChange={(event) => { setAddress(event.target.value); setAddressId("") }} placeholder="Address or collection note" required /></div></div>
             <div className="field"><label htmlFor="notes">Order notes <span style={{ color: "var(--muted)", fontWeight: 400 }}>(optional)</span></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Anything the fulfilment team should know?" /></div>
             {message && <p className="error">{message}</p>}
             <button className="button" disabled={busy || !cart.length || !member} type="submit">{busy ? "Reserving order…" : "Place order"}</button>

@@ -33,6 +33,7 @@ export function previewCatalog(): CatalogProduct[] {
     name,
     productType,
     grade,
+    brand: null,
     description: null,
     imageUrl: null,
     price,
