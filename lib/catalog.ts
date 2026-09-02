@@ -35,6 +35,11 @@ function strainKey(productType: string, strainName: string) {
   return `${productType.trim().toLowerCase()}|${strainName.trim().toLowerCase()}`
 }
 
+/** Same folding for grade, so "Indoor " on a stock row still matches "Indoor". */
+function gradeKey(grade: string | null) {
+  return (grade || "").trim().toLowerCase()
+}
+
 export async function getCatalog(storeId = process.env.DEFAULT_STORE_ID || null): Promise<CatalogProduct[]> {
   const supabase = getSupabaseAdmin()
 
@@ -88,7 +93,8 @@ export async function getCatalog(storeId = process.env.DEFAULT_STORE_ID || null)
     const candidates = inventoryByStrain.get(strainKey(product.product_type, product.strain_name)) || []
     // A product with no grade is a catch-all across grades — the same rule the
     // per-product query used before this was batched.
-    const matches = product.grade ? candidates.filter((row) => row.grade === product.grade) : candidates
+    const wanted = gradeKey(product.grade)
+    const matches = wanted ? candidates.filter((row) => gradeKey(row.grade) === wanted) : candidates
     if (!matches.length) continue
 
     const availableQuantity = matches.reduce(

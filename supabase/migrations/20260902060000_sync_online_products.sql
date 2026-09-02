@@ -36,10 +36,17 @@ $$;
 
 -- The natural key of a storefront product. Grade is part of it: Greenhouse and
 -- Hydroponic of the same strain are different products at different prices.
+--
+-- All three parts are folded the same way. CDASH inventory is typed by hand, so
+-- "Indoor" and "Indoor " are the same grade and must not become two products.
 -- COALESCE because a NULL grade must still compare equal to another NULL grade,
 -- which a plain unique index would not enforce.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_online_products_natural_key
-  ON public.online_products (product_type, lower(trim(strain_name)), coalesce(grade, ''));
+  ON public.online_products (
+    lower(trim(product_type)),
+    lower(trim(strain_name)),
+    lower(coalesce(trim(grade), ''))
+  );
 
 -- Marks rows the generator created, so a hand-built product is never rewritten
 -- by it. Existing rows are assumed curated.
@@ -78,24 +85,32 @@ BEGIN
     --
     -- The price is read only to decide whether the product can go on the store
     -- at all. It is never stored: getCatalog takes the live figure from the
-    -- view at request time, so repricing in CDASH needs no resync. DISTINCT ON
-    -- picks the oldest batch, which is the one getCatalog quotes from and the
-    -- one reserve_online_order draws down first.
-    SELECT DISTINCT ON (s.product_type, lower(trim(s.strain_name)), coalesce(s.grade, ''))
-      s.product_type,
+    -- view at request time, so repricing in CDASH needs no resync.
+    --
+    -- Where several batches are the same product, DISTINCT ON decides which
+    -- row supplies the customer-facing text. Prefer one that was typed with
+    -- capitals: folding the key means "aliens" and "Aliens" are one product,
+    -- and the shop should show the latter. Oldest batch breaks the remaining
+    -- tie, matching the batch getCatalog quotes and reserve_online_order
+    -- draws down first.
+    SELECT DISTINCT ON (lower(trim(s.product_type)), lower(trim(s.strain_name)), lower(coalesce(trim(s.grade), '')))
+      trim(s.product_type) AS product_type,
       trim(s.strain_name) AS strain_name,
-      s.grade,
+      nullif(trim(s.grade), '') AS grade,
       coalesce(s.online_price, s.exchange_price, 0) AS unit_price
     FROM public.online_sellable_inventory s
     WHERE coalesce(trim(s.strain_name), '') <> ''
       AND coalesce(trim(s.product_type), '') <> ''
-    ORDER BY s.product_type, lower(trim(s.strain_name)), coalesce(s.grade, ''), s.date_received, s.id
+    ORDER BY lower(trim(s.product_type)), lower(trim(s.strain_name)), lower(coalesce(trim(s.grade), '')),
+             (trim(s.strain_name) = lower(trim(s.strain_name))),
+             (trim(s.product_type) = lower(trim(s.product_type))),
+             s.date_received, s.id
   ),
   keyed AS (
     SELECT
       source.*,
       public.online_product_slug(product_type, strain_name, grade) AS base_slug,
-      substr(md5(product_type || '|' || lower(strain_name) || '|' || coalesce(grade, '')), 1, 6) AS key_hash
+      substr(md5(lower(product_type) || '|' || lower(strain_name) || '|' || lower(coalesce(grade, ''))), 1, 6) AS key_hash
     FROM source
   ),
   slugged AS (
@@ -109,8 +124,8 @@ BEGIN
           OR EXISTS (
             SELECT 1 FROM public.online_products p
             WHERE p.slug = keyed.base_slug
-              AND (p.product_type, lower(trim(p.strain_name)), coalesce(p.grade, ''))
-                  IS DISTINCT FROM (keyed.product_type, lower(keyed.strain_name), coalesce(keyed.grade, ''))
+              AND (lower(trim(p.product_type)), lower(trim(p.strain_name)), lower(coalesce(trim(p.grade), '')))
+                  IS DISTINCT FROM (lower(keyed.product_type), lower(keyed.strain_name), lower(coalesce(keyed.grade, '')))
           )
         THEN keyed.base_slug || '-' || keyed.key_hash
         ELSE keyed.base_slug
@@ -137,7 +152,7 @@ BEGIN
       true,
       now()
     FROM slugged
-    ON CONFLICT (product_type, lower(trim(strain_name)), coalesce(grade, '')) DO UPDATE
+    ON CONFLICT (lower(trim(product_type)), lower(trim(strain_name)), lower(coalesce(trim(grade), ''))) DO UPDATE
       SET last_synced_at = now(),
           -- Only ever refresh the generated name, and only while no human has
           -- renamed it. price_override, description and sort_order are
