@@ -7,9 +7,13 @@
 -- out, so the derived half is now generated and the curated half is never
 -- touched by the generator.
 --
--- What is derived : one row per sellable (product_type, strain_name, grade).
+-- What is derived : one row per sellable (product_type, strain_name, grade),
+--                   and whether it can be listed at all — a product CDASH has
+--                   not priced is withdrawn, because checkout could not take
+--                   money for it anyway.
 -- What is curated : description, image_url, price_override, sort_order,
---                   is_published, display_name once a human has changed it.
+--                   display_name once a human has changed it, and an
+--                   is_published a human has turned off.
 --
 -- Nothing here deletes. A product whose stock runs out keeps its row and
 -- simply stops rendering (getCatalog skips zero availability); when CDASH
@@ -45,6 +49,12 @@ ALTER TABLE public.online_products
 ALTER TABLE public.online_products
   ADD COLUMN IF NOT EXISTS last_synced_at timestamptz NULL;
 
+-- Set when the generator, not a person, took a product off the store. It is
+-- what lets the generator put the product back later without ever overriding
+-- a human who unpublished something deliberately (that leaves this NULL).
+ALTER TABLE public.online_products
+  ADD COLUMN IF NOT EXISTS unpublished_reason text NULL;
+
 -- Every row present when this migration first runs was seeded from CDASH by
 -- the storefront, so mark them generated. Anything added by hand afterwards
 -- takes the false default and the generator leaves its name alone.
@@ -64,16 +74,22 @@ DECLARE
   v_updated  integer := 0;
 BEGIN
   WITH source AS (
-    -- One row per distinct sellable product. Prices are deliberately NOT read
-    -- here: getCatalog takes them live from the view at request time, so a
-    -- price change in CDASH shows up online without a resync.
-    SELECT DISTINCT
+    -- One row per distinct sellable product.
+    --
+    -- The price is read only to decide whether the product can go on the store
+    -- at all. It is never stored: getCatalog takes the live figure from the
+    -- view at request time, so repricing in CDASH needs no resync. DISTINCT ON
+    -- picks the oldest batch, which is the one getCatalog quotes from and the
+    -- one reserve_online_order draws down first.
+    SELECT DISTINCT ON (s.product_type, lower(trim(s.strain_name)), coalesce(s.grade, ''))
       s.product_type,
       trim(s.strain_name) AS strain_name,
-      s.grade
+      s.grade,
+      coalesce(s.online_price, s.exchange_price, 0) AS unit_price
     FROM public.online_sellable_inventory s
     WHERE coalesce(trim(s.strain_name), '') <> ''
       AND coalesce(trim(s.product_type), '') <> ''
+    ORDER BY s.product_type, lower(trim(s.strain_name)), coalesce(s.grade, ''), s.date_received, s.id
   ),
   keyed AS (
     SELECT
@@ -104,7 +120,7 @@ BEGIN
   upserted AS (
     INSERT INTO public.online_products AS p (
       slug, display_name, product_type, strain_name, grade,
-      store_id, is_published, synced_from_cdash, last_synced_at
+      store_id, is_published, unpublished_reason, synced_from_cdash, last_synced_at
     )
     SELECT
       slug,
@@ -116,17 +132,34 @@ BEGIN
       -- store, so one product row serves every branch and shows only where
       -- there is stock.
       NULL,
-      true,
+      unit_price > 0,
+      CASE WHEN unit_price > 0 THEN NULL ELSE 'no_price' END,
       true,
       now()
     FROM slugged
     ON CONFLICT (product_type, lower(trim(strain_name)), coalesce(grade, '')) DO UPDATE
       SET last_synced_at = now(),
           -- Only ever refresh the generated name, and only while no human has
-          -- renamed it. is_published, price_override, description, image_url
-          -- and sort_order are curation and are never overwritten here.
+          -- renamed it. price_override, description and sort_order are
+          -- curation and are never overwritten here.
           display_name = CASE WHEN p.synced_from_cdash THEN excluded.display_name ELSE p.display_name END,
-          updated_at   = now()
+          -- An unpriced product must not be listed: with nothing to charge,
+          -- checkout would refuse it anyway. Withdrawing it is a statement of
+          -- fact, so the generator may do it to any product...
+          is_published = CASE
+            WHEN excluded.unpublished_reason = 'no_price' THEN false
+            -- ...but it may only put a product back that it withdrew itself.
+            -- A product a person unpublished has no reason recorded and stays
+            -- off the store until that person says otherwise.
+            WHEN p.unpublished_reason = 'no_price' THEN true
+            ELSE p.is_published
+          END,
+          unpublished_reason = CASE
+            WHEN excluded.unpublished_reason = 'no_price' THEN 'no_price'
+            WHEN p.unpublished_reason = 'no_price' THEN NULL
+            ELSE p.unpublished_reason
+          END,
+          updated_at = now()
     RETURNING (xmax = 0) AS was_insert
   )
   SELECT
@@ -140,7 +173,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.sync_online_products() IS
-  'Upserts one online_products row per sellable CDASH product. Never deletes and never overwrites curated fields.';
+  'Upserts one online_products row per sellable CDASH product, withdrawing any CDASH has not priced. Never deletes and never overwrites curated fields.';
 
 REVOKE ALL ON FUNCTION public.sync_online_products() FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.sync_online_products() TO service_role;
