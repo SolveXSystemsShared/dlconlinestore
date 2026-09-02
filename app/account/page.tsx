@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { MascotLoader } from "@/components/mascot-loader"
+import { Pagination, usePagination } from "@/components/pagination"
 import { money } from "@/lib/format"
 import type { CatalogProduct, MemberProfile, OrderSummary, SavedAddress } from "@/lib/types"
 
@@ -15,6 +16,10 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: "orders", label: "Orders" },
   { id: "saved", label: "Saved" },
 ]
+
+// An order history and a wishlist both grow without limit; addresses do not.
+const ORDERS_PER_PAGE = 10
+const SAVED_PER_PAGE = 12
 
 const EMPTY_ADDRESS = { id: "", label: "", recipient: "", phone: "", line1: "", line2: "", suburb: "", city: "", postalCode: "", notes: "", isDefault: false }
 type AddressDraft = typeof EMPTY_ADDRESS
@@ -30,6 +35,11 @@ export default function AccountPage() {
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [draft, setDraft] = useState<AddressDraft | null>(null)
+
+  // Keyed on length so removing the last item on a page steps back rather than
+  // leaving an empty list behind.
+  const orderPages = usePagination(orders, ORDERS_PER_PAGE, `orders-${orders.length}`)
+  const savedPages = usePagination(savedItems, SAVED_PER_PAGE, `saved-${savedItems.length}`)
 
   useEffect(() => {
     Promise.all([
@@ -214,17 +224,17 @@ export default function AccountPage() {
       </div>}
 
       {tab === "orders" && <div className="account-card">
-        {orders.length === 0 ? <p className="empty">You have not placed an order yet.</p> : <div className="order-list">
-          {orders.map((order) => <Link className="card order-row" key={order.id} href={`/order/${order.id}`}>
+        {orders.length === 0 ? <p className="empty">You have not placed an order yet.</p> : <><div className="order-list">
+          {orderPages.visible.map((order) => <Link className="card order-row" key={order.id} href={`/order/${order.id}`}>
             <div><strong>{order.orderNumber}</strong><span className="field-hint">{new Date(order.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })} · {order.itemCount} {order.itemCount === 1 ? "item" : "items"}</span></div>
             <div className="order-row-end"><span className={`tag status-${order.status}`}>{order.status.replaceAll("_", " ")}</span><strong>{money(order.total)}</strong></div>
           </Link>)}
-        </div>}
+        </div><Pagination page={orderPages.page} pageCount={orderPages.pageCount} total={orders.length} perPage={ORDERS_PER_PAGE} label="Orders" onChange={orderPages.setPage} /></>}
       </div>}
 
       {tab === "saved" && <div className="account-card">
-        {savedItems.length === 0 ? <p className="empty">Nothing saved yet. Tap the heart on anything in the store.</p> : <div className="catalog-grid product-grid">
-          {savedItems.map((item) => <article className="card product-card" key={item.id}>
+        {savedItems.length === 0 ? <p className="empty">Nothing saved yet. Tap the heart on anything in the store.</p> : <><div className="catalog-grid product-grid">
+          {savedPages.visible.map((item) => <article className="card product-card" key={item.id}>
             <div className="product-details">
               <div><div className="product-kicker">{item.grade || item.brand || item.productType}</div><h3>{item.name}</h3></div>
               <div className="product-bottom">
@@ -236,7 +246,7 @@ export default function AccountPage() {
               </div>
             </div>
           </article>)}
-        </div>}
+        </div><Pagination page={savedPages.page} pageCount={savedPages.pageCount} total={savedItems.length} perPage={SAVED_PER_PAGE} label="Saved items" onChange={savedPages.setPage} /></>}
       </div>}
     </section>
   </main>

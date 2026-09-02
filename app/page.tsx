@@ -5,10 +5,14 @@ import Link from "next/link"
 import { Reveal } from "@/components/reveal"
 import { MascotLoader } from "@/components/mascot-loader"
 import { applyFilters, Filters, NO_FILTERS, StoreFilters } from "@/components/store-filters"
+import { Pagination, usePagination } from "@/components/pagination"
 import { money } from "@/lib/format"
 import type { CatalogProduct, CartLine } from "@/lib/types"
 
 const artClasses = ["art-lime", "art-sand", "art-blue", "art-berry"]
+// Two full rows on a laptop, eight screens-worth on a phone. Small enough that
+// the grid paints quickly on a slow connection, large enough to browse.
+const PER_PAGE = 24
 
 export default function StorePage() {
   const [products, setProducts] = useState<CatalogProduct[]>([])
@@ -47,7 +51,10 @@ export default function StorePage() {
   }, [])
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart])
-  const visible = useMemo(() => applyFilters(products, filters), [products, filters])
+  const filtered = useMemo(() => applyFilters(products, filters), [products, filters])
+  // Changing any filter starts again at page one, so a narrowed list never
+  // opens on a page that no longer exists.
+  const { page, setPage, pageCount, visible } = usePagination(filtered, PER_PAGE, `${filters.category}|${filters.line}|${filters.search}`)
 
   // Move the stepper first so the bag responds immediately, then let the
   // server's answer be the truth — it is the one that knows what is left.
@@ -83,7 +90,10 @@ export default function StorePage() {
     <header className="topbar floating-nav">
       <Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link>
       <nav className="desktop-nav" aria-label="Store navigation"><a href="#shop">Shop</a><a href="#why-dlc">Why DLC</a><a href="#drops">Drops</a><Link href="/account">Account</Link></nav>
-      <Link className="cart-pill" href="/checkout"><span>Bag</span><b>{String(cartCount).padStart(2, "0")}</b></Link>
+      <div className="topbar-actions">
+        <Link className="account-pill" href="/account" aria-label="Your account"><span aria-hidden="true">☺</span><b>Account</b></Link>
+        <Link className="cart-pill" href="/checkout"><span>Bag</span><b>{String(cartCount).padStart(2, "0")}</b></Link>
+      </div>
     </header>
 
     <section className="hero hero-reworked">
@@ -113,8 +123,8 @@ export default function StorePage() {
       {loading && <MascotLoader label="Loading the drop" size="lg" />}
       {error && <p className="error">{error}</p>}
       {!loading && !error && products.length === 0 && <p className="empty">There are no published products available right now.</p>}
-      {!loading && !error && products.length > 0 && <StoreFilters products={products} filters={filters} onChange={setFilters} resultCount={visible.length} />}
-      {!loading && !error && products.length > 0 && visible.length === 0 && <p className="empty">Nothing matches those filters. Try clearing one.</p>}
+      {!loading && !error && products.length > 0 && <StoreFilters products={products} filters={filters} onChange={setFilters} resultCount={filtered.length} />}
+      {!loading && !error && products.length > 0 && filtered.length === 0 && <p className="empty">Nothing matches those filters. Try clearing one.</p>}
       <div className="catalog-grid product-grid">
         {visible.map((product, index) => <Reveal key={product.id} delay={(index % 4) * 70}><article className="card product-card product-card-new">
           <div className={`product-art ${artClasses[index % artClasses.length]}`}><span>{product.productType}</span><div className="art-ring" /><div className="art-dot" />
@@ -123,6 +133,19 @@ export default function StorePage() {
           <div className="product-details"><div><div className="product-kicker">{product.grade || product.brand || "DLC selection"}</div><h3>{product.name}</h3></div><div className="product-bottom"><span className="price">{money(product.price)}</span><button className="add-button" aria-label={`Add ${product.name}`} onClick={() => addToCart(product)}>+</button></div></div>
         </article></Reveal>)}
       </div>
+      <Pagination
+        page={page}
+        pageCount={pageCount}
+        total={filtered.length}
+        perPage={PER_PAGE}
+        label="Products"
+        onChange={(next) => {
+          setPage(next)
+          // Send them back to the top of the grid rather than leaving them
+          // halfway down a page they have not seen.
+          document.getElementById("shop")?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }}
+      />
     </section>
 
     <section className="manifesto-section" id="why-dlc">

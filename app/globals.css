@@ -434,7 +434,11 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 
 /* ---- Store filters -------------------------------------------------- */
 .filter-bar { background: hsl(202 80% 98%); border: 1px solid var(--line-soft); border-radius: 18px; display: grid; gap: 12px; margin: 0 0 28px; padding: 16px 18px; }
-.filter-row { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+/* min-width:0 because a grid item defaults to min-width:auto and will not
+   shrink below its content. Without it the chip row grew past the viewport and
+   .shell's overflow-x:hidden clipped the chips off entirely — unreachable on a
+   phone rather than merely off-screen. */
+.filter-row { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
 .filter-label { color: var(--muted); flex: none; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; width: 92px; }
 .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { background: #fff; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--ink); cursor: pointer; font: inherit; font-size: .82rem; padding: 6px 14px; transition: background .15s, border-color .15s, color .15s; }
@@ -473,3 +477,52 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 .order-row-end { justify-items: end; text-align: right; }
 .status-cancelled, .status-expired { background: hsl(0 70% 95%); color: #b02a37; }
 .status-paid, .status-completed { background: hsl(140 50% 93%); color: #1f7a3f; }
+
+/* ---- Pagination ----------------------------------------------------- */
+.pagination { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; margin: 28px 0 0; }
+.pagination-count { color: var(--muted); font-size: .82rem; }
+.pagination-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.page-btn { background: #fff; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--ink); cursor: pointer; font: inherit; font-size: .85rem; line-height: 1; min-height: 40px; min-width: 40px; padding: 0 10px; transition: background .15s, border-color .15s, color .15s; }
+.page-btn:hover:not(:disabled) { border-color: var(--brand, #1f6fb2); }
+.page-btn:disabled { cursor: not-allowed; opacity: .4; }
+.page-on { background: var(--brand, #1f6fb2); border-color: var(--brand, #1f6fb2); color: #fff; }
+.page-gap { align-self: center; color: var(--muted); padding: 0 2px; }
+
+/* ---- Account reachable on a phone ----------------------------------- */
+.topbar-actions { align-items: center; display: flex; gap: 8px; }
+.account-pill { align-items: center; background: #fff; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--ink); display: inline-flex; font-size: .78rem; font-weight: 700; gap: 6px; letter-spacing: .04em; min-height: 40px; padding: 0 14px; text-decoration: none; transition: border-color .2s ease; }
+.account-pill:hover { border-color: var(--brand, #1f6fb2); }
+.account-pill span { font-size: 1rem; }
+
+@media (max-width: 760px) {
+  /* The desktop nav is hidden at this width, so the pill is the only way in. */
+  .account-pill b { display: none; }
+  .account-pill { padding: 0 12px; }
+  .pagination { justify-content: center; }
+  .pagination-count { flex: 1 0 100%; text-align: center; }
+}
+
+@media (max-width: 560px) {
+  /* Filters stack, and each row scrolls sideways instead of wrapping into a
+     wall of chips that pushes the products off the screen. */
+  .filter-bar { padding: 12px 14px; }
+  /* A flex child will not shrink below its content, so the chip row grew to its
+     full 1100px and pushed itself off the screen instead of scrolling inside
+     it. min-width:0 lets it shrink; max-width pins it to the viewport. */
+  .filter-chips { flex: 1 1 auto; flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .filter-chips::-webkit-scrollbar { display: none; }
+  .filter-chips .chip { flex: none; }
+  .filter-row-search { gap: 8px; }
+  .filter-search { flex: 1 0 100%; }
+  .account-tabs { flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .account-tabs::-webkit-scrollbar { display: none; }
+  .account-tabs .chip { flex: none; }
+  .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .address-grid { grid-template-columns: 1fr; }
+  .order-row { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .order-row-end { align-items: flex-start; justify-items: start; text-align: left; }
+  /* Chips and steppers need a real touch target — the add button was 32px. */
+  .chip { min-height: 38px; padding: 8px 14px; }
+  .save-button { height: 38px; width: 38px; }
+  .add-button { height: 40px; min-width: 40px; width: 40px; }
+}
