@@ -38,11 +38,31 @@ export const PENDING_STATUS = "pending"
 export const ONLINE_MARKETING_SOURCE = "online_store"
 
 /**
- * Statuses that mean a member may NOT shop. Kept in sync with
- * DEACTIVATED_STATUSES in the CDASH `/api/verify-member` route so both systems
- * agree on who counts as deactivated.
+ * Statuses that mean a member may NOT shop.
+ *
+ * The first six mirror DEACTIVATED_STATUSES in the CDASH `/api/verify-member`
+ * route so both systems agree on who counts as deactivated. "paused" and
+ * "on_hold" are storefront additions: CDASH does not use them today, but a
+ * paused membership must not be able to buy, and it costs nothing to refuse a
+ * status that would otherwise fall through to "active" by default.
  */
-export const DEACTIVATED_STATUSES = new Set(["deactivated", "inactive", "suspended", "banned", "cancelled", "revoked"])
+export const DEACTIVATED_STATUSES = new Set([
+  "deactivated", "inactive", "suspended", "banned", "cancelled", "revoked",
+  "paused", "on_hold", "on hold",
+])
+
+/**
+ * CDASH staff — directors, managers, staff, auditors — live in `users`, not
+ * `members`, and carry their own DLC-XXXX-YY identifier in `member_number`.
+ * They are members of the club too and shop with that ID, so member lookup
+ * falls back to this table when `members` has no row.
+ *
+ * There is no status column: `deleted_at` is CDASH's soft delete
+ * (20260526090000_add_users_soft_delete), so a NULL there means a serving
+ * staff member.
+ */
+export const STAFF_TABLE = "users"
+export const STAFF_ID_COLUMN = "member_number"
 
 export type MemberVerdict = "active" | "pending" | "deactivated"
 
