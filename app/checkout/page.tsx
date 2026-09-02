@@ -35,6 +35,21 @@ function CheckoutForm() {
     } catch { setMessage("Your cart could not be loaded. Please return to the store.") }
   }, [params])
 
+  // The gate already verified this member, so checkout reads that session
+  // instead of asking for the same Member ID a second time.
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/members/session")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (cancelled || !data?.member) return
+        setMember(data.member)
+        setMemberId(data.member.memberId)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart])
   const updateQuantity = (id: string, quantity: number) => setCart((current) => current.map((item) => item.id === id ? { ...item, quantity: Math.max(1, Math.min(quantity, item.availableQuantity)) } : item))
 
@@ -76,7 +91,7 @@ function CheckoutForm() {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ memberId, phone, deliveryAddress: address, customerNotes: notes, items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })) }),
+        body: JSON.stringify({ memberId: member.memberId, phone, deliveryAddress: address, customerNotes: notes, items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })) }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not place order")
@@ -94,12 +109,13 @@ function CheckoutForm() {
         <div className="checkout-layout">
           <form className="card" onSubmit={submitOrder}>
             <div className="notice">Your order will be reserved against live CDASH inventory. Payment confirmation is handled after the order is created.</div>
-            <div className="field"><label htmlFor="memberId">DLC Member ID</label><div style={{ display: "flex", gap: 8 }}><input id="memberId" inputMode="numeric" value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" required /><button type="button" className="button secondary" onClick={verifyMember} disabled={!isCompleteMemberId(memberId)}>Verify</button></div></div>
-            {member && <div className="notice">Verified member: <strong>{member.name}</strong></div>}
+            {member
+              ? <div className="field"><label htmlFor="memberId">DLC Member ID</label><input id="memberId" value={member.memberId} readOnly aria-describedby="memberVerified" /><p id="memberVerified" className="notice">Verified member: <strong>{member.name}</strong></p></div>
+              : <div className="field"><label htmlFor="memberId">DLC Member ID</label><div style={{ display: "flex", gap: 8 }}><input id="memberId" inputMode="numeric" value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" required /><button type="button" className="button secondary" onClick={verifyMember} disabled={!isCompleteMemberId(memberId)}>Verify</button></div></div>}
             <div className="form-row"><div className="field"><label htmlFor="phone">Mobile number</label><input id="phone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="For order updates" required /></div><div className="field"><label htmlFor="address">Delivery / collection details</label><input id="address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Address or collection note" required /></div></div>
             <div className="field"><label htmlFor="notes">Order notes <span style={{ color: "var(--muted)", fontWeight: 400 }}>(optional)</span></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Anything the fulfilment team should know?" /></div>
             {message && <p className="error">{message}</p>}
-            <button className="button" disabled={busy || !cart.length} type="submit">{busy ? "Reserving order…" : "Place order"}</button>
+            <button className="button" disabled={busy || !cart.length || !member} type="submit">{busy ? "Reserving order…" : "Place order"}</button>
           </form>
           <aside className="card"><h3>Your order</h3>{!cart.length && <p className="empty">Your cart is empty.</p>}{cart.map((item) => <div className="summary-line" key={item.id}><span>{item.name} × <input aria-label={`Quantity for ${item.name}`} style={{ width: 48, padding: 4 }} type="number" min={1} max={item.availableQuantity} value={item.quantity} onChange={(event) => updateQuantity(item.id, Number(event.target.value))} /></span><strong>{money(item.price * item.quantity)}</strong></div>)}<div className="summary-line summary-total"><span>Total</span><strong>{money(subtotal)}</strong></div></aside>
         </div>

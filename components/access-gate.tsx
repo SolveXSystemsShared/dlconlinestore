@@ -1,12 +1,12 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { formatMemberId, isCompleteMemberId, MEMBER_ID_PREFIX } from "@/lib/format"
 import { MascotLoader } from "@/components/mascot-loader"
 
-type GateState = "age" | "member" | "allowed" | "blocked"
+type GateState = "checking" | "age" | "member" | "allowed" | "blocked"
 
 export function AccessGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -14,11 +14,35 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
   // the 18+ check but in front of the member check — otherwise the Register
   // link loops straight back to this gate.
   const isRegistration = pathname === "/register"
-  const [state, setState] = useState<GateState>("age")
+  // Starts at "checking", never at "age": the signed cookies survive reloads and
+  // deep links, so an already-verified member must be let back in rather than
+  // re-asked for a Member ID they have already entered.
+  const [state, setState] = useState<GateState>("checking")
   const [memberId, setMemberId] = useState(MEMBER_ID_PREFIX)
   const [memberName, setMemberName] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
+
+  /** Reads the signed cookies and returns the gate screen they entitle you to. */
+  const restoreSession = useCallback(async (): Promise<GateState> => {
+    const response = await fetch("/api/members/session")
+    if (!response.ok) return "age"
+    const data = await response.json()
+    if (data.member) {
+      setMemberName(data.member.name)
+      return "allowed"
+    }
+    return data.ageConfirmed ? "member" : "age"
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    restoreSession()
+      // A failed check must never lock a member out; fall back to the full gate.
+      .catch(() => "age" as GateState)
+      .then((next) => { if (!cancelled) setState(next) })
+    return () => { cancelled = true }
+  }, [restoreSession])
 
   async function confirmAge() {
     setBusy(true)
@@ -27,14 +51,7 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
       const ageResponse = await fetch("/api/access/age", { method: "POST" })
       if (!ageResponse.ok) throw new Error("Age confirmation could not be recorded")
       if (isRegistration) { setState("member"); return }
-      const sessionResponse = await fetch("/api/members/session")
-      if (sessionResponse.ok) {
-        const data = await sessionResponse.json()
-        setMemberName(data.member.name)
-        setState("allowed")
-      } else {
-        setState("member")
-      }
+      setState(await restoreSession())
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Please try again")
     } finally { setBusy(false) }
@@ -79,8 +96,8 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
 
   return <div className="gate-screen">
     {/* Greets on arrival, then picks up pulse rings while a request is in flight. */}
-    <div className="gate-figure"><MascotLoader size="lg" rings={busy} label={busy ? "One moment" : ""} /></div>
-    <div className="gate-card">
+    <div className="gate-figure"><MascotLoader size="lg" rings={busy || state === "checking"} label={busy || state === "checking" ? "One moment" : ""} /></div>
+    {state !== "checking" && <div className="gate-card">
       <img className="gate-mark" src="/assets/dlc-logo-black.png" alt="DLC" />
       <div className="eyebrow">DLC member store</div>
       {state === "age" && <>
@@ -104,6 +121,6 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
       </>}
       {state === "age" && error && <p className="gate-error">{error}</p>}
       {memberName && <p className="gate-welcome">Welcome, {memberName}.</p>}
-    </div>
+    </div>}
   </div>
 }

@@ -4,10 +4,11 @@ import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { SignaturePad } from "@/components/signature-pad"
 
-type Submitted = { memberNumber: string; status: string }
+type Submitted = { memberNumber: string; memberName: string; status: string }
 
 export default function RegisterPage() {
   const [signature, setSignature] = useState("")
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<Submitted | null>(null)
@@ -31,6 +32,7 @@ export default function RegisterPage() {
       foreignPassport: String(form.get("foreignPassport") || ""),
       residentialAddress: String(form.get("residentialAddress") || ""),
       digitalSignature: signature,
+      marketingOptIn,
     }
 
     setBusy(true)
@@ -45,7 +47,7 @@ export default function RegisterPage() {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Registration could not be completed")
-      setDone({ memberNumber: data.memberNumber, status: data.status })
+      setDone({ memberNumber: data.memberNumber, memberName: data.memberName ?? "", status: data.status })
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Registration could not be completed")
     } finally {
@@ -57,11 +59,11 @@ export default function RegisterPage() {
     return <main className="shell">
       <header className="topbar"><Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link></header>
       <section className="content success register-done">
-        <div className="eyebrow">Registration received</div>
-        <h1>You&apos;re on the list.</h1>
+        <div className="eyebrow">Welcome to DLC</div>
+        <h1>You&apos;re a member.</h1>
         <p className="order-number">{done.memberNumber}</p>
-        <p>Your application is <strong>awaiting approval</strong>. The DLC team reviews new members in CDASH and will confirm your Member ID before you can shop. Keep the number above — you&apos;ll need it to enter the store.</p>
-        <Link className="button" href="/">Back to the store</Link>
+        <p>This is your DLC Member ID, and it is <strong>active now</strong>. Save it — it is how you enter the store and how the team finds you at the counter. You&apos;re already signed in, so you can start shopping straight away.</p>
+        <Link className="button" href="/">Start shopping</Link>
       </section>
     </main>
   }
@@ -78,11 +80,11 @@ export default function RegisterPage() {
           <div className="eyebrow dark-eyebrow">Become a member</div>
           <h2>Register.</h2>
         </div>
-        <p>18+ only. Approved by the DLC<br />team before your first order.</p>
+        <p>18+ only. Your Member ID is<br />issued the moment you submit.</p>
       </div>
 
       <form className="card register-card" onSubmit={submit}>
-        <p className="notice">Everything here is required by DLC membership records. Your application is reviewed by the team — you&apos;ll receive your Member ID once it is approved.</p>
+        <p className="notice">Everything here is required by DLC membership records. Submit and your Member ID is issued immediately — you can shop the same visit.</p>
 
         <div className="field">
           <label htmlFor="fullName">Full name</label>
@@ -125,6 +127,11 @@ export default function RegisterPage() {
           <label>Digital signature</label>
           <SignaturePad onChange={setSignature} />
         </div>
+
+        <label className="field-consent">
+          <input type="checkbox" checked={marketingOptIn} onChange={(event) => setMarketingOptIn(event.target.checked)} />
+          <span>Keep me posted on DLC drops, specials and member news.</span>
+        </label>
 
         {error && <p className="error">{error}</p>}
 

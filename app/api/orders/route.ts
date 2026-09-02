@@ -3,6 +3,7 @@ import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { normalizeMemberId } from "@/lib/format"
 import { getMemberAccess } from "@/lib/member-access"
+import { lookupMember } from "@/lib/members"
 
 const input = z.object({
   memberId: z.string().min(4).max(40),
@@ -23,9 +24,11 @@ export async function POST(request: NextRequest) {
     const memberId = normalizeMemberId(body.memberId)
     if (access.memberId !== memberId) return NextResponse.json({ error: "This Member ID is not the verified store member" }, { status: 403 })
 
-    const { data: member, error: memberError } = await supabase.from("members").select("member_id, full_name, status").eq("member_id", memberId).maybeSingle()
-    if (memberError) throw memberError
-    if (!member || member.status !== "active") return NextResponse.json({ error: "Active DLC member not found" }, { status: 404 })
+    // Same lookup the gate uses, so "active" means the same thing here as it
+    // does at the door — matching is case-insensitive and reads whichever
+    // column MEMBER_ID_COLUMN points at.
+    const member = await lookupMember(memberId)
+    if (!member.found || member.verdict !== "active") return NextResponse.json({ error: "Active DLC member not found" }, { status: 404 })
 
     const ids = body.items.map((item) => item.productId)
     const { data: products, error: productError } = await supabase.from("online_products").select("id, display_name, product_type, strain_name, grade, price_override, is_published").in("id", ids).eq("is_published", true)
@@ -53,8 +56,8 @@ export async function POST(request: NextRequest) {
     if (subtotal <= 0) return NextResponse.json({ error: "The selected products have no valid online price" }, { status: 400 })
 
     const { data: order, error: orderError } = await supabase.from("online_orders").insert({
-      member_id: member.member_id,
-      member_name: member.full_name,
+      member_id: member.memberId,
+      member_name: member.name,
       customer_phone: body.phone,
       delivery_address: body.deliveryAddress,
       customer_notes: body.customerNotes,

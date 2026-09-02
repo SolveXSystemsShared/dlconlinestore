@@ -26,13 +26,14 @@ export async function getCatalog(storeId = process.env.DEFAULT_STORE_ID || null)
   const result: CatalogProduct[] = []
 
   for (const product of products) {
+    // online_sellable_inventory is the single definition of what may be sold:
+    // on the shelf, in stock, not archived. reserve_online_order reads the same
+    // view, so the catalogue can never advertise something checkout will refuse.
     let inventoryQuery = supabase
-      .from("inventory_items")
+      .from("online_sellable_inventory")
       .select("id, quantity, online_price, exchange_price, store_id, date_received")
       .eq("product_type", product.product_type)
       .ilike("strain_name", product.strain_name.trim())
-      .eq("is_archived", false)
-      .gt("quantity", 0)
 
     if (product.grade) inventoryQuery = inventoryQuery.eq("grade", product.grade)
     if (storeId) inventoryQuery = inventoryQuery.or(`store_id.eq.${storeId},store_id.is.null`)

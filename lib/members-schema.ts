@@ -16,8 +16,26 @@ export const MEMBER_ID_COLUMN = process.env.CDASH_MEMBER_ID_COLUMN || "member_id
 /** Members created from the storefront are tagged with this in `registered_by`. */
 export const ONLINE_REGISTRATION_SOURCE = "Online Store"
 
-/** Web registrations are never self-activating — staff approve them in CDASH. */
+/**
+ * Status the storefront gives a new member.
+ *
+ * CDASH's own public self-registration form (`/membership`, registered_by
+ * "Self (Public Form)") creates members as "active" straight away, and CDASH
+ * has no pending-approval queue to drain — a "pending" row would simply never
+ * be looked at. Online registrations therefore activate on the same terms;
+ * `registered_by` is what marks where they came from.
+ */
+export const ONLINE_REGISTRATION_STATUS = "active"
+
+/**
+ * Legacy status. No longer written by this app, but rows created before the
+ * storefront matched CDASH may still carry it, so `memberVerdict` keeps
+ * recognising it and telling those members to speak to the team.
+ */
 export const PENDING_STATUS = "pending"
+
+/** Where the marketing consent on a storefront registration was captured. */
+export const ONLINE_MARKETING_SOURCE = "online_store"
 
 /**
  * Statuses that mean a member may NOT shop. Kept in sync with

@@ -367,6 +367,8 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 .register-card { padding: 30px; }
 .register-card > .button { width: 100%; }
 .field-hint { color: var(--muted); font-weight: 400; }
+.field-consent { align-items: flex-start; color: var(--muted); cursor: pointer; display: flex; font-size: .86rem; gap: 10px; line-height: 1.45; }
+.field-consent input { accent-color: var(--brand, #1f6fb2); flex: none; height: 16px; margin-top: 2px; width: 16px; }
 .register-fineprint { color: var(--muted); font-size: .78rem; line-height: 1.5; margin: 14px 0 0; text-align: center; }
 .register-done { margin: 0 auto; max-width: 620px; }
 .register-done p { color: var(--muted); line-height: 1.7; }
