@@ -21,17 +21,16 @@ function env(name: string) {
 export function getSupabaseAdmin() {
   if (client) return client
 
-  // SUPABASE_URL is the name to prefer: this URL is only ever used here, on the
-  // server, so it has no business carrying the NEXT_PUBLIC_ prefix that marks a
-  // value as safe to ship to browsers. NEXT_PUBLIC_SUPABASE_URL stays supported
-  // so existing deployments keep working.
-  const url = env("SUPABASE_URL") || env("NEXT_PUBLIC_SUPABASE_URL")
+  // Server-only, and named accordingly. NEXT_PUBLIC_ marks a value as safe to
+  // ship to browsers, which this is not — and the prefix is what made Next
+  // inline it at build time and freeze it as undefined in the first place.
+  const url = env("SUPABASE_URL")
   const key = env("SUPABASE_SERVICE_ROLE_KEY")
 
   // Name what is actually missing. The old message said only that something was
   // wrong, which left a misconfigured deployment looking like a broken one.
   if (!url || !key) {
-    const missing = [!url && "SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)", !key && "SUPABASE_SERVICE_ROLE_KEY"].filter(Boolean)
+    const missing = [!url && "SUPABASE_URL", !key && "SUPABASE_SERVICE_ROLE_KEY"].filter(Boolean)
     throw new Error(`Supabase server environment is not configured: missing ${missing.join(" and ")}`)
   }
 
