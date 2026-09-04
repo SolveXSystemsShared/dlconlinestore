@@ -99,23 +99,23 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
     <div className="gate-figure"><MascotLoader size="lg" rings={busy || state === "checking"} label={busy || state === "checking" ? "One moment" : ""} /></div>
     {state !== "checking" && <div className="gate-card">
       <img className="gate-mark" src="/assets/dlc-logo-black.png" alt="DLC" />
-      <div className="eyebrow">DLC member store</div>
+      <div className="eyebrow">DLC member lounge</div>
       {state === "age" && <>
         <h1 className="gate-title">18+ only.</h1>
-        <p>This store is for registered DLC members who are 18 years or older.</p>
+        <p>This lounge is for registered DLC members who are 18 years or older.</p>
         <div className="gate-actions"><button className="button" disabled={busy} onClick={confirmAge}>I am 18 or older</button><button className="gate-leave" onClick={() => setState("blocked")}>I am under 18</button></div>
       </>}
       {state === "blocked" && <>
         <h1 className="gate-title">Access unavailable.</h1>
-        <p>You must be 18 or older to access the DLC Online Store.</p>
+        <p>You must be 18 or older to access the DLC Online Lounge.</p>
       </>}
       {state === "member" && <>
         <h1 className="gate-title">Members only.</h1>
-        <p>Enter the active DLC Member ID already registered in CDASH to continue.</p>
+        <p>Enter your active DLC Member ID to continue.</p>
         <form onSubmit={verifyMember}>
           <div className="field"><label htmlFor="gate-member-id">DLC Member ID</label><input id="gate-member-id" autoFocus inputMode="numeric" value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" required /></div>
           {error && <p className="gate-error">{error}</p>}
-          <button className="button" disabled={busy || !isCompleteMemberId(memberId)}>{busy ? "Checking…" : "Enter store"}</button>
+          <button className="button" disabled={busy || !isCompleteMemberId(memberId)}>{busy ? "Checking…" : "Enter lounge"}</button>
         </form>
         <p className="gate-register">No Member ID yet? <Link href="/register">Register</Link></p>
       </>}

@@ -36,3 +36,17 @@ export async function GET() {
     return NextResponse.json({ error: "Member session unavailable" }, { status: 500 })
   }
 }
+
+/**
+ * Sign out of the member session.
+ *
+ * Clears the Member ID cookie only. The 18+ confirmation is a property of the
+ * device rather than the person, so it stays — which drops the next person on
+ * the Member ID step instead of making them confirm their age again on a
+ * machine where that has already been answered.
+ */
+export async function DELETE() {
+  const response = NextResponse.json({ ok: true })
+  response.cookies.set({ name: MEMBER_COOKIE, value: "", path: "/", maxAge: 0 })
+  return response
+}

@@ -1,5 +1,15 @@
-export function money(value: number) {
-  return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(value)
+/**
+ * Prices are shown as a credit balance, not currency: "120 Credits", never
+ * "R120,00". No symbol, and no trailing ",00" on the whole numbers that make
+ * up nearly all of the catalogue — a credit is a whole thing.
+ */
+export function credits(value: number) {
+  const rounded = Math.round(value * 100) / 100
+  const amount = new Intl.NumberFormat("en-ZA", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: Number.isInteger(rounded) ? 0 : 2,
+  }).format(rounded)
+  return `${amount} ${rounded === 1 ? "Credit" : "Credits"}`
 }
 
 export function normalizeMemberId(value: string) {

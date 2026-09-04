@@ -3,7 +3,7 @@
 import { FormEvent, Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { formatMemberId, isCompleteMemberId, money, MEMBER_ID_PREFIX } from "@/lib/format"
+import { formatMemberId, isCompleteMemberId, credits, MEMBER_ID_PREFIX } from "@/lib/format"
 import type { CatalogProduct, SavedAddress } from "@/lib/types"
 
 /** One line of text for the order, from the parts the member filled in. */
@@ -26,7 +26,7 @@ function CheckoutForm() {
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
 
-  // The bag is the member's saved one, already reconciled against live stock by
+  // The tray is the member's saved one, already reconciled against live stock by
   // the API, so checkout never has to trust a number that came in on a URL.
   useEffect(() => {
     fetch("/api/cart")
@@ -34,9 +34,9 @@ function CheckoutForm() {
       .then((data) => {
         if (!data) return
         setCart(data.lines as CheckoutItem[])
-        if (data.removed) setMessage(`${data.removed} item${data.removed === 1 ? " is" : "s are"} no longer available and ${data.removed === 1 ? "was" : "were"} removed from your bag.`)
+        if (data.removed) setMessage(`${data.removed} item${data.removed === 1 ? " is" : "s are"} no longer available and ${data.removed === 1 ? "was" : "were"} removed from your Tray.`)
       })
-      .catch(() => setMessage("Your bag could not be loaded. Please return to the store."))
+      .catch(() => setMessage("Your Tray could not be loaded. Please return to the lounge."))
   }, [])
 
   // Saved addresses fill the delivery field in one tap. Typing a different one
@@ -80,13 +80,24 @@ function CheckoutForm() {
   }
 
   const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.price * item.quantity, 0), [cart])
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = async (id: string, quantity: number) => {
     const item = cart.find((line) => line.id === id)
     if (!item) return
     const next = Math.max(1, Math.min(quantity, item.availableQuantity))
+    const previous = item.quantity
+    if (next === previous) return
     setCart((current) => current.map((line) => line.id === id ? { ...line, quantity: next } : line))
-    // Keep the saved bag in step, so leaving checkout does not lose the edit.
-    fetch("/api/cart", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: id, quantity: next }) }).catch(() => {})
+    setMessage("")
+    // Keep the saved tray in step, so leaving checkout does not lose the edit.
+    try {
+      const response = await fetch("/api/cart", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: id, quantity: next }) })
+      if (!response.ok) throw new Error("the tray refused the change")
+    } catch {
+      // Step this one line back. Letting the stepper stand would quote a
+      // subtotal against a quantity the tray never accepted.
+      setCart((current) => current.map((line) => line.id === id ? { ...line, quantity: previous } : line))
+      setMessage(`${item.name} could not be updated. Your Tray still holds ${previous}.`)
+    }
   }
 
   // The "DLC-" prefix is furniture, not editable text: keep the caret after it
@@ -139,12 +150,12 @@ function CheckoutForm() {
 
   return (
     <main className="shell">
-      <header className="topbar"><Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link><Link className="button secondary" href="/">Back to store</Link></header>
+      <header className="topbar"><Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link><Link className="button secondary" href="/">Back to the lounge</Link></header>
       <section className="content">
-        <div className="section-heading"><div><h2>Checkout</h2><p>Use the Member ID already registered in CDASH.</p></div></div>
+        <div className="section-heading"><div><h2>Checkout</h2><p>Use the Member ID the lounge already has for you.</p></div></div>
         <div className="checkout-layout">
           <form className="card" onSubmit={submitOrder}>
-            <div className="notice">Your order will be reserved against live CDASH inventory. Payment confirmation is handled after the order is created.</div>
+            <div className="notice">Your order will be reserved against live lounge stock. Payment confirmation is handled after the order is created.</div>
             {member
               ? <div className="field"><label htmlFor="memberId">DLC Member ID</label><input id="memberId" value={member.memberId} readOnly aria-describedby="memberVerified" /><p id="memberVerified" className="notice">Verified member: <strong>{member.name}</strong></p></div>
               : <div className="field"><label htmlFor="memberId">DLC Member ID</label><div style={{ display: "flex", gap: 8 }}><input id="memberId" inputMode="numeric" value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" required /><button type="button" className="button secondary" onClick={verifyMember} disabled={!isCompleteMemberId(memberId)}>Verify</button></div></div>}
@@ -153,7 +164,7 @@ function CheckoutForm() {
             {message && <p className="error">{message}</p>}
             <button className="button" disabled={busy || !cart.length || !member} type="submit">{busy ? "Reserving order…" : "Place order"}</button>
           </form>
-          <aside className="card"><h3>Your order</h3>{!cart.length && <p className="empty">Your cart is empty.</p>}{cart.map((item) => <div className="summary-line" key={item.id}><span>{item.name} × <input aria-label={`Quantity for ${item.name}`} style={{ width: 48, padding: 4 }} type="number" min={1} max={item.availableQuantity} value={item.quantity} onChange={(event) => updateQuantity(item.id, Number(event.target.value))} /></span><strong>{money(item.price * item.quantity)}</strong></div>)}<div className="summary-line summary-total"><span>Total</span><strong>{money(subtotal)}</strong></div></aside>
+          <aside className="card"><h3>Your order</h3>{!cart.length && <p className="empty">Your Tray is empty.</p>}{cart.map((item) => <div className="summary-line" key={item.id}><span>{item.name} × <input aria-label={`Quantity for ${item.name}`} style={{ width: 48, padding: 4 }} type="number" min={1} max={item.availableQuantity} value={item.quantity} onChange={(event) => updateQuantity(item.id, Number(event.target.value))} /></span><strong>{credits(item.price * item.quantity)}</strong></div>)}<div className="summary-line summary-total"><span>Total</span><strong>{credits(subtotal)}</strong></div></aside>
         </div>
       </section>
     </main>

@@ -4,7 +4,8 @@ import { FormEvent, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { MascotLoader } from "@/components/mascot-loader"
 import { Pagination, usePagination } from "@/components/pagination"
-import { money } from "@/lib/format"
+import { credits } from "@/lib/format"
+import { SignOutButton } from "@/components/sign-out-button"
 import type { CatalogProduct, MemberProfile, OrderSummary, SavedAddress } from "@/lib/types"
 
 type Tab = "profile" | "addresses" | "orders" | "saved"
@@ -14,7 +15,7 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: "profile", label: "Details" },
   { id: "addresses", label: "Addresses" },
   { id: "orders", label: "Orders" },
-  { id: "saved", label: "Saved" },
+  { id: "saved", label: "Favourites" },
 ]
 
 // An order history and a wishlist both grow without limit; addresses do not.
@@ -122,16 +123,28 @@ export default function AccountPage() {
   }
 
   async function unsave(productId: string) {
+    const previous = savedItems
+    const removed = previous.find((item) => item.id === productId)
+    if (!removed) return
     setSavedItems((current) => current.filter((item) => item.id !== productId))
-    await fetch("/api/wishlist", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId }) }).catch(() => {})
+    report("")
+    try {
+      const response = await fetch("/api/wishlist", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId }) })
+      if (!response.ok) throw new Error("the wishlist refused the removal")
+    } catch {
+      // Put it back in its original position, so a refused delete does not
+      // quietly reorder the list the member is looking at.
+      setSavedItems(previous)
+      report("", `${removed.name} could not be removed from your Favourites.`)
+    }
   }
 
-  async function moveToBag(item: SavedItem) {
+  async function moveToTray(item: SavedItem) {
     setBusy(true)
     try {
       const response = await fetch("/api/cart", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId: item.id, quantity: 1 }) })
       if (!response.ok) throw new Error("That item could not be added")
-      report(`${item.name} is in your bag.`)
+      report(`${item.name} is in your Tray.`)
     } catch (reason) {
       report("", reason instanceof Error ? reason.message : "That item could not be added")
     } finally { setBusy(false) }
@@ -142,7 +155,7 @@ export default function AccountPage() {
   return <main className="shell">
     <header className="topbar">
       <Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link>
-      <Link className="button secondary" href="/">Back to store</Link>
+      <div className="account-header-actions"><SignOutButton className="button secondary switch-button" /><Link className="button secondary" href="/">Back to the lounge</Link></div>
     </header>
 
     <section className="content account-section">
@@ -169,7 +182,7 @@ export default function AccountPage() {
 
       {tab === "profile" && <div className="card account-card">
         {profile?.editable ? <form onSubmit={saveProfile}>
-          <p className="notice">These are your DLC membership details. Changes save straight to CDASH, so the team sees them right away.</p>
+          <p className="notice">These are your DLC membership details. Changes save straight to your membership record, so the team sees them right away.</p>
           <div className="form-row">
             <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" defaultValue={profile.email ?? ""} required maxLength={160} /></div>
             <div className="field"><label htmlFor="mobileNumber">Mobile number</label><input id="mobileNumber" name="mobileNumber" defaultValue={profile.mobileNumber ?? ""} required minLength={7} maxLength={30} /></div>
@@ -179,7 +192,7 @@ export default function AccountPage() {
           <p className="field-hint">Your name, ID number and date of birth are on the membership application you signed, so the team updates those. Ask any staff member.</p>
           <button className="button" disabled={busy}>{busy ? "Saving…" : "Save details"}</button>
         </form> : <>
-          <p className="notice">You are signed in on your CDASH staff record, so your details are managed with the team rather than here.</p>
+          <p className="notice">You are signed in on your staff record, so your details are managed with the team rather than here.</p>
           <div className="detail-list"><div><span>Member ID</span><strong>{profile?.memberId}</strong></div><div><span>Role</span><strong>{profile?.role ?? "—"}</strong></div></div>
         </>}
       </div>}
@@ -227,26 +240,26 @@ export default function AccountPage() {
         {orders.length === 0 ? <p className="empty">You have not placed an order yet.</p> : <><div className="order-list">
           {orderPages.visible.map((order) => <Link className="card order-row" key={order.id} href={`/order/${order.id}`}>
             <div><strong>{order.orderNumber}</strong><span className="field-hint">{new Date(order.createdAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })} · {order.itemCount} {order.itemCount === 1 ? "item" : "items"}</span></div>
-            <div className="order-row-end"><span className={`tag status-${order.status}`}>{order.status.replaceAll("_", " ")}</span><strong>{money(order.total)}</strong></div>
+            <div className="order-row-end"><span className={`tag status-${order.status}`}>{order.status.replaceAll("_", " ")}</span><strong>{credits(order.total)}</strong></div>
           </Link>)}
         </div><Pagination page={orderPages.page} pageCount={orderPages.pageCount} total={orders.length} perPage={ORDERS_PER_PAGE} label="Orders" onChange={orderPages.setPage} /></>}
       </div>}
 
       {tab === "saved" && <div className="account-card">
-        {savedItems.length === 0 ? <p className="empty">Nothing saved yet. Tap the heart on anything in the store.</p> : <><div className="catalog-grid product-grid">
+        {savedItems.length === 0 ? <p className="empty">Nothing saved yet. Tap the heart on anything in the lounge.</p> : <><div className="catalog-grid product-grid">
           {savedPages.visible.map((item) => <article className="card product-card" key={item.id}>
             <div className="product-details">
               <div><div className="product-kicker">{item.grade || item.brand || item.productType}</div><h3>{item.name}</h3></div>
               <div className="product-bottom">
-                <span className="price">{item.inStock ? money(item.price) : "Out of stock"}</span>
+                <span className="price">{item.inStock ? credits(item.price) : "Out of stock"}</span>
                 <div className="address-actions">
-                  {item.inStock && <button type="button" className="chip" disabled={busy} onClick={() => moveToBag(item)}>Add to bag</button>}
+                  {item.inStock && <button type="button" className="chip" disabled={busy} onClick={() => moveToTray(item)}>Add to Tray</button>}
                   <button type="button" className="chip" onClick={() => unsave(item.id)}>Remove</button>
                 </div>
               </div>
             </div>
           </article>)}
-        </div><Pagination page={savedPages.page} pageCount={savedPages.pageCount} total={savedItems.length} perPage={SAVED_PER_PAGE} label="Saved items" onChange={savedPages.setPage} /></>}
+        </div><Pagination page={savedPages.page} pageCount={savedPages.pageCount} total={savedItems.length} perPage={SAVED_PER_PAGE} label="Favourites" onChange={savedPages.setPage} /></>}
       </div>}
     </section>
   </main>

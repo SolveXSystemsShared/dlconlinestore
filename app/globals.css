@@ -30,6 +30,7 @@
   --surface: hsl(0 0% 100%);
   --paper: hsl(202 60% 99%);
   --cream: hsl(var(--sky-wash));
+  --pale: hsl(206 36% 98%);    /* the plain ground the hero pulls back to */
   --line: hsl(202 45% 84%);
   --line-soft: hsl(202 45% 90%);
   --accent: hsl(var(--primary));
@@ -76,41 +77,8 @@ h1, h2, h3 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em;
 }
 .cart-pill b { align-items: center; background: hsl(var(--primary)); border-radius: 50%; color: white; display: flex; font-size: .68rem; height: 25px; justify-content: center; width: 25px; }
 
-/* ===== Sky / cloud atmosphere ===== */
-.sky-puffs { inset: 0; overflow: hidden; pointer-events: none; position: absolute; z-index: 1; }
-.puff { animation: puff-rise var(--dur, 24s) linear var(--delay, 0s) infinite; bottom: -26%; height: var(--size, 300px); opacity: 0; position: absolute; width: var(--size, 300px); will-change: transform, opacity; }
-.puff i {
-  animation: puff-sway calc(var(--dur, 24s) / 3) ease-in-out var(--delay, 0s) infinite;
-  background: radial-gradient(circle at 48% 56%, hsl(0 0% 100% / .95) 0%, hsl(202 75% 94% / .88) 32%, hsl(205 52% 82% / .5) 56%, transparent 74%);
-  border-radius: 50%; display: block; filter: blur(22px); height: 100%; width: 100%; will-change: transform;
-}
-@keyframes puff-rise {
-  0%   { opacity: 0;   transform: translate3d(0, 14vh, 0) scale(.45); }
-  12%  { opacity: .85; }
-  58%  { opacity: .55; }
-  100% { opacity: 0;   transform: translate3d(var(--drift, 40px), -104vh, 0) scale(1.75); }
-}
-@keyframes puff-sway {
-  0%, 100% { transform: translateX(-16px) rotate(-7deg) scaleY(1); }
-  50%      { transform: translateX(16px) rotate(7deg) scaleY(1.14); }
-}
-.puff.p1 { left: 5%;  --size: 300px; --dur: 26s; --delay: 0s;   --drift:  70px; }
-.puff.p2 { left: 22%; --size: 220px; --dur: 21s; --delay: -7s;  --drift: -50px; }
-.puff.p3 { left: 41%; --size: 340px; --dur: 30s; --delay: -14s; --drift:  90px; }
-.puff.p4 { left: 58%; --size: 250px; --dur: 23s; --delay: -4s;  --drift: -70px; }
-.puff.p5 { left: 74%; --size: 320px; --dur: 28s; --delay: -18s; --drift:  60px; }
-.puff.p6 { left: 88%; --size: 230px; --dur: 19s; --delay: -11s; --drift: -40px; }
-
 /* ===== Hero ===== */
 .hero { color: var(--ink); position: relative; }
-.hero-reworked { min-height: 710px; }
-.hero-inner { margin: 0 auto; max-width: var(--max); padding-left: 28px; padding-right: 28px; }
-.hero-grid { align-items: center; display: grid; gap: 28px; grid-template-columns: 1fr 1fr; min-height: 710px; padding-bottom: 90px; padding-top: 108px; position: relative; z-index: 2; }
-.hero-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
-  inset: 0; mix-blend-mode: multiply; opacity: .035; pointer-events: none; position: absolute; z-index: 1;
-}
-.hero-copy { max-width: 620px; }
 .eyebrow {
   align-items: center; background: hsl(var(--surface) / .8); border: 1px solid hsl(202 70% 76%); border-radius: 6px;
   color: hsl(var(--primary)); display: inline-flex; font-size: .7rem; font-weight: 700; gap: 9px;
@@ -119,7 +87,6 @@ h1, h2, h3 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em;
 .dark-eyebrow { background: hsl(var(--surface) / .9); color: hsl(var(--primary)); }
 h1 { font-size: clamp(3rem, 6.2vw, 5.6rem); font-weight: 800; letter-spacing: -.035em; line-height: .95; margin: 20px 0 26px; }
 h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
-.hero-copy p { color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 510px; }
 .button {
   background: hsl(var(--primary)); border: 0; border-radius: 999px; color: white; font-weight: 700;
   letter-spacing: .01em; padding: 13px 22px; transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
@@ -135,21 +102,6 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 .hero-button span { font-size: 1.15rem; }
 .hero-caption { color: var(--muted); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
 
-.hero-visual { align-items: center; display: flex; height: 540px; justify-content: center; position: relative; z-index: 2; }
-/* The 3D render carries its own blue backdrop (and its own antenna dots), so
-   the blob simply crops it — the matching gradient hides the seam at the edge. */
-.mascot-pedestal {
-  animation: mascot-float 5.5s ease-in-out infinite;
-  background: radial-gradient(circle at 50% 46%, #4bb0fd 0%, #3ea7fd 58%, #33a3fd 100%);
-  border: 10px solid hsl(0 0% 100% / .55); border-radius: 48% 52% 44% 56%;
-  box-shadow: 0 30px 64px hsl(var(--mascot-blue-deep) / .38); height: 410px; overflow: hidden;
-  position: relative; transition: transform .2s ease-out; width: 310px; z-index: 2;
-}
-.mascot-pedestal img { display: block; height: 100%; object-fit: cover; object-position: 52% 62%; transform: scale(1.06); width: 100%; }
-.hero-orbit { border: 1px solid hsl(var(--sky-bright) / .5); border-radius: 50%; height: 430px; position: absolute; transform: rotate(-22deg); width: 490px; }
-.orbit-one { border-left-color: transparent; border-right-color: transparent; }
-.orbit-two { height: 520px; opacity: .4; transform: rotate(54deg); width: 340px; }
-.hero-spark { color: hsl(var(--sky-bright)); font-size: 1.8rem; position: absolute; z-index: 3; }
 .spark-one { left: 8%; top: 17%; } .spark-two { bottom: 19%; right: 7%; font-size: 1rem; }
 .hero-sticker {
   align-items: center; background: hsl(var(--primary)); border-radius: 50%; bottom: 18%; color: white;
@@ -158,8 +110,6 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
   transform: rotate(12deg); width: 96px; z-index: 3; box-shadow: 0 14px 30px hsl(var(--primary) / .34);
 }
 .hero-sticker small { font-size: .45rem; margin-top: 7px; opacity: .85; }
-.hero-wave { display: none; }
-@keyframes mascot-float { 0%,100% { margin-top: 0; } 50% { margin-top: -18px; } }
 
 /* ===== Ticker ===== */
 .ticker { background: hsl(var(--primary)); color: white; overflow: hidden; padding: 15px 0; position: relative; transform: rotate(-1.2deg) scale(1.03); z-index: 3; }
@@ -183,13 +133,6 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 .product-card-new:hover { border-color: hsl(var(--sky-bright) / .7); box-shadow: 0 22px 44px hsl(var(--primary) / .16); transform: translateY(-8px); }
 .product-art { align-items: center; border-radius: 15px; display: flex; height: 210px; justify-content: center; overflow: hidden; position: relative; }
 .product-art > span { color: hsl(0 0% 100% / .82); font-size: .62rem; font-weight: 800; letter-spacing: .17em; position: absolute; right: 15px; text-transform: uppercase; top: 14px; }
-.art-lime  { background: linear-gradient(140deg, hsl(196 100% 82%), hsl(202 92% 44%)); }
-.art-sand  { background: linear-gradient(140deg, hsl(186 92% 76%), hsl(196 88% 36%)); }
-.art-blue  { background: linear-gradient(140deg, hsl(214 96% 80%), hsl(220 78% 44%)); }
-.art-berry { background: linear-gradient(140deg, hsl(206 96% 74%), hsl(210 84% 30%)); }
-.art-ring { border: 1px solid hsl(0 0% 100% / .55); border-radius: 50%; height: 150px; position: absolute; transform: rotate(35deg); width: 210px; }
-.art-ring::after { border: 1px solid hsl(0 0% 100% / .4); border-radius: 50%; content: ""; inset: 14px -28px; position: absolute; transform: rotate(-50deg); }
-.art-dot { background: hsl(0 0% 100% / .5); border-radius: 50%; box-shadow: 60px -65px 0 hsl(0 0% 100% / .22), -65px 70px 0 hsl(0 0% 100% / .18); height: 12px; width: 12px; }
 .product-details { display: flex; flex-direction: column; min-height: 92px; padding: 14px 5px 2px; }
 .product-kicker { color: var(--muted); font-size: .65rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .product-card h3 { font-size: 1.08rem; font-weight: 700; margin: 7px 0 0; }
@@ -271,7 +214,6 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 }
 @keyframes pulse { to { opacity: .42; } }
 
-/* ===== Manifesto (inverted) ===== */
 .manifesto-section { background: linear-gradient(165deg, hsl(var(--primary-deep)) 0%, hsl(var(--night)) 100%); color: white; overflow: hidden; position: relative; }
 .manifesto-section .content { position: relative; z-index: 1; }
 .manifesto-grid { align-items: center; display: grid; gap: 10%; grid-template-columns: .9fr 1fr; }
@@ -291,21 +233,6 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 .manifesto-points span { font-size: .86rem; }
 .manifesto-shape { border: 1px solid hsl(var(--sky) / .3); border-radius: 50%; height: 480px; position: absolute; width: 650px; }
 .shape-left { left: -430px; top: 70px; } .shape-right { bottom: -290px; right: -340px; transform: rotate(43deg); }
-
-/* ===== Drops ===== */
-.drops-section { padding-bottom: 74px; }
-.drop-banner {
-  align-items: center; background: linear-gradient(115deg, hsl(202 92% 88%) 0%, hsl(202 92% 80%) 38%, hsl(var(--mascot-blue)) 100%); border-radius: 24px;
-  color: hsl(var(--primary-deep)); display: flex; justify-content: space-between; min-height: 300px;
-  overflow: hidden; padding: 42px 64px; position: relative; box-shadow: 0 24px 50px hsl(var(--primary) / .18);
-}
-.drop-banner::after { border: 1px solid hsl(0 0% 100% / .55); border-radius: 50%; content: ""; height: 500px; position: absolute; right: 8%; top: -100px; width: 500px; }
-.drop-banner > div { position: relative; z-index: 1; }
-.drop-banner img { filter: drop-shadow(0 24px 22px hsl(var(--mascot-blue-deep) / .4)); height: 330px; margin-bottom: -95px; object-fit: contain; position: relative; z-index: 1; }
-.drop-banner .eyebrow { background: hsl(0 0% 100% / .75); border-color: hsl(0 0% 100% / .9); color: hsl(var(--primary)); }
-.drop-number { display: block; font-size: .8rem; font-weight: 800; letter-spacing: .14em; margin-bottom: 18px; opacity: .7; }
-.drop-banner h3 { font-size: clamp(2.2rem, 4.4vw, 3.6rem); font-weight: 800; letter-spacing: -.035em; line-height: .98; margin: 14px 0; }
-.drop-banner p { font-size: .9rem; line-height: 1.5; max-width: 250px; }
 
 /* ===== Footer ===== */
 .footer { color: var(--muted); font-size: .8rem; margin: 0 auto; max-width: var(--max); padding: 0 28px 34px; position: relative; z-index: 2; }
@@ -398,25 +325,12 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 @media (max-width: 760px) {
   .topbar { padding-left: 18px; padding-right: 18px; }
   .desktop-nav { display: none; }
-  .hero-reworked, .hero-grid { min-height: auto; }
-  .hero-grid { gap: 8px; grid-template-columns: 1fr; padding-bottom: 48px; padding-top: 104px; }
-  .hero-copy { text-align: center; }
-  .hero-copy p { margin-left: auto; margin-right: auto; }
   .eyebrow { margin-left: auto; margin-right: auto; }
   .hero-actions { flex-direction: column; gap: 12px; justify-content: center; }
-  .hero-visual { height: 330px; margin-top: 18px; }
-  .mascot-pedestal { height: 300px; width: 224px; }
-  .hero-orbit { height: 300px; width: 330px; }
   .hero-sticker { bottom: 2%; height: 82px; right: 4%; width: 82px; }
   .content { padding: 72px 18px; }
   .section-heading { align-items: start; flex-direction: column; gap: 14px; }
   .section-heading p { text-align: left; }
-  .manifesto-grid { grid-template-columns: 1fr; }
-  .manifesto-art { height: 300px; }
-  .manifesto-circle { height: 220px; width: 220px; }
-  .manifesto-label { right: 13%; }
-  .drop-banner { align-items: start; min-height: 440px; padding: 34px 26px; }
-  .drop-banner img { bottom: -25px; height: 270px; position: absolute; right: 4px; }
   .footer-new { align-items: start; flex-direction: column; gap: 11px; }
   .checkout-layout, .form-row { grid-template-columns: 1fr; }
   .register-section { padding-top: 24px; }
@@ -426,30 +340,18 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
   .reveal { opacity: 1; transform: none; }
-  .puff { display: none; }
   /* Hold the loader at rest rather than frozen mid-squash. */
   .mascot-loader-float, .mascot-loader-orb, .mascot-loader-shadow { transform: none; }
   .mascot-loader-ring { display: none; }
 }
 
-/* ---- Store filters -------------------------------------------------- */
-.filter-bar { background: hsl(202 80% 98%); border: 1px solid var(--line-soft); border-radius: 18px; display: grid; gap: 12px; margin: 0 0 28px; padding: 16px 18px; }
-/* min-width:0 because a grid item defaults to min-width:auto and will not
-   shrink below its content. Without it the chip row grew past the viewport and
-   .shell's overflow-x:hidden clipped the chips off entirely — unreachable on a
-   phone rather than merely off-screen. */
-.filter-row { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
-.filter-label { color: var(--muted); flex: none; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; width: 92px; }
-.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* ---- Chips & hearts -------------------------------------------------- */
 .chip { background: #fff; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--ink); cursor: pointer; font: inherit; font-size: .82rem; padding: 6px 14px; transition: background .15s, border-color .15s, color .15s; }
 .chip:hover:not(:disabled) { border-color: var(--brand, #1f6fb2); }
 .chip:disabled { cursor: not-allowed; opacity: .5; }
 .chip-on { background: var(--brand, #1f6fb2); border-color: var(--brand, #1f6fb2); color: #fff; }
 .chip b { font-weight: 700; opacity: .75; }
-.filter-search { background: #fff; border: 1px solid var(--line-soft); border-radius: 999px; flex: 1 1 200px; font: inherit; min-width: 160px; padding: 8px 16px; }
-.filter-count { color: var(--muted); font-size: .8rem; white-space: nowrap; }
 .filter-clear { background: none; border: none; color: var(--brand, #1f6fb2); cursor: pointer; font: inherit; font-size: .8rem; text-decoration: underline; }
-@media (max-width: 640px) { .filter-label { width: 100%; } }
 
 /* Heart sits on the product artwork, not in the flow, so the card keeps its shape. */
 .save-button { background: rgba(255,255,255,.85); border: none; border-radius: 999px; cursor: pointer; font-size: 1rem; height: 34px; line-height: 1; position: absolute; right: 10px; top: 10px; transition: transform .15s, background .15s; width: 34px; }
@@ -503,17 +405,6 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
 }
 
 @media (max-width: 560px) {
-  /* Filters stack, and each row scrolls sideways instead of wrapping into a
-     wall of chips that pushes the products off the screen. */
-  .filter-bar { padding: 12px 14px; }
-  /* A flex child will not shrink below its content, so the chip row grew to its
-     full 1100px and pushed itself off the screen instead of scrolling inside
-     it. min-width:0 lets it shrink; max-width pins it to the viewport. */
-  .filter-chips { flex: 1 1 auto; flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  .filter-chips::-webkit-scrollbar { display: none; }
-  .filter-chips .chip { flex: none; }
-  .filter-row-search { gap: 8px; }
-  .filter-search { flex: 1 0 100%; }
   .account-tabs { flex-wrap: nowrap; max-width: 100%; min-width: 0; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .account-tabs::-webkit-scrollbar { display: none; }
   .account-tabs .chip { flex: none; }
@@ -525,4 +416,228 @@ h1 em, h2 em { color: hsl(var(--primary)); font-style: normal; }
   .chip { min-height: 38px; padding: 8px 14px; }
   .save-button { height: 38px; width: 38px; }
   .add-button { height: 40px; min-width: 40px; width: 40px; }
+}
+
+/* ==========================================================================
+   Lounge — hero pull-back, browse surface, visit & banner sections
+   ========================================================================== */
+
+/* ---- Section 2: the lounge, pulling back ---------------------------- */
+/* The photo sits on the pale ground the browse section also uses, so as it
+   scales down and fades the background it reveals is already the right one. */
+/* The plain ground sits under the hero and the browse surface only — the
+   functional half of the page. The visit photo and the banner bring their own. */
+.hero-lounge, .browse-section { background: var(--pale); }
+.hero-lounge { align-items: center; display: flex; justify-content: center; min-height: 92vh; overflow: hidden; position: relative; }
+.hero-photo-frame { inset: 0; position: absolute; z-index: 0; }
+.hero-photo {
+  display: block; height: 100%; object-fit: cover; transform-origin: 50% 45%;
+  width: 100%; will-change: transform, opacity, border-radius;
+}
+.hero-lounge-copy { max-width: 620px; padding: 0 28px; position: relative; text-align: center; z-index: 2; }
+.hero-lounge-copy h1 { text-shadow: 0 2px 30px hsl(210 40% 100% / .8); }
+.hero-lounge-copy .hero-actions { justify-content: center; }
+
+/* Photography is shot separately; until a file lands this states plainly what
+   is missing and where it goes, rather than showing a broken image. */
+.lounge-photo-pending {
+  align-items: center; background: repeating-linear-gradient(135deg, hsl(202 45% 95%) 0 14px, hsl(202 45% 92%) 14px 28px);
+  border: 1px dashed hsl(202 45% 72%); color: hsl(var(--primary-deep)); display: flex; flex-direction: column;
+  gap: 8px; justify-content: center; padding: 40px 24px; text-align: center;
+}
+.lounge-photo-pending .pending-mark { font-size: 2rem; opacity: .5; }
+.lounge-photo-pending b { font-size: 1rem; letter-spacing: .04em; }
+.lounge-photo-pending small { color: var(--muted); font-size: .78rem; }
+.lounge-photo-pending code { background: hsl(0 0% 100% / .7); border-radius: 5px; padding: 2px 6px; }
+/* Behind the hero copy the placeholder sits low, so its label never collides
+   with the headline sitting over it. */
+.hero-photo-frame .lounge-photo-pending { height: 100%; justify-content: flex-end; padding-bottom: 34px; }
+.hero-photo-frame .lounge-photo-pending .pending-mark { display: none; }
+
+/* ---- Section 5: browse on the pale ground --------------------------- */
+.browse-section { overflow: hidden; }
+/* Faint DLC marks drifting behind the browse surface — texture, not decoration
+   to read. Held well below the content and out of the accessibility tree. */
+.drifting-marks { inset: 0; pointer-events: none; position: absolute; z-index: 0; }
+.drift-mark { animation: drift 46s linear infinite; opacity: .05; position: absolute; width: 130px; }
+.drift-0 { left: 4%;  top: 8%;  animation-duration: 52s; }
+.drift-1 { left: 68%; top: 4%;  animation-duration: 61s; animation-delay: -14s; width: 90px; }
+.drift-2 { left: 22%; top: 46%; animation-duration: 44s; animation-delay: -25s; width: 160px; }
+.drift-3 { left: 84%; top: 58%; animation-duration: 57s; animation-delay: -8s; }
+.drift-4 { left: 46%; top: 78%; animation-duration: 49s; animation-delay: -33s; width: 110px; }
+.drift-5 { left: 8%;  top: 88%; animation-duration: 64s; animation-delay: -19s; width: 80px; }
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%  { transform: translate3d(28px, -34px, 0) rotate(7deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+.browse-section > *:not(.drifting-marks) { position: relative; z-index: 1; }
+
+.browse-bar { display: grid; gap: 16px; margin: 0 0 30px; }
+.browse-search {
+  background: #fff; border: 1px solid var(--line-soft); border-radius: 14px; font: inherit;
+  padding: 14px 18px; width: 100%;
+}
+.browse-search:focus-visible { border-color: var(--brand, #1f6fb2); outline: 2px solid hsl(202 80% 88%); }
+.browse-label { color: var(--muted); display: block; font-size: .72rem; font-weight: 700; letter-spacing: .1em; margin-bottom: 10px; text-transform: uppercase; }
+.browse-label em { font-style: normal; font-weight: 500; opacity: .8; text-transform: none; letter-spacing: .02em; }
+
+/* Category as a row of tiles: five glyphs and a "More", instead of a wrapped
+   row of text pills that made every option shout at once. */
+.cat-tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); }
+.cat-tile {
+  align-items: center; background: #fff; border: 1px solid var(--line-soft); border-radius: 16px;
+  color: var(--ink); cursor: pointer; display: flex; flex-direction: column; font: inherit; font-size: .78rem;
+  font-weight: 600; gap: 8px; padding: 14px 8px; transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.cat-tile:hover { border-color: var(--brand, #1f6fb2); transform: translateY(-2px); }
+.cat-tile .product-icon { color: hsl(var(--primary)); height: 40px; width: 40px; }
+.cat-on { background: hsl(202 80% 96%); border-color: var(--brand, #1f6fb2); box-shadow: 0 6px 16px hsl(var(--primary) / .14); }
+.cat-more-mark { align-items: center; color: hsl(var(--primary)); display: flex; font-size: 1rem; font-weight: 800; height: 40px; justify-content: center; }
+
+.browse-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+.filter-anchor { position: relative; }
+.browse-button {
+  align-items: center; background: hsl(var(--night, 215 40% 16%)); border: 1px solid transparent; border-radius: 999px;
+  color: #fff; cursor: pointer; display: inline-flex; font: inherit; font-size: .85rem; font-weight: 700;
+  gap: 8px; min-height: 42px; padding: 0 18px; transition: background .15s, border-color .15s;
+}
+.browse-button:hover { background: hsl(var(--primary-deep)); }
+.browse-favourites { background: #fff; border-color: var(--line-soft); color: var(--ink); }
+.browse-favourites:hover { background: #fff; border-color: #d6336c; }
+.browse-favourites span { color: #d6336c; font-size: 1rem; }
+.browse-button-on { background: var(--brand, #1f6fb2); border-color: var(--brand, #1f6fb2); color: #fff; }
+.browse-button-on span { color: #fff; }
+.browse-note { color: var(--muted); display: flex; flex-wrap: wrap; font-size: .8rem; gap: 10px; justify-content: space-between; margin: 0; }
+.browse-count { font-weight: 700; }
+
+/* The grade/brand list, opened on demand and never sitting over the grid by
+   default — the whole point of the change. */
+.filter-panel {
+  background: #fff; border: 1px solid var(--line-soft); border-radius: 16px; box-shadow: 0 24px 50px hsl(var(--primary) / .2);
+  display: grid; gap: 10px; left: 0; max-width: calc(100vw - 36px); padding: 14px; position: absolute;
+  top: calc(100% + 8px); width: 330px; z-index: 30;
+}
+.filter-panel-search { background: #fff; border: 1px solid var(--line-soft); border-radius: 10px; font: inherit; font-size: .85rem; padding: 9px 12px; width: 100%; }
+.filter-panel-scroll { display: grid; gap: 4px; max-height: 336px; overflow-y: auto; }
+.panel-group-head {
+  align-items: center; background: none; border: 0; border-radius: 8px; color: var(--muted); cursor: pointer;
+  display: flex; font: inherit; font-size: .72rem; font-weight: 800; gap: 8px; letter-spacing: .08em;
+  padding: 8px 10px; text-transform: uppercase; width: 100%;
+}
+.panel-group-head:hover { background: hsl(202 60% 97%); }
+.panel-group-head em { font-style: normal; font-weight: 600; opacity: .7; }
+.panel-group-head i { font-style: normal; margin-left: auto; font-size: .95rem; }
+.panel-group-body { display: grid; gap: 2px; padding-bottom: 6px; }
+.panel-option {
+  background: none; border: 0; border-radius: 8px; color: var(--ink); cursor: pointer; display: flex;
+  font: inherit; font-size: .87rem; gap: 8px; justify-content: space-between; padding: 9px 12px; text-align: left; width: 100%;
+}
+.panel-option:hover { background: hsl(202 70% 96%); }
+.panel-option em { color: var(--muted); font-style: normal; font-size: .78rem; }
+.panel-option-on { background: var(--brand, #1f6fb2); color: #fff; }
+.panel-option-on em { color: hsl(0 0% 100% / .8); }
+.panel-empty { color: var(--muted); font-size: .85rem; margin: 6px 10px; }
+
+/* ---- Section 6: icon product art ------------------------------------ */
+.product-art-icon { background: linear-gradient(150deg, hsl(202 82% 93%), hsl(206 72% 84%)); }
+.product-art-icon > span { color: hsl(var(--primary-deep) / .7); }
+.product-icon { color: hsl(var(--primary)); height: 128px; width: 128px; }
+/* Higher grades sit heavier: the haze drifts more, and the whole icon breathes
+   a little slower. Purely a reinforcement of the lids drawn in the SVG. */
+.product-icon.is-animated { animation: icon-breathe 6s ease-in-out infinite; }
+.product-icon.tier-2 { animation-duration: 7.5s; }
+.product-icon.tier-3 { animation-duration: 9s; }
+.icon-haze { animation: icon-haze-drift 5s ease-in-out infinite; transform-origin: 50% 50%; }
+.product-icon.tier-3 .icon-haze { animation-duration: 7s; }
+@keyframes icon-breathe { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.03); } }
+@keyframes icon-haze-drift { 0%, 100% { opacity: .35; transform: translate(0, 0); } 50% { opacity: .8; transform: translate(-4px, -6px); } }
+
+/* ---- Section 3: visit the lounge ------------------------------------ */
+.visit-section { align-items: center; display: flex; justify-content: center; min-height: 74vh; overflow: hidden; position: relative; }
+.visit-photo { height: 100%; inset: 0; object-fit: cover; position: absolute; width: 100%; }
+.visit-section .lounge-photo-pending { position: absolute; }
+.visit-overlay {
+  background: hsl(0 0% 100% / .82); backdrop-filter: blur(8px); border-radius: 26px; margin: 28px;
+  padding: 44px 48px; position: relative; text-align: center; z-index: 2;
+  box-shadow: 0 26px 60px hsl(var(--primary) / .22);
+}
+.visit-overlay h2 { font-size: clamp(2.2rem, 4.6vw, 3.7rem); font-weight: 800; letter-spacing: -.035em; line-height: 1; margin: 0; }
+.visit-address { color: var(--muted); font-size: 1rem; font-style: normal; letter-spacing: .04em; margin-top: 20px; }
+
+/* ---- Section 4: the "Good energy. Delivered." banner ----------------- */
+.banner-section { padding: 0 28px 96px; }
+.banner-inner {
+  align-items: center; background: linear-gradient(115deg, hsl(202 92% 94%) 0%, hsl(202 90% 88%) 46%, hsl(var(--mascot-blue, 202 96% 62%)) 100%);
+  border-radius: 28px; display: grid; gap: 28px; grid-template-columns: 1.05fr .95fr; margin: 0 auto;
+  max-width: var(--max); overflow: hidden; padding: 54px 60px; position: relative;
+  box-shadow: 0 24px 54px hsl(var(--primary) / .18);
+}
+.banner-copy { position: relative; z-index: 2; }
+.banner-copy h2 { font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; letter-spacing: -.035em; line-height: .96; margin: 0 0 20px; }
+.banner-copy p { color: hsl(var(--primary-deep)); font-size: 1.02rem; line-height: 1.7; margin: 0 0 28px; max-width: 460px; }
+.banner-visual { align-items: center; display: flex; height: 330px; justify-content: center; position: relative; }
+.banner-visual img {
+  border: 10px solid hsl(0 0% 100% / .55); border-radius: 48% 52% 44% 56%; box-shadow: 0 26px 54px hsl(var(--primary) / .3);
+  height: 300px; object-fit: cover; object-position: 52% 60%; position: relative; width: 236px; z-index: 2;
+}
+.banner-orbit { border: 1px solid hsl(0 0% 100% / .7); border-left-color: transparent; border-radius: 50%; height: 360px; position: absolute; transform: rotate(-22deg); width: 400px; }
+.banner-spark { color: #fff; font-size: 1.6rem; position: absolute; z-index: 3; }
+
+/* ---- Section 7: add-to-Tray confirmation ---------------------------- */
+.toast-stack { bottom: 22px; display: grid; gap: 8px; justify-items: center; left: 0; pointer-events: none; position: fixed; right: 0; z-index: 90; }
+.toast {
+  animation: toast-in .22s ease-out; background: hsl(var(--night, 215 40% 16%)); border: 0; border-radius: 999px;
+  color: #fff; cursor: pointer; font: inherit; font-size: .87rem; font-weight: 600; padding: 12px 22px;
+  pointer-events: auto; box-shadow: 0 16px 34px hsl(215 40% 16% / .3);
+  align-items: center; display: inline-flex; gap: 10px; max-width: calc(100vw - 32px);
+}
+.toast span { align-items: center; background: hsl(0 0% 100% / .18); border-radius: 50%; display: flex; height: 20px; justify-content: center; width: 20px; }
+.toast-bad { background: #b02a37; box-shadow: 0 16px 34px hsl(354 61% 43% / .34); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 760px) {
+  .hero-lounge { min-height: 78vh; }
+  .banner-inner { grid-template-columns: 1fr; padding: 34px 26px; text-align: center; }
+  .banner-copy p { margin-left: auto; margin-right: auto; }
+  .banner-visual { height: 260px; }
+  .banner-visual img { height: 236px; width: 186px; }
+  .visit-overlay { margin: 18px; padding: 30px 24px; }
+  .filter-panel { width: min(330px, calc(100vw - 36px)); }
+}
+
+@media (max-width: 560px) {
+  .cat-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cat-tile { font-size: .72rem; padding: 12px 6px; }
+  .cat-tile .product-icon { height: 32px; width: 32px; }
+  .product-icon { height: 96px; width: 96px; }
+  .browse-actions .browse-button { flex: 1 1 auto; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The pull-back is scroll-driven rather than animated, so it stays; the
+     ambient loops are what get stilled. */
+  .drift-mark, .product-icon.is-animated, .icon-haze { animation: none; }
+}
+
+/* ---- Switch member -------------------------------------------------- */
+/* Sits with the account and tray pills, styled as a quiet third action —
+   leaving is never the thing the top bar is inviting you to do. */
+.switch-pill {
+  align-items: center; background: #fff; border: 1px solid var(--line-soft); border-radius: 999px;
+  color: var(--muted); cursor: pointer; display: inline-flex; font: inherit; font-size: .78rem;
+  font-weight: 700; gap: 6px; letter-spacing: .04em; min-height: 40px; padding: 0 14px;
+  transition: border-color .2s ease, color .2s ease;
+}
+.switch-pill:hover:not(:disabled) { border-color: var(--brand, #1f6fb2); color: var(--ink); }
+.switch-pill:disabled { cursor: progress; opacity: .6; }
+.switch-pill span { font-size: .95rem; }
+.account-header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.switch-button { align-items: center; cursor: pointer; display: inline-flex; gap: 7px; }
+.switch-button:disabled { cursor: progress; }
+
+@media (max-width: 760px) {
+  /* Same treatment as the account pill: the glyph carries it once the bar tightens. */
+  .switch-pill b { display: none; }
+  .switch-pill { padding: 0 12px; }
 }

@@ -3,8 +3,8 @@ import "./globals.css"
 import { AccessGate } from "@/components/access-gate"
 
 export const metadata: Metadata = {
-  title: "DLC Online Store",
-  description: "DLC member online store",
+  title: "DLC Online Lounge",
+  description: "DLC member online lounge",
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

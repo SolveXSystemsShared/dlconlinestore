@@ -62,8 +62,8 @@ export default function RegisterPage() {
         <div className="eyebrow">Welcome to DLC</div>
         <h1>You&apos;re a member.</h1>
         <p className="order-number">{done.memberNumber}</p>
-        <p>This is your DLC Member ID, and it is <strong>active now</strong>. Save it — it is how you enter the store and how the team finds you at the counter. You&apos;re already signed in, so you can start shopping straight away.</p>
-        <Link className="button" href="/">Start shopping</Link>
+        <p>This is your DLC Member ID, and it is <strong>active now</strong>. Save it — it is how you enter the lounge and how the team finds you at the counter. You&apos;re already signed in, so you can start browsing straight away.</p>
+        <Link className="button" href="/">Start browsing</Link>
       </section>
     </main>
   }
@@ -71,7 +71,7 @@ export default function RegisterPage() {
   return <main className="shell">
     <header className="topbar">
       <Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link>
-      <Link className="button secondary" href="/">Back to store</Link>
+      <Link className="button secondary" href="/">Back to the lounge</Link>
     </header>
 
     <section className="content register-section">
@@ -84,7 +84,7 @@ export default function RegisterPage() {
       </div>
 
       <form className="card register-card" onSubmit={submit}>
-        <p className="notice">Everything here is required by DLC membership records. Submit and your Member ID is issued immediately — you can shop the same visit.</p>
+        <p className="notice">Everything here is required by DLC membership records. Submit and your Member ID is issued immediately — you can browse the same visit.</p>
 
         <div className="field">
           <label htmlFor="fullName">Full name</label>
