@@ -38,6 +38,8 @@ async function readWishlist(memberId: string) {
       productType: product?.productType ?? saved?.product_type ?? "",
       grade: product?.grade ?? saved?.grade ?? null,
       brand: product?.brand ?? null,
+      strainType: product?.strainType ?? null,
+      mgAmount: product?.mgAmount ?? null,
       description: product?.description ?? saved?.description ?? null,
       imageUrl: product?.imageUrl ?? saved?.image_url ?? null,
       price: product?.price ?? 0,

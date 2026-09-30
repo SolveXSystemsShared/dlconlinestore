@@ -56,10 +56,26 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
   </>
 }
 
+/** Back to top — same behaviour as the storefront's (public/common.js). */
+function BackToTop() {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > window.innerHeight * 1.2)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+  const toTop = () => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
+  return <button type="button" className={`sf-to-top ${visible ? "is-visible" : ""}`} aria-label="Back to top" onClick={toTop} tabIndex={visible ? 0 : -1}><span aria-hidden="true">↑</span></button>
+}
+
 export function StoreFooter() {
-  return <footer className="sf-footer">
+  return <>
+  <BackToTop />
+  <footer className="sf-footer">
     <div className="sf-footer-brand"><img src="/assets/dlc-logo.svg" alt="" width={52} height={52} /><span>DOWN LOW CANNABIS</span></div>
     <nav aria-label="Legal"><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="/cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
     <p>18+ · Halfway House, Midrand</p>
   </footer>
+  </>
 }

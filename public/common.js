@@ -96,4 +96,20 @@
       window.dlcAnalytics.track(detail.event, {path: detail.path});
     }
   }, {passive:true});
+
+  // Back to top: appears once the visitor has scrolled a screen or two, sits
+  // just above the DLC Decoder button, and respects reduced motion.
+  const toTop = document.createElement('button');
+  toTop.type = 'button';
+  toTop.className = 'dlc-to-top';
+  toTop.setAttribute('aria-label', 'Back to top');
+  toTop.innerHTML = '<span aria-hidden="true">↑</span>';
+  document.body.appendChild(toTop);
+  const toggleToTop = () => toTop.classList.toggle('is-visible', window.scrollY > window.innerHeight * 1.2);
+  window.addEventListener('scroll', toggleToTop, {passive:true});
+  toggleToTop();
+  toTop.addEventListener('click', () => {
+    window.scrollTo({top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    document.querySelector('.skip-link + *, header, main')?.focus?.({preventScroll: true});
+  });
 })();

@@ -16,7 +16,7 @@
   } catch(e) {}
 })();
 </script>
-<meta name="theme-color" content="#ffffff"/>
+<meta name="theme-color" content="#41a8fc"/>
 <title>DLC Strain Collection</title>
 <link rel="stylesheet" href="styles.css"/>
 <script src="cookies.js"></script>
@@ -43,7 +43,7 @@
 <meta name="twitter:description" content="Browse DLC strain collections."/>
 <style>
   body.strains-page{
-    --collection-blue:#1527ff;
+    --collection-blue:#1a6ef0;
     --collection-ink:#11131a;
     --collection-muted:#6e737d;
     --collection-line:#dfe2e8;
@@ -297,35 +297,39 @@
 </header>
 <main class="strains-shell" id="main-content">
   <nav class="strains-breadcrumbs breadcrumbs" aria-label="Breadcrumb">
-    <a href="strains.html?category=flower" id="crumbCategory">FLOWER</a><span class="sep">/</span><span class="current" id="crumbTier">OUTDOOR</span>
+    <a href="index.html#experience" id="backLink">← LOUNGE</a><span class="sep">/</span><a href="strains.html?category=flower" id="crumbCategory">FLOWER</a><span class="sep">/</span><span class="current" id="crumbTier">…</span>
   </nav>
 
-  <section class="strains-hero strains-top">
-    <div>
-      <a class="back-link" href="index.html#experience" id="backLink">← BACK TO LOUNGE</a>
-      <div class="strains-kicker" id="categoryLabel">FLOWER / OUTDOOR</div>
-      <h1 class="strains-title" id="pageTitle"><span class="title-line">OUTDOOR</span><span class="title-line">STRAINS</span></h1>
-      <p class="strains-sub" id="pageDescription">Explore the available strains in this DLC category. Live stock from the DLC lounge.</p>
+  <section class="shop-hero">
+    <div class="shop-hero__text">
+      <div class="strains-kicker" id="categoryLabel">FLOWER</div>
+      <h1 class="shop-title" id="pageTitle">Flower</h1>
+      <p class="shop-sub" id="pageDescription">Live stock from the DLC lounge.</p>
     </div>
-    <aside class="strains-intro-card" aria-label="Collection overview">
-      <p class="hero-overline">COLLECTION OVERVIEW</p>
-      <div class="intro-stat-grid">
-        <div class="intro-stat"><span>CATEGORY</span><strong id="overviewCategory">FLOWER</strong></div>
-        <div class="intro-stat"><span>TIER</span><strong id="overviewTier">OUTDOOR</strong></div>
-        <div class="intro-stat"><span>PRODUCTS</span><strong id="overviewCount">06</strong></div>
-        <div class="intro-stat"><span>CREDITS</span><strong id="overviewPrice">SEE MENU</strong></div>
-      </div>
-      <p class="intro-copy" id="introCopy">Select a strain to open the full DLC product page with imagery, credits and product details.</p>
-      <div class="intro-actions">
-        <a class="primary" href="strains.html?category=flower">FLOWER COLLECTION</a>
-        <a class="secondary" href="index.html#experience">RETURN TO LOUNGE</a>
-      </div>
-    </aside>
+    <p class="shop-count" aria-live="polite"><strong id="overviewCount">—</strong> <span id="overviewCountLabel">ITEMS</span><span class="shop-count__sep">·</span><span id="overviewPrice">—</span></p>
   </section>
 
-  <div class="shop-jump-wrap">
-    <nav class="shop-jump" aria-label="Product collections"><a data-shop="flower" href="strains.html?category=flower">FLOWER</a><a data-shop="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-shop="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-shop="more" href="strains.html?category=more">MORE</a></nav>
-    <button class="learn-inline" type="button" data-open-education="tiers">WHAT DO THESE TIERS MEAN? <span>?</span></button>
+  <div class="shop-filters" id="shopFilters">
+    <div class="shop-filter-row">
+      <span class="shop-filter-label">CATEGORY</span>
+      <nav class="shop-jump" aria-label="Product collections"><a data-shop="flower" href="strains.html?category=flower">FLOWER</a><a data-shop="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-shop="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-shop="more" href="strains.html?category=more">MORE</a></nav>
+    </div>
+    <div class="shop-filter-row" id="tierRow" hidden><span class="shop-filter-label" id="tierRowLabel">TIER</span></div>
+    <div class="shop-filter-row" id="typeRow" hidden>
+      <span class="shop-filter-label">STRAIN TYPE</span>
+      <div class="type-jump" id="typeJump" role="group" aria-label="Strain type"></div>
+    </div>
+    <div class="shop-filter-tools">
+      <label class="shop-sort"><span>SORT</span>
+        <select id="sortSelect" aria-label="Sort products">
+          <option value="recommended">Recommended</option>
+          <option value="low">Credits: low to high</option>
+          <option value="high">Credits: high to low</option>
+          <option value="name">Name: A–Z</option>
+        </select>
+      </label>
+      <button class="learn-inline" type="button" data-open-education="tiers">WHAT DO TIERS &amp; TYPES MEAN? <span>?</span></button>
+    </div>
     <div class="guidance-hint" id="collectionGuidanceHint" hidden></div>
   </div>
 
@@ -413,7 +417,7 @@
 
   const grid = document.getElementById('strainGrid');
   const note = document.querySelector('.placeholder-note');
-  const setText = (id, text) => { document.getElementById(id).textContent = text; };
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
   function paintHeader(count, fromPrice) {
     // Until the catalogue says which tier has stock, speak about the category.
@@ -424,17 +428,19 @@
     setText('crumbTier', shelf);
     setText('overviewCategory', categoryName.toUpperCase());
     setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierPending ? '—' : tierName.toUpperCase());
-    setText('overviewCount', count == null ? '—' : String(count).padStart(2, '0'));
-    setText('overviewPrice', fromPrice == null ? '—' : `FROM ${S.price(fromPrice)}`);
+    setText('overviewCount', count == null ? '—' : String(count));
+    setText('overviewCountLabel', count === 1 ? 'ITEM' : 'ITEMS');
+    setText('overviewPrice', fromPrice == null ? '' : `FROM ${S.price(fromPrice)}`);
     setText('categoryLabel', `${categoryName.toUpperCase()} / ${shelf}`);
     document.getElementById('bandTitle').innerHTML = `MORE FROM<br/>${escapeHtml(category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase())}`;
 
     const titleWord = category === 'wellness' ? 'WELLNESS' : tierPending ? categoryName.toUpperCase() : tierName.toUpperCase();
     const titleTail = tierPending ? 'COLLECTION' : category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
-    document.getElementById('pageTitle').innerHTML = `<span class="title-line">${escapeHtml(titleWord)}</span><span class="title-line">${titleTail}</span>`;
+    document.getElementById('pageTitle').textContent = `${titleWord} ${titleTail}`.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
     document.title = `DLC — ${category === 'wellness' ? 'Wellness Products' : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()}`;
 
-    const intro = document.querySelector('.intro-actions .primary');
+    // The old overview card is gone; keep the wording logic but write to a detached link.
+    const intro = document.querySelector('.intro-actions .primary') || document.createElement('a');
     if (category === 'wellness') {
       setText('pageDescription', 'The DLC wellness range, live from the lounge shelf. Select a product for its format, measured serving and current credits.');
       setText('bandCopy', 'Browse the complete DLC wellness range or open any product above to view its full product-detail page.');
@@ -465,7 +471,10 @@
       row.id = 'tierJump';
       row.className = 'tier-jump';
       row.setAttribute('aria-label', category === 'more' ? 'Product types' : 'Cultivation tiers');
-      document.querySelector('.shop-jump').after(row);
+      const holder = document.getElementById('tierRow');
+      holder.appendChild(row);
+      holder.hidden = false;
+      document.getElementById('tierRowLabel').textContent = category === 'more' ? 'TYPE' : 'TIER';
     }
     row.innerHTML = shelves.map(shelf => `<a class="${shelf.slug === tier ? 'active' : ''} ${shelf.count ? '' : 'is-empty'}" href="${S.collectionUrl(category, shelf.slug)}"${shelf.slug === tier ? ' aria-current="page"' : ''}>${escapeHtml(shelf.label.toUpperCase())} <small>${shelf.count}</small></a>`).join('');
   }
@@ -497,7 +506,7 @@
       // Until the catalogue says which tier has stock, speak about the category.
     const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
     const shelf = category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
-      card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${categoryName.toUpperCase()} / ${escapeHtml(shelf)}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div><p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
+      card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${categoryName.toUpperCase()} / ${escapeHtml(shelf)}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
       card.tabIndex = 0;
       card.setAttribute('aria-label', `View ${product.name}`);
@@ -568,22 +577,77 @@
     }
     if (shelves.length) paintShelves(shelves);
 
-    const items = inCategory.filter(p => category === 'wellness' || S.classify(p).tier === tier)
-      .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
+    const shelfItems = inCategory.filter(p => category === 'wellness' || S.classify(p).tier === tier);
     sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: 0, category, tier }));
-    paintHeader(items.length, items.length ? Math.min(...items.map(p => p.price)) : null);
+
+    // Strain type and sort are applied here, without a reload, and kept in
+    // the URL so a filtered shelf can be shared or come back to.
+    const TYPES = [['all', 'All'], ['indica', 'Indica'], ['sativa', 'Sativa'], ['hybrid', 'Hybrid']];
+    const url = new URL(location.href);
+    let type = TYPES.some(([key]) => key === url.searchParams.get('type')) ? url.searchParams.get('type') : 'all';
+    let sort = ['recommended', 'low', 'high', 'name'].includes(url.searchParams.get('sort')) ? url.searchParams.get('sort') : 'recommended';
+    const sortSelect = document.getElementById('sortSelect');
+    sortSelect.value = sort;
+
+    const typeCounts = { all: shelfItems.length };
+    shelfItems.forEach(p => { if (p.strainType) typeCounts[p.strainType] = (typeCounts[p.strainType] || 0) + 1; });
+    const hasTypes = TYPES.slice(1).some(([key]) => typeCounts[key]);
+    const typeRow = document.getElementById('typeRow');
+    typeRow.hidden = !hasTypes;
+    if (!hasTypes) type = 'all';
+
+    const remember = () => {
+      const next = new URL(location.href);
+      if (type === 'all') next.searchParams.delete('type'); else next.searchParams.set('type', type);
+      if (sort === 'recommended') next.searchParams.delete('sort'); else next.searchParams.set('sort', sort);
+      history.replaceState(null, '', next);
+    };
+
+    const paintTypes = () => {
+      document.getElementById('typeJump').innerHTML = TYPES
+        .filter(([key]) => key === 'all' || typeCounts[key])
+        .map(([key, label]) => `<button type="button" class="type-chip type-chip--${key}" data-type="${key}" aria-pressed="${key === type}">${label} <small>${typeCounts[key] || 0}</small></button>`).join('');
+    };
+
+    const sorters = {
+      recommended: (a, b) => b.availableQuantity - a.availableQuantity || a.name.localeCompare(b.name),
+      low: (a, b) => a.price - b.price || a.name.localeCompare(b.name),
+      high: (a, b) => b.price - a.price || a.name.localeCompare(b.name),
+      name: (a, b) => a.name.localeCompare(b.name),
+    };
 
     const featured = document.getElementById('featuredProductLink');
-    if (items.length) {
-      paintGrid(items);
-      featured.href = S.productUrl(items[0]);
-      featured.hidden = false;
-    } else {
-      const stocked = shelves.filter(s => s.count);
-      const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
-      paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
-      featured.hidden = true;
-    }
+    const apply = () => {
+      const items = shelfItems.filter(p => type === 'all' || p.strainType === type).sort(sorters[sort]);
+      paintHeader(items.length, items.length ? Math.min(...items.map(p => p.price)) : null);
+      paintTypes();
+      if (items.length) {
+        paintGrid(items);
+        if (featured) { featured.href = S.productUrl(items[0]); featured.hidden = false; }
+      } else if (shelfItems.length) {
+        paintState(`No ${type} ${categoryName.toLowerCase()} here`, `Nothing on this shelf is recorded as ${type}. <a href="#" data-clear-type>Show all types</a>.`);
+      } else {
+        const stocked = shelves.filter(s => s.count);
+        const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
+        paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
+        if (featured) featured.hidden = true;
+      }
+    };
+
+    document.getElementById('typeJump').addEventListener('click', event => {
+      const chip = event.target.closest('[data-type]');
+      if (!chip || chip.dataset.type === type) return;
+      type = chip.dataset.type;
+      remember();
+      apply();
+    });
+    grid.addEventListener('click', event => {
+      if (!event.target.closest('[data-clear-type]')) return;
+      event.preventDefault();
+      type = 'all'; remember(); apply();
+    });
+    sortSelect.addEventListener('change', () => { sort = sortSelect.value; remember(); apply(); });
+    apply();
     restoreScroll();
   }).catch(error => {
     paintState('The shelf could not be loaded', `${escapeHtml(error.message)}. <a href="${escapeHtml(location.href)}">Try again</a>.`, true);

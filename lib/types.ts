@@ -6,6 +6,10 @@ export type CatalogProduct = {
   grade: string | null
   /** From CDASH inventory. Sparse — only ~a fifth of stock carries one. */
   brand: string | null
+  /** From CDASH inventory_items.strain_type, where recorded. */
+  strainType: "indica" | "sativa" | "hybrid" | null
+  /** Measured amount per item (edibles, wellness), where recorded. */
+  mgAmount: number | null
   description: string | null
   imageUrl: string | null
   price: number

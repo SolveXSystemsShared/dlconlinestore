@@ -34,6 +34,8 @@ export function previewCatalog(): CatalogProduct[] {
     productType,
     grade,
     brand: null,
+    strainType: null,
+    mgAmount: null,
     description: null,
     imageUrl: null,
     price,

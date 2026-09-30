@@ -87,7 +87,7 @@ def page(slug, title, h1, description, intro, sections, extra_head=""):
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0717ff">
+  <meta name="theme-color" content="#41a8fc">
   <title>{escape(title)} | Down Low Cannabis</title>
   <meta name="description" content="{escape(description)}">
   <meta name="robots" content="index,follow">
@@ -101,7 +101,7 @@ def page(slug, title, h1, description, intro, sections, extra_head=""):
   <meta property="og:type" content="website"><meta property="og:title" content="{escape(title)} | Down Low Cannabis"><meta property="og:description" content="{escape(description)}"><meta property="og:url" content="{SITE}/{slug}.html"><meta property="og:image" content="{SITE}/assets/social/og-dlc.jpg">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{escape(title)} | Down Low Cannabis"><meta name="twitter:description" content="{escape(description)}"><meta name="twitter:image" content="{SITE}/assets/social/og-dlc.jpg">{extra_head}
 </head>
-<body>
+<body class="legal-body">
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="nav">
   <a class="brand" href="index.html?home=1" aria-label="Down Low Cannabis home"><img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52"></a>

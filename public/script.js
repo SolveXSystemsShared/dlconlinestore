@@ -249,36 +249,63 @@
   // perceived scrub distance; the additional page height is used for Flower →
   // Prerolls → Wellness before the sticky lounge releases into the next content.
   let scrollDrivenCategory = null;
-  let pinnedCategory = null;
   // The three the lounge scroll moves through; every other CDASH category is
   // filled from the live catalogue and shown on demand.
   const CORE_CATEGORIES = ['flower', 'prerolls', 'wellness'];
   let manualCategoryOverride = null;
   let manualCategoryOverrideUntil = 0;
 
+  // Scroll phases. The base numbers are the original design for three
+  // categories; every category in categoryOrder gets the same scroll distance
+  // as one of those, the video keeps its original length, and the lounge
+  // (.experience) is made taller to fit. With three categories the maths
+  // gives back exactly the original phases.
+  const BASE_PHASES = {
+    phone: { videoEnd:0.52, uiStart:0.49, flower:0.52, release:0.975 },
+    tablet: { videoEnd:0.595, uiStart:0.57, flower:0.595, release:0.98 },
+    desktop: { videoEnd:0.585, uiStart:0.56, flower:0.585, release:0.98 },
+  };
+  let categoryOrder = ['flower', 'prerolls', 'wellness'];
+
   function getScrollPhases(){
-    if (activeVideoProfile === 'phone') {
-      return { videoEnd:0.52, uiStart:0.49, flower:0.52, prerolls:0.67, wellness:0.82, release:0.975 };
-    }
-    if (activeVideoProfile === 'tablet') {
-      return { videoEnd:0.595, uiStart:0.57, flower:0.595, prerolls:0.725, wellness:0.85, release:0.98 };
-    }
-    return { videoEnd:0.585, uiStart:0.56, flower:0.585, prerolls:0.72, wellness:0.85, release:0.98 };
+    const b = BASE_PHASES[activeVideoProfile] || BASE_PHASES.desktop;
+    const n = Math.max(1, categoryOrder.length);
+    const slice0 = (b.release - b.flower) / 3;
+    const total = b.flower + n * slice0 + (1 - b.release);
+    const k = 1 / total;
+    const slice = slice0 * k;
+    const flower = b.flower * k;
+    return {
+      total, slice, flower,
+      videoEnd: b.videoEnd * k,
+      uiStart: b.uiStart * k,
+      prerolls: flower + slice,
+      release: flower + n * slice,
+    };
+  }
+
+  // Taller lounge for more categories: the CSS height covers the original
+  // three, the extra length is added in pixels so each category keeps the
+  // same scroll distance on every screen size.
+  function fitExperienceHeight(){
+    experience.style.height = '';
+    const total = getScrollPhases().total;
+    if (Math.abs(total - 1) < 0.001) return;
+    const base = experience.offsetHeight - window.innerHeight;
+    experience.style.height = `${Math.round(base * total + window.innerHeight)}px`;
   }
 
   function categoryForProgress(p){
     const phases = getScrollPhases();
     if (p < phases.flower) return null;
-    if (p < phases.prerolls) return 'flower';
-    if (p < phases.wellness) return 'prerolls';
-    return 'wellness';
+    const index = Math.min(categoryOrder.length - 1, Math.floor((p - phases.flower) / phases.slice));
+    return categoryOrder[Math.max(0, index)];
   }
 
   function progressForCategory(category){
     const phases = getScrollPhases();
-    if (category === 'prerolls') return Math.min(phases.wellness - 0.025, phases.prerolls + 0.035);
-    if (category === 'wellness') return Math.min(phases.release - 0.035, phases.wellness + 0.035);
-    return Math.min(phases.prerolls - 0.025, phases.flower + 0.035);
+    const index = Math.max(0, categoryOrder.indexOf(category));
+    return phases.flower + phases.slice * (index + 0.3);
   }
 
   function scrollToCategoryPhase(category, behavior = 'smooth'){
@@ -343,6 +370,9 @@
     const uiOpacity = uiIn * uiOut;
     tableUi.style.opacity = uiOpacity.toFixed(3);
     tableUi.classList.toggle('ready', uiOpacity > .75);
+    // While the category row is on screen, the floating ? and ↑ buttons lift
+    // above it instead of covering the categories.
+    document.documentElement.classList.toggle('lounge-row-visible', uiOpacity > 0.05);
     videoShade.style.opacity = (0.55 + uiIn * 0.17).toFixed(3);
 
     // Once the product table is reached, scrolling itself changes the category.
@@ -360,12 +390,6 @@
         manualCategoryOverrideUntil = 0;
         nextScrollCategory = categoryForProgress(p);
       }
-    }
-    // A category outside the scroll sequence (edibles, vapes…) stays on the
-    // table until the member scrolls on; then the scroll takes over again.
-    if (pinnedCategory) {
-      if (Math.abs(window.scrollY - pinnedCategory.y) < 140) nextScrollCategory = pinnedCategory.category;
-      else pinnedCategory = null;
     }
     if (nextScrollCategory && nextScrollCategory !== scrollDrivenCategory) {
       activateCategory(nextScrollCategory, {persist:true, animate:!reducedMotion});
@@ -539,13 +563,7 @@
       // Clicking the already-active category should not cause a flash/re-render.
       if (current === category && alreadyInTargetPhase) return;
 
-      if (!CORE_CATEGORIES.includes(category)) {
-        if (!categoryProducts[category]) { window.location.assign(`strains.html?category=more&tier=${encodeURIComponent(category)}`); return; }
-        pinnedCategory = { category, y: window.scrollY };
-        activateCategory(category, {persist:true, animate: current !== category});
-        return;
-      }
-      pinnedCategory = null;
+      if (!categoryProducts[category]) { window.location.assign(`strains.html?category=more&tier=${encodeURIComponent(category)}`); return; }
       activateCategory(category, {persist:true, animate: current !== category});
       scrollToCategoryPhase(category, reducedMotion ? 'auto' : 'smooth');
     });
@@ -578,6 +596,15 @@
       ];
     });
     document.querySelector('.category-row')?.classList.toggle('is-extended', shown > 0);
+    // Scroll order = the row's order, so scrolling walks the row left to right.
+    categoryOrder = categories.filter(b => !b.hidden && categoryProducts[b.dataset.category]).map(b => b.dataset.category);
+    const saved = getSavedLoungeState();
+    fitExperienceHeight();
+    // A member coming back to a category further along lands on it again.
+    if (sessionStorage.getItem(RETURN_KEY) !== '1' && saved?.category && !CORE_CATEGORIES.includes(saved.category) && categoryProducts[saved.category] && window.scrollY > experience.offsetTop) {
+      scrollToCategoryPhase(saved.category, 'auto');
+    }
+    if (!rafId) render();
   }).catch(() => {});
 
   const savedState = getSavedLoungeState();
@@ -596,12 +623,7 @@
     sessionStorage.removeItem(RETURN_KEY);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const phases = getScrollPhases();
-        const phaseProgress = savedState.category === 'wellness'
-          ? Math.min(phases.release - .035, phases.wellness + .035)
-          : savedState.category === 'prerolls'
-            ? phases.prerolls + .035
-            : phases.flower + .035;
+        const phaseProgress = progressForCategory(savedState.category);
         const fallbackTarget = experience.offsetTop + (experience.offsetHeight - window.innerHeight) * phaseProgress;
         const savedTarget = Number.isFinite(savedState.scrollY) && savedState.scrollY > experience.offsetTop ? savedState.scrollY : fallbackTarget;
         window.scrollTo({top: savedTarget, behavior: 'auto'});
@@ -614,6 +636,7 @@
     sourceSwapTimer = setTimeout(() => {
       const before = activeVideoProfile;
       applyResponsiveVideoSource(false);
+      fitExperienceHeight();
       if (before === activeVideoProfile) {
         currentTime = Math.min(currentTime, getScrubEnd());
         targetTime = Math.min(targetTime, getScrubEnd());

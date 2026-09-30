@@ -98,6 +98,17 @@
       copy: 'All concentrates are stronger per gram than flower. The names describe texture and how they were made.',
       items: Object.values(CONCENTRATE_TERMS),
     },
+    'strain-types': {
+      tab: 'Strain types',
+      title: 'INDICA, SATIVA & HYBRID',
+      copy: 'These are traditional ways of grouping cannabis plants. They are a helpful starting point, not a promise of how a product will feel — that varies a lot from person to person.',
+      items: [
+        ['INDICA', 'Traditionally shorter, bushier plants. Often described by members as more body-focused and suited to winding down.', shelf('strains.html?category=flower&type=indica', 'Browse indica')],
+        ['SATIVA', 'Traditionally taller plants with narrower leaves. Often described as more uplifting or head-focused.', shelf('strains.html?category=flower&type=sativa', 'Browse sativa')],
+        ['HYBRID', 'A cross of indica and sativa genetics. Most modern strains are hybrids, leaning one way or the other.', shelf('strains.html?category=flower&type=hybrid', 'Browse hybrid')],
+        ['WHAT MATTERS MORE', 'Cannabinoid content, terpenes, dose and your own tolerance shape the experience more than the label. Start low and go slow with anything new.'],
+      ],
+    },
     potency: {
       tab: 'THC & CBD',
       title: 'THC, CBD & POTENCY',
@@ -136,7 +147,7 @@
     },
   };
   const ALIASES = { categories: 'formats', 'current-product': 'context', learn: 'basics' };
-  const TAB_ORDER = ['context', 'basics', 'formats', 'tiers', 'concentrates', 'potency', 'buying', 'care'];
+  const TAB_ORDER = ['context', 'basics', 'formats', 'tiers', 'strain-types', 'concentrates', 'potency', 'buying', 'care'];
 
   // ── Context ("For you") ──────────────────────────────────────────────────
   let contextProduct = null;
@@ -162,6 +173,10 @@
       if (formatKey) items.push(FORMATS[formatKey]);
       const tierKey = (place.category === 'flower' || place.category === 'prerolls') ? place.tier : tierInGrade(p.grade);
       if (tierKey) items.push([`${TIER_NAMES[tierKey].toUpperCase()} TIER`, TIER_INFO[tierKey], shelf('#decoder-tiers', 'Compare all tiers')]);
+      if (p.strainType) {
+        const st = topics['strain-types'].items.find(([term]) => term === p.strainType.toUpperCase());
+        if (st) items.push([`${st[0]} STRAIN`, st[1], shelf('#decoder-strain-types', 'Compare strain types')]);
+      }
       const conc = CONCENTRATE_TERMS[S.slugify(p.grade)];
       if (conc) items.push(conc);
       if (/moonstick|dab|concentrate/.test(S.slugify(p.productType))) items.push(topics.care.items[2]);

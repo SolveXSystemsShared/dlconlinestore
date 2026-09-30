@@ -15,6 +15,15 @@ type CatalogRow = {
   store_id: string | null
 }
 
+/** CDASH stores strain type as free-ish text; the store shows three values. */
+function normalizeStrainType(value: string | null): "indica" | "sativa" | "hybrid" | null {
+  const v = (value || "").trim().toLowerCase()
+  if (v.startsWith("indica")) return "indica"
+  if (v.startsWith("sativa")) return "sativa"
+  if (v.startsWith("hybrid")) return "hybrid"
+  return null
+}
+
 type InventoryRow = {
   id: string
   product_type: string
@@ -26,6 +35,7 @@ type InventoryRow = {
   exchange_price: number | null
   store_id: string | null
   date_received: string | null
+  mg_amount: number | null
 }
 
 // PostgREST caps an unbounded select at 1000 rows. Ask for more than the shelf
@@ -56,14 +66,25 @@ export async function getCatalog(storeIdOverride?: string | null): Promise<Catal
   // view, so the catalogue can never advertise something checkout will refuse.
   let inventoryQuery = supabase
     .from("online_sellable_inventory")
-    .select("id, product_type, strain_name, grade, brand, quantity, online_price, exchange_price, store_id, date_received")
+    .select("id, product_type, strain_name, grade, brand, quantity, online_price, exchange_price, store_id, date_received, mg_amount")
     .limit(INVENTORY_PAGE_SIZE)
   if (storeId) inventoryQuery = inventoryQuery.or(`store_id.eq.${storeId},store_id.is.null`)
 
   // Every product used to cost its own inventory and reservation round trip,
   // which is hundreds of sequential queries once the shelf is fully published.
   // Fetch each set once and match them up in memory instead.
-  const [products, inventory, reservations] = await Promise.all([
+  // Strain type lives on inventory_items but not on the sellable view, so it
+  // is read alongside — same store scope, stock that is on the shelf.
+  let strainTypeQuery = supabase
+    .from("inventory_items")
+    .select("id, strain_type")
+    .eq("is_archived", false)
+    .gt("quantity", 0)
+    .not("strain_type", "is", null)
+    .limit(INVENTORY_PAGE_SIZE)
+  if (storeId) strainTypeQuery = strainTypeQuery.or(`store_id.eq.${storeId},store_id.is.null`)
+
+  const [products, inventory, reservations, strainTypes] = await Promise.all([
     productQuery.then(({ data, error }) => { if (error) throw new Error(error.message); return (data || []) as CatalogRow[] }),
     inventoryQuery.then(({ data, error }) => { if (error) throw new Error(error.message); return (data || []) as InventoryRow[] }),
     supabase
@@ -73,7 +94,13 @@ export async function getCatalog(storeIdOverride?: string | null): Promise<Catal
       .gt("expires_at", new Date().toISOString())
       .limit(INVENTORY_PAGE_SIZE)
       .then(({ data, error }) => { if (error) throw new Error(error.message); return data || [] }),
+    // A missing strain type is never worth failing the catalogue over.
+    strainTypeQuery.then(({ data, error }) => {
+      if (error) { console.error("Strain types unavailable", error.message); return [] }
+      return (data || []) as Array<{ id: string; strain_type: string | null }>
+    }),
   ])
+  const strainTypeById = new Map(strainTypes.map((row) => [row.id, normalizeStrainType(row.strain_type)]))
 
   const heldByInventoryId = new Map<string, number>()
   for (const reservation of reservations) {
@@ -117,6 +144,10 @@ export async function getCatalog(storeIdOverride?: string | null): Promise<Catal
     // anyway ("Jane's", "Awaken", "OCB"), which is why that is the filter the
     // store leads with.
     const brand = matches.find((row) => (row.brand || "").trim())?.brand?.trim() || null
+    // The first batch that records one — batches of a strain share its type.
+    const strainType = matches.map((row) => strainTypeById.get(row.id)).find(Boolean) ?? null
+    const mg = matches.find((row) => row.mg_amount != null)?.mg_amount
+    const mgAmount = mg != null && Number(mg) > 0 ? Number(mg) : null
 
     result.push({
       id: product.id,
@@ -125,6 +156,8 @@ export async function getCatalog(storeIdOverride?: string | null): Promise<Catal
       productType: product.product_type,
       grade: product.grade,
       brand,
+      strainType,
+      mgAmount,
       description: product.description,
       imageUrl: product.image_url,
       price,

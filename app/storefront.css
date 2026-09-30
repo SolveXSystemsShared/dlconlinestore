@@ -8,7 +8,7 @@
 html:has(.sf), body:has(.sf) { background: #fff; }
 
 .sf {
-  --sf-blue: #1527ff;
+  --sf-blue: #1a6ef0;
   --sf-ink: #11131a;
   --sf-muted: #6e737d;
   --sf-line: #dfe2e8;
@@ -48,7 +48,7 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 .sf-bag { height: 36px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; background: var(--sf-blue); color: #fff !important; font-size: 10px; font-weight: 900; letter-spacing: 1px; white-space: nowrap; transition: transform .18s ease; }
 .sf-bag:hover { transform: translateY(-1px); }
 .sf-bag b { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 5px; border-radius: 999px; background: #fff; color: var(--sf-blue); font-size: 9px; }
-.sf-bag.is-current { box-shadow: 0 0 0 3px rgba(21, 39, 255, .18); }
+.sf-bag.is-current { box-shadow: 0 0 0 3px rgba(26,110,240, .18); }
 .sf-mobile-nav { position: fixed; z-index: 49; top: 72px; left: 0; right: 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); display: grid; gap: 8px; background: rgba(255, 255, 255, .98); border-bottom: 1px solid rgba(17, 19, 26, .12); }
 .sf-mobile-nav[hidden] { display: none; }
 .sf-mobile-nav a { min-height: 46px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px; background: #f5f6f8; font-size: 12px; font-weight: 900; letter-spacing: 1.4px; }
@@ -86,7 +86,7 @@ html:has(.sf), body:has(.sf) { background: #fff; }
   padding: 0 16px; font-size: 14px; outline: none; transition: border-color .18s ease, box-shadow .18s ease;
 }
 .sf-field textarea { min-height: 96px; padding: 14px 16px; resize: vertical; line-height: 1.55; }
-.sf-field input:focus, .sf-field textarea:focus, .sf-field select:focus { border-color: var(--sf-blue); box-shadow: 0 0 0 3px rgba(21, 39, 255, .1); }
+.sf-field input:focus, .sf-field textarea:focus, .sf-field select:focus { border-color: var(--sf-blue); box-shadow: 0 0 0 3px rgba(26,110,240, .1); }
 .sf-field input[readonly] { background: var(--sf-soft); }
 .sf-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .sf-inline { display: flex; gap: 8px; }
@@ -401,3 +401,21 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 .sf-order-items { color: #4f5560 !important; margin-top: 6px !important; }
 .sf-signout { align-self: center; }
 @media (max-width: 640px) { .sf-custom-period { grid-template-columns: minmax(0, 1fr); } }
+
+/* CDASH baby blue for big surfaces; deep blue stays for text on white. */
+.sf-bag { background: #41a8fc !important; color: #06213d !important; }
+.sf-bag b { color: #06213d; }
+.sf-band { background: linear-gradient(135deg, #6cbcfe 0%, #41a8fc 55%, #2f97f5 100%); color: #06213d; }
+.sf-band p { color: rgba(6,33,61,.8); }
+.sf-band a { border-color: rgba(6,33,61,.35); }
+.sf-band a:hover { background: rgba(255,255,255,.35); }
+.sf-loading-line { display: flex; align-items: center; gap: 12px; min-height: 58px; }
+.sf-loading-line::before { content: ""; flex: 0 0 30px; height: 43px; background: url("/assets/dlc-mascot-small.png") center / contain no-repeat; animation: sfMascotBob 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sf-loading-line::before { animation: none; } }
+.sf-to-top { position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); z-index: 60; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #cfe3fb; background: #fff; color: #06213d; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 12px 28px rgba(6,33,61,.18); opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease, visibility .2s ease; }
+.sf-to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
+.sf-to-top:hover { border-color: #41a8fc; }
+@media (prefers-reduced-motion: reduce) { .sf-to-top { transition: none; } }
+/* Rests at low opacity like the storefront's floating buttons. */
+.sf-to-top.is-visible { opacity: .55; }
+.sf-to-top.is-visible:hover, .sf-to-top.is-visible:focus-visible, .sf-to-top.is-visible:active { opacity: 1; }
