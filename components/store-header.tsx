@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react"
 
+// Line icons matching the storefront header (public/common.js).
+const iconProps = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true, focusable: false }
+const BagIcon = () => <svg className="sf-icon" {...iconProps}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+const MenuIcon = () => <svg className="sf-icon" {...iconProps}><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></svg>
+const CloseIcon = () => <svg className="sf-icon" {...iconProps}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+
 /**
  * The storefront's white header, for the React pages.
  *
@@ -47,9 +53,11 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
       </a>
       <nav className="sf-nav-links" aria-label="Primary navigation">{links}</nav>
       <div className="sf-nav-actions">
-        <a className={`sf-bag ${current === "bag" ? "is-current" : ""}`} href="/bag" aria-label={`Your bag, ${count} ${count === 1 ? "item" : "items"}`}>BAG <b>{String(count).padStart(2, "0")}</b></a>
+        <a className="sf-icon-btn sf-bag-btn" href="/bag" data-label="Bag" aria-current={current === "bag" ? "page" : undefined} aria-label={`Your bag, ${count} ${count === 1 ? "item" : "items"}`}><BagIcon />{count > 0 && <b className="sf-badge-count">{count > 99 ? "99+" : count}</b>}</a>
         <span className="sf-pill sf-age">18+</span>
-        <button type="button" className="sf-pill sf-menu" aria-expanded={open} aria-controls="sfMobileNav" onClick={() => setOpen(!open)}>{open ? "CLOSE" : "MENU"}</button>
+        <button type="button" className="sf-icon-btn sf-menu" data-label={open ? "Close" : "Menu"} aria-expanded={open} aria-controls="sfMobileNav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>
+          <span className="sf-icon-swap sf-icon-swap--open"><MenuIcon /></span><span className="sf-icon-swap sf-icon-swap--close"><CloseIcon /></span>
+        </button>
       </div>
     </header>
     <nav id="sfMobileNav" className="sf-mobile-nav" hidden={!open} aria-label="Mobile navigation" onClick={() => setOpen(false)}>{links}</nav>

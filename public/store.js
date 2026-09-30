@@ -254,8 +254,22 @@
   const inCart = productId => lines.find(line => line.id === productId)?.quantity || 0;
 
   // The bag pill in the header follows the member's saved bag on every page.
+  let lastCount = null;
   window.addEventListener('dlc:cart', event => {
-    document.querySelectorAll('[data-bag-count]').forEach(el => { el.textContent = String(event.detail.count).padStart(2, '0'); });
+    const count = event.detail.count;
+    document.querySelectorAll('[data-bag-count]').forEach(el => {
+      el.textContent = count > 99 ? '99+' : String(count);
+      el.hidden = count === 0;
+    });
+    document.querySelectorAll('[data-bag-link]').forEach(link => {
+      link.setAttribute('aria-label', `Your bag, ${count} ${count === 1 ? 'item' : 'items'}`);
+      if (lastCount !== null && count > lastCount) {
+        link.classList.remove('is-bumped');
+        void link.offsetWidth;
+        link.classList.add('is-bumped');
+      }
+    });
+    lastCount = count;
   });
   // As soon as the member is confirmed, start the catalogue and bag downloads
   // — on a slow line every page needs them, so waiting to be asked wastes time.

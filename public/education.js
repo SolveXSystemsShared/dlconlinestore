@@ -418,7 +418,8 @@
   const navActions = document.querySelector('.nav-actions');
   if (navActions) {
     const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'nav-search-btn'; btn.textContent = 'SEARCH'; btn.setAttribute('aria-label', 'Search DLC');
+    btn.type = 'button'; btn.className = 'nav-search-btn nav-icon-btn'; btn.dataset.label = 'Search'; btn.setAttribute('aria-label', 'Search DLC'); btn.setAttribute('aria-haspopup', 'dialog');
+    btn.innerHTML = window.DLCIcons?.search || 'SEARCH';
     navActions.insertBefore(btn, navActions.firstChild);
     btn.addEventListener('click', () => openSearch());
   }
@@ -450,8 +451,8 @@
     const decoderHint = query ? `<button type="button" class="search-result search-result--decoder" data-search-decoder><div><span>DLC DECODER</span><strong>WHAT IS “${esc(q.trim().toUpperCase())}”?</strong></div><em>?</em></button>` : '';
     results.innerHTML = (matches.length ? matches.map(x => `<a class="search-result" href="${esc(x[2])}"><div><span>${esc(x[1])}</span><strong>${esc(x[0])}</strong></div><em>→</em></a>`).join('') : '<div class="search-empty">No matching DLC products or categories found.</div>') + decoderHint;
   }
-  function openSearch() { lastFocus = document.activeElement; renderSearch(''); search.classList.add('is-open'); search.setAttribute('aria-hidden', 'false'); document.documentElement.classList.add('search-open'); setTimeout(() => input.focus(), 20); }
-  function closeSearch() { search.classList.remove('is-open'); search.setAttribute('aria-hidden', 'true'); document.documentElement.classList.remove('search-open'); lastFocus?.focus?.(); }
+  function openSearch() { document.querySelector('.nav-search-btn')?.setAttribute('aria-expanded', 'true'); lastFocus = document.activeElement; renderSearch(''); search.classList.add('is-open'); search.setAttribute('aria-hidden', 'false'); document.documentElement.classList.add('search-open'); setTimeout(() => input.focus(), 20); }
+  function closeSearch() { document.querySelector('.nav-search-btn')?.setAttribute('aria-expanded', 'false'); search.classList.remove('is-open'); search.setAttribute('aria-hidden', 'true'); document.documentElement.classList.remove('search-open'); lastFocus?.focus?.(); }
   input.addEventListener('input', () => renderSearch(input.value));
   search.querySelector('.search-close').addEventListener('click', closeSearch);
   // "What is X?" hands the query straight to the decoder's term search.

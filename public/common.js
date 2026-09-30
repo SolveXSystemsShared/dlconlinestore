@@ -1,4 +1,11 @@
 (() => {
+  // Line icons shared by the header buttons (education.js uses search).
+  const svg = paths => `<svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+  window.DLCIcons = {
+    search: svg('<circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.3-4.3"/>'),
+    menu: svg('<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'),
+    close: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  };
   const header = document.querySelector('.nav');
   const menuButton = document.getElementById('menuBtn');
   const primaryNav = header?.querySelector('.nav-links');
@@ -15,10 +22,13 @@
       header.insertAdjacentElement('afterend', mobileNav);
     }
 
+    menuButton.classList.add('nav-icon-btn', 'nav-menu');
+    menuButton.dataset.label = 'Menu';
+    menuButton.innerHTML = `<span class="nav-icon-swap nav-icon-swap--open">${window.DLCIcons.menu}</span><span class="nav-icon-swap nav-icon-swap--close">${window.DLCIcons.close}</span>`;
     const setOpen = (open) => {
       menuButton.setAttribute('aria-expanded', String(open));
       menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-      menuButton.textContent = open ? 'CLOSE' : 'MENU';
+      menuButton.dataset.label = open ? 'Close' : 'Menu';
       mobileNav.hidden = !open;
       document.documentElement.classList.toggle('mobile-menu-open', open);
       if (open) mobileNav.querySelector('a')?.focus();

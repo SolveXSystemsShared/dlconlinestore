@@ -3154,3 +3154,76 @@ html.lounge-row-visible{--float-lift:78px}
 @media(max-width:900px){.product-stage.dlc-cloud-stage .product-stage-art{width:66%!important;height:64%!important}}
 @media(max-width:900px){.product-stage.dlc-cloud-stage{aspect-ratio:6/5}}
 .related-heading-row{margin-bottom:10px!important}.related-products{padding-top:clamp(36px,6vw,64px)!important}
+
+/* ── Collapsible shop filters ───────────────────────────────────────────────
+   Bar: category chips + Filters toggle. Panel slides open (grid 0fr→1fr). */
+.shop-filters{gap:0!important;padding:12px!important}
+.shop-filter-bar{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.shop-filter-bar .shop-jump{flex:1 1 auto}
+.shop-filter-toggle{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:1px solid #d6e6f7;border-radius:999px;background:#fff;color:var(--dlc-navy);font:inherit;font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;cursor:pointer;box-shadow:0 1px 2px rgba(6,33,61,.05);transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .12s ease,color .18s ease}
+.shop-filter-toggle .icon{flex:0 0 auto}
+.shop-filter-toggle .chevron{width:16px;height:16px;transition:transform .25s ease}
+.shop-filter-toggle:hover{border-color:var(--dlc-sky);background:var(--dlc-sky-soft);color:var(--dlc-sky-deep)}
+.shop-filter-toggle:active{transform:scale(.96)}
+.shop-filter-toggle:focus-visible{outline:3px solid var(--dlc-sky);outline-offset:2px}
+.shop-filter-toggle[aria-expanded="true"]{background:var(--dlc-navy);border-color:var(--dlc-navy);color:#fff}
+.shop-filter-toggle[aria-expanded="true"] .chevron{transform:rotate(180deg)}
+.shop-filter-toggle.has-active:not([aria-expanded="true"]){border-color:var(--dlc-sky);box-shadow:0 0 0 3px rgba(65,168,252,.18)}
+.shop-filter-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--dlc-sky);color:var(--dlc-navy);font-size:10px}
+.shop-filter-count[hidden]{display:none}
+.shop-filter-toggle[aria-expanded="true"] .shop-filter-count{background:#fff}
+.shop-filter-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.shop-filter-panel.is-open{grid-template-rows:1fr}
+.shop-filter-panel__inner{overflow:hidden;min-height:0;display:grid;gap:14px}
+.shop-filter-panel.is-open .shop-filter-panel__inner{padding-top:14px;margin-top:12px;border-top:1px solid rgba(65,168,252,.18)}
+.shop-filter-panel .shop-filter-tools{border-top:0!important;padding-top:0!important}
+@media(max-width:768px){
+  .shop-filter-bar{flex-direction:column;align-items:stretch}
+  .shop-filter-toggle{justify-content:center}
+  .shop-filter-toggle span{flex:0 0 auto}
+}
+@media(prefers-reduced-motion:reduce){.shop-filter-panel,.shop-filter-toggle .chevron{transition:none}}
+
+/* ── Header icon buttons (bag, search, menu) ────────────────────────────────
+   States: rest · hover (tint + lift) · active (press) · focus-visible (ring)
+   · current/open (filled baby blue). Glass on the lounge, white elsewhere. */
+.nav-icon-btn{position:relative;display:inline-grid;place-items:center;width:44px;height:44px;min-width:44px;padding:0!important;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .15s ease,box-shadow .18s ease;font-size:0}
+.nav-icon-btn .nav-icon{width:20px;height:20px;display:block;transition:transform .2s ease}
+.nav-icon-btn:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.55);transform:translateY(-1px)}
+.nav-icon-btn:active{transform:scale(.92);background:rgba(255,255,255,.26)}
+.nav-icon-btn:focus-visible{outline:3px solid var(--dlc-sky);outline-offset:2px}
+.nav-icon-btn[aria-current="page"],.nav-icon-btn[aria-expanded="true"]{background:var(--dlc-sky);border-color:var(--dlc-sky);color:var(--dlc-navy)}
+
+/* Light headers: product, collection and legal pages */
+.product-page .nav-icon-btn,.strains-page .nav-icon-btn,.legal-body .nav-icon-btn{background:#fff;border-color:#d6e6f7;color:var(--dlc-navy);box-shadow:0 1px 2px rgba(6,33,61,.05)}
+.product-page .nav-icon-btn:hover,.strains-page .nav-icon-btn:hover,.legal-body .nav-icon-btn:hover{background:var(--dlc-sky-soft);border-color:var(--dlc-sky);color:var(--dlc-sky-deep)}
+.product-page .nav-icon-btn:active,.strains-page .nav-icon-btn:active,.legal-body .nav-icon-btn:active{background:#d8ecff}
+.product-page .nav-icon-btn[aria-expanded="true"],.strains-page .nav-icon-btn[aria-expanded="true"],.legal-body .nav-icon-btn[aria-expanded="true"]{background:var(--dlc-sky);border-color:var(--dlc-sky);color:var(--dlc-navy)}
+
+/* Bag: filled baby blue so it reads as the main action, with a count badge */
+.nav-bag.nav-icon-btn,.product-page .nav-bag.nav-icon-btn,.strains-page .nav-bag.nav-icon-btn{background:var(--dlc-sky);border-color:var(--dlc-sky);color:var(--dlc-navy)}
+.nav-bag.nav-icon-btn:hover,.product-page .nav-bag.nav-icon-btn:hover,.strains-page .nav-bag.nav-icon-btn:hover{background:#6cbcfe;border-color:#6cbcfe;color:var(--dlc-navy)}
+.nav-bag.nav-icon-btn:active{background:#2f97f5!important}
+.nav-badge{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--dlc-navy);color:#fff;border:2px solid #fff;font-size:9.5px;font-weight:900;line-height:15px;letter-spacing:0;text-align:center}
+.nav-badge[hidden]{display:none}
+.nav-bag.is-bumped{animation:dlcBagBump .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes dlcBagBump{35%{transform:scale(1.18)}}
+
+/* Menu: hamburger turns into × while open */
+.nav-icon-swap{display:grid;place-items:center;grid-area:1/1;transition:opacity .18s ease,transform .22s ease}
+.nav-icon-swap--close{opacity:0;transform:rotate(-90deg) scale(.6)}
+.nav-menu[aria-expanded="true"] .nav-icon-swap--open{opacity:0;transform:rotate(90deg) scale(.6)}
+.nav-menu[aria-expanded="true"] .nav-icon-swap--close{opacity:1;transform:none}
+
+/* Hover labels on devices with a mouse */
+@media(hover:hover) and (min-width:1025px){
+  .nav-icon-btn[data-label]::after{content:attr(data-label);position:absolute;top:calc(100% + 8px);left:50%;transform:translate(-50%,-4px);padding:5px 9px;border-radius:8px;background:var(--dlc-navy);color:#fff;font-size:10px;font-weight:800;letter-spacing:.4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease}
+  .nav-icon-btn[data-label]:hover::after,.nav-icon-btn[data-label]:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+}
+
+/* The menu button only appears where the text links are hidden */
+.menu-btn.nav-icon-btn{display:none!important}
+@media(max-width:1024px){.menu-btn.nav-icon-btn{display:inline-grid!important}}
+.nav-actions{gap:8px!important}
+@media(max-width:480px){.nav-icon-btn{width:42px;height:42px;min-width:42px}.nav-actions{gap:6px!important}}
+@media(prefers-reduced-motion:reduce){.nav-icon-btn,.nav-icon-swap,.nav-bag.is-bumped{transition:none;animation:none}}
