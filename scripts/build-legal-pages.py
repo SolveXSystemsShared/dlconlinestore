@@ -94,6 +94,7 @@ def page(slug, title, h1, description, intro, sections, extra_head=""):
   <link rel="canonical" href="{SITE}/{slug}.html">
   <link rel="stylesheet" href="styles.css">
   <script src="cookies.js"></script>
+  <script src="page-loader.js" data-context="page"></script>
   <link rel="icon" href="assets/dlc-logo.svg" type="image/svg+xml">
   <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">

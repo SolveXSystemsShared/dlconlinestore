@@ -3227,3 +3227,35 @@ html.lounge-row-visible{--float-lift:78px}
 .nav-actions{gap:8px!important}
 @media(max-width:480px){.nav-icon-btn{width:42px;height:42px;min-width:42px}.nav-actions{gap:6px!important}}
 @media(prefers-reduced-motion:reduce){.nav-icon-btn,.nav-icon-swap,.nav-bag.is-bumped{transition:none;animation:none}}
+
+/* ── Full-page loader (page-loader.js) ─────────────────────────────────
+   A solid cover between pages: nothing half-loaded shows through. It lists
+   what the page is waiting for and ticks each item off as it arrives. */
+.dlc-page-loader{position:fixed;inset:0;z-index:99990;display:grid;place-items:center;padding:24px;background:#f4f9ff;background-image:radial-gradient(120% 70% at 50% 0%,#dcefff 0%,rgba(220,239,255,0) 60%),radial-gradient(90% 60% at 50% 110%,#e3f2ff 0%,rgba(227,242,255,0) 70%);color:var(--dlc-navy);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s;font-family:Arial,Helvetica,sans-serif}
+.dlc-page-loader.is-in{opacity:1;visibility:visible;transition:opacity .22s ease}
+.dlc-page-loader.no-anim{transition:none}
+.dlc-page-loader.is-out{opacity:0;visibility:hidden;transition:opacity .42s ease,visibility 0s linear .42s}
+.dlc-page-loader__card{width:min(320px,100%);display:grid;justify-items:center;gap:14px;text-align:center;transition:transform .42s ease}
+.dlc-page-loader.is-out .dlc-page-loader__card{transform:translateY(-10px) scale(.98)}
+.dlc-page-loader__mascot{width:70px;height:100px;object-fit:contain;animation:dlcMascotBob 2.6s ease-in-out infinite;filter:drop-shadow(0 14px 16px rgba(26,110,240,.18))}
+.dlc-page-loader__brand{font-size:9px;font-weight:950;letter-spacing:2.2px;color:var(--dlc-sky-deep)}
+.dlc-page-loader__line{margin:0;min-height:2.6em;font-size:14px;line-height:1.35;font-weight:700;color:var(--dlc-navy);transition:opacity .18s ease}
+.dlc-page-loader__line.is-swapping{opacity:0}
+.dlc-page-loader__bar{width:100%;height:4px;border-radius:99px;background:var(--dlc-sky-line);overflow:hidden}
+.dlc-page-loader__bar span{display:block;height:100%;background:linear-gradient(90deg,var(--dlc-sky),var(--dlc-sky-deep));transform-origin:left;transform:scaleX(.12);transition:transform .45s cubic-bezier(.3,.8,.3,1)}
+.dlc-page-loader__steps{list-style:none;margin:2px 0 0;padding:0;width:100%;display:grid;gap:8px;text-align:left}
+.dlc-page-loader__steps:empty{display:none}
+.dlc-page-loader__steps li{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--dlc-sky-line);border-radius:12px;background:#fff;font-size:12.5px;font-weight:700;color:#5b6b7e;transition:color .2s ease,border-color .2s ease}
+.dlc-page-loader__steps i{flex:0 0 18px;height:18px;border-radius:50%;border:2px solid var(--dlc-sky-line);border-top-color:var(--dlc-sky-deep);animation:dlcLoaderSpin .8s linear infinite;display:grid;place-items:center}
+.dlc-page-loader__steps li[data-state="done"]{color:var(--dlc-navy);border-color:#bfe0fd}
+.dlc-page-loader__steps li[data-state="done"] i{animation:none;border:0;background:var(--dlc-sky)}
+.dlc-page-loader__steps li[data-state="done"] i::after{content:"";width:8px;height:4.5px;border:solid var(--dlc-navy);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
+.dlc-page-loader__steps li[data-state="failed"]{color:#8a4b12;border-color:#f3d4b0}
+.dlc-page-loader__steps li[data-state="failed"] i{animation:none;border:0;background:#f7b267}
+.dlc-page-loader__steps li[data-state="failed"] i::after{content:"!";font-size:11px;font-weight:950;color:#5a2d00;font-style:normal}
+@keyframes dlcLoaderSpin{to{transform:rotate(360deg)}}
+
+/* The page rises into place as the cover lifts */
+.dlc-page-reveal main,.dlc-page-reveal .site-footer{animation:dlcPageRise .5s cubic-bezier(.2,.7,.2,1) both}
+@keyframes dlcPageRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.dlc-page-loader,.dlc-page-loader__card,.dlc-page-loader__bar span{transition:none}.dlc-page-loader__mascot,.dlc-page-loader__steps i{animation:none}.dlc-page-reveal main,.dlc-page-reveal .site-footer{animation:none}}

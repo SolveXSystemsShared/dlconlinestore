@@ -23,6 +23,7 @@
 <script src="loading-lines.js"></script>
 <script src="age-gate.js"></script>
 <script src="store.js"></script>
+<script src="page-loader.js" data-context="shelf"></script>
 <meta name="description" content="Browse Down Low Cannabis strain collections by category and cultivation tier."/>
 <link rel="canonical" href="https://dlconlinestore-8qpm.vercel.app/strains.html"/>
 <meta name="robots" content="noindex,follow"/>
@@ -291,7 +292,7 @@
     <img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/>
   </a>
   <nav class="nav-links" aria-label="Primary navigation">
-    <a href="index.html#experience" data-analytics="lounge_nav_click">LOUNGE</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+    <a href="index.html#experience" data-analytics="lounge_nav_click">LOUNGE</a><a href="strains.html">SHOP ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
   </nav>
   <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
 </header>
@@ -311,7 +312,7 @@
 
   <div class="shop-filters" id="shopFilters">
     <div class="shop-filter-bar">
-      <nav class="shop-jump" aria-label="Product collections"><a data-shop="flower" href="strains.html?category=flower">FLOWER</a><a data-shop="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-shop="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-shop="more" href="strains.html?category=more">MORE</a></nav>
+      <nav class="shop-jump" aria-label="Product collections"><a data-shop="all" href="strains.html">ALL</a><a data-shop="flower" href="strains.html?category=flower">FLOWER</a><a data-shop="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-shop="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-shop="more" href="strains.html?category=more">MORE</a></nav>
       <button type="button" class="shop-filter-toggle" id="filterToggle" aria-expanded="false" aria-controls="filterPanel">
         <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
         <span>Filters</span>
@@ -371,12 +372,15 @@
 (() => {
   const S = window.DLCStore;
   const params = new URLSearchParams(location.search);
-  const category = ['flower', 'prerolls', 'wellness', 'more'].includes(params.get('category')) ? params.get('category') : 'flower';
+  // No category is the main shop: everything on the shelf in one place.
+  const category = ['flower', 'prerolls', 'wellness', 'more'].includes(params.get('category')) ? params.get('category') : 'all';
+  const isAll = category === 'all';
   // No tier in the URL means "wherever there is stock" — resolved once the catalogue loads.
   let tier = category === 'wellness' ? 'wellness' : (params.get('tier') || '');
   const titleCase = value => value.replaceAll('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const categoryName = category === 'prerolls' ? 'Prerolls' : category === 'wellness' ? 'Wellness' : category === 'more' ? 'More' : 'Flower';
+  const categoryName = isAll ? 'All products' : category === 'prerolls' ? 'Prerolls' : category === 'wellness' ? 'Wellness' : category === 'more' ? 'More' : 'Flower';
+  const CATEGORY_LABEL = { flower: 'FLOWER', prerolls: 'PREROLLS', wellness: 'WELLNESS', more: 'MORE' };
   let tierName = S.TIERS.find(t => t.slug === tier)?.label || titleCase(tier || 'products');
   // Flower and prerolls keep their cultivation tier when switching between them.
   const sharedTier = S.TIERS.some(t => t.slug === tier) ? tier : '';
@@ -404,11 +408,11 @@
   });
 
   document.getElementById('backLink').addEventListener('click', () => {
-    sessionStorage.setItem('dlcLoungeState', JSON.stringify({ category: category === 'more' ? 'flower' : category, scrollY: 0, savedAt: Date.now() }));
+    sessionStorage.setItem('dlcLoungeState', JSON.stringify({ category: category === 'more' || isAll ? 'flower' : category, scrollY: 0, savedAt: Date.now() }));
     sessionStorage.setItem('dlcReturnToLounge', '1');
   });
 
-  const collectionHref = (dest) => dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest, sharedTier);
+  const collectionHref = (dest) => dest === 'all' ? 'strains.html' : dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest, sharedTier);
   document.querySelectorAll('[data-shop]').forEach(link => {
     const destination = link.dataset.shop;
     const active = destination === category;
@@ -430,6 +434,21 @@
   const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
   function paintHeader(count, fromPrice) {
+    if (isAll) {
+      setText('crumbCategory', 'SHOP');
+      document.getElementById('crumbCategory').href = 'strains.html';
+      setText('crumbTier', 'ALL PRODUCTS');
+      setText('overviewCount', count == null ? '—' : String(count));
+      setText('overviewCountLabel', count === 1 ? 'ITEM' : 'ITEMS');
+      setText('overviewPrice', fromPrice == null ? '' : `FROM ${S.price(fromPrice)}`);
+      setText('categoryLabel', 'THE DLC SHELF');
+      document.getElementById('pageTitle').textContent = 'All products';
+      setText('pageDescription', 'Everything on the DLC shelf right now. Pick a collection above, or open Filters to narrow it down.');
+      document.getElementById('bandTitle').innerHTML = 'MORE FROM<br/>THE LOUNGE';
+      setText('bandCopy', 'Prefer a single collection? Jump to flower, prerolls, wellness or more above.');
+      document.title = 'DLC — Shop all products';
+      return;
+    }
     // Until the catalogue says which tier has stock, speak about the category.
     const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
     const shelf = category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
@@ -496,6 +515,7 @@
 
   function describe(product) {
     if (product.description) return product.description;
+    if (isAll) return [product.grade, product.brand || product.productType].filter(Boolean).join(' · ') || product.productType || 'From the DLC shelf.';
     if (category === 'wellness') return `${product.name} from the DLC wellness range${product.grade ? ` by ${product.grade}` : ''}.`;
     if (category === 'more') return [product.grade, product.brand].filter(Boolean).join(' · ') || product.productType;
     return `${product.name} from the ${tierName.toLowerCase()} ${category === 'prerolls' ? 'preroll' : 'flower'} collection.`;
@@ -508,15 +528,18 @@
       const card = document.createElement('article');
       card.className = 'strain-card';
       const image = S.imageFor(product);
-      const packClass = category === 'flower' ? 'flower-pack' : category === 'prerolls' ? 'preroll-pack' : '';
+      const place = S.classify(product);
+      const cardCategory = isAll ? place.category : category;
+      const packClass = cardCategory === 'flower' ? 'flower-pack' : cardCategory === 'prerolls' ? 'preroll-pack' : '';
       const pack = image
         ? `<div class="strain-pack dlc-cloud-stage ${packClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" loading="lazy" decoding="async"></div>`
         : `<div class="strain-pack dlc-cloud-stage placeholder"><span>DLC</span></div>`;
       const low = product.availableQuantity <= 3;
       // Until the catalogue says which tier has stock, speak about the category.
     const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
-    const shelf = category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
-      card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${categoryName.toUpperCase()} / ${escapeHtml(shelf)}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
+    const shelf = isAll ? (S.TIERS.find(t => t.slug === place.tier)?.label || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
+      const cardLabel = isAll ? CATEGORY_LABEL[place.category] : categoryName.toUpperCase();
+      card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${cardLabel}${shelf && shelf !== cardLabel ? ` / ${escapeHtml(shelf)}` : ''}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
       card.tabIndex = 0;
       card.setAttribute('aria-label', `View ${product.name}`);
@@ -527,10 +550,8 @@
       };
       const openProduct = () => {
         sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: window.scrollY, category, tier }));
-        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { location.href = productUrl; return; }
-        card.classList.add('is-product-source');
-        document.documentElement.classList.add('product-leaving');
-        window.setTimeout(() => { location.href = productUrl; }, 320);
+        if (window.DLCPageLoader) { card.classList.add('is-product-source'); window.DLCPageLoader.go(productUrl); return; }
+        location.href = productUrl;
       };
       card.addEventListener('pointerenter', prefetchProduct, { once: true });
       card.addEventListener('focus', prefetchProduct, { once: true });
@@ -563,7 +584,7 @@
   note.textContent = 'LIVE FROM THE DLC LOUNGE — CREDITS AND STOCK UPDATE AS THE SHELF CHANGES. POTENCY: CONFIRM IN STORE.';
 
   S.catalog().then(products => {
-    const inCategory = products.filter(p => S.classify(p).category === category);
+    const inCategory = isAll ? products : products.filter(p => S.classify(p).category === category);
 
     let shelves = [];
     if (category === 'flower' || category === 'prerolls') {
@@ -587,7 +608,7 @@
     }
     if (shelves.length) paintShelves(shelves);
 
-    const shelfItems = inCategory.filter(p => category === 'wellness' || S.classify(p).tier === tier);
+    const shelfItems = inCategory.filter(p => isAll || category === 'wellness' || S.classify(p).tier === tier);
     sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: 0, category, tier }));
 
     // Strain type and sort are applied here, without a reload, and kept in
@@ -656,11 +677,12 @@
         paintGrid(items);
         if (featured) { featured.href = S.productUrl(items[0]); featured.hidden = false; }
       } else if (shelfItems.length) {
-        paintState(`No ${type} ${categoryName.toLowerCase()} here`, `Nothing on this shelf is recorded as ${type}. <a href="#" data-clear-type>Show all types</a>.`);
+        paintState(`No ${type} ${isAll ? 'products' : categoryName.toLowerCase()} here`, `Nothing on this shelf is recorded as ${type}. <a href="#" data-clear-type>Show all types</a>.`);
       } else {
         const stocked = shelves.filter(s => s.count);
         const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
-        paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
+        if (isAll) paintState('The shelf is empty right now', 'Stock changes through the day — please check back soon.');
+        else paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
         if (featured) featured.hidden = true;
       }
     };
@@ -680,8 +702,10 @@
     sortSelect.addEventListener('change', () => { sort = sortSelect.value; remember(); apply(); });
     apply();
     restoreScroll();
+    window.DLCPageLoader?.done();
   }).catch(error => {
     paintState('The shelf could not be loaded', `${escapeHtml(error.message)}. <a href="${escapeHtml(location.href)}">Try again</a>.`, true);
+    window.DLCPageLoader?.done();
   });
 
   if (document.documentElement.classList.contains('dlc-arriving')) {
