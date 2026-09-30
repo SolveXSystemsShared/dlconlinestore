@@ -92,7 +92,45 @@
         </div>
         <p class="age-gate__legal">No Member ID yet? <a href="/register">Register as a member</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="cookies.html">Cookies</a></p>
       </form>`,
+    pin: () => `
+      <form class="age-gate__question" data-gate-pin novalidate>
+        <p class="age-gate__eyebrow">CHECK YOUR PHONE</p>
+        <h1 id="ageGateTitle">ENTER YOUR<br>PIN.</h1>
+        <p class="age-gate__copy">We sent a 6-digit PIN by SMS to the number on your membership, <strong>${escapeHtml(pinState.sentTo)}</strong>. It expires in ${pinState.expiresInMinutes} minutes.</p>
+        <label class="age-gate__field">
+          <span>SMS PIN</span>
+          <input name="pin" class="age-gate__pin" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" spellcheck="false" placeholder="••••••" aria-describedby="ageGateError">
+        </label>
+        <p class="age-gate__error" id="ageGateError" data-gate-error hidden></p>
+        <div class="age-gate__actions">
+          <button class="age-gate__btn age-gate__btn--yes" type="submit" disabled>SIGN IN</button>
+        </div>
+        <p class="age-gate__legal age-gate__pin-links">
+          <button type="button" class="age-gate__link" data-gate-action="resend" disabled>Send a new PIN</button>
+          <span data-gate-resend-wait></span> · <button type="button" class="age-gate__link" data-gate-action="change">Use a different Member ID</button>
+        </p>
+        <p class="age-gate__legal">Wrong number, or no phone with you? Ask the team at the lounge to update your membership.</p>
+      </form>`,
   };
+
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  // The member being signed in and where their PIN went, between the two screens.
+  const pinState = { memberId: '', sentTo: '', expiresInMinutes: 10, resendAt: 0 };
+  let resendTimer = null;
+  function tickResend() {
+    clearInterval(resendTimer);
+    const paint = () => {
+      const button = gate?.querySelector('[data-gate-action="resend"]');
+      const note = gate?.querySelector('[data-gate-resend-wait]');
+      if (!button) { clearInterval(resendTimer); return; }
+      const left = Math.ceil((pinState.resendAt - Date.now()) / 1000);
+      button.disabled = left > 0 || gate.classList.contains('is-busy');
+      note.textContent = left > 0 ? `in ${left}s` : '';
+      if (left <= 0) clearInterval(resendTimer);
+    };
+    paint();
+    resendTimer = setInterval(paint, 1000);
+  }
 
   // What the mascot says on each screen.
   const bubbles = {
@@ -100,6 +138,7 @@
     age: 'Howzit! Quick check before we go in.',
     denied: 'Sorry — this one is for adults only.',
     member: 'Welcome in. Pop your Member ID below.',
+    pin: 'Nearly there — check your SMS for the PIN.',
   };
 
   let stopLines = () => {};
@@ -177,7 +216,7 @@
         if (button.type !== 'submit') button.disabled = false;
       }
     });
-    if (!busy) onInput();
+    if (!busy) { onInput(); if (gate?.dataset.state === 'pin') tickResend(); }
   }
 
   function trapFocus(event) {
@@ -192,6 +231,8 @@
   async function onClick(event) {
     const action = event.target.closest('[data-gate-action]')?.dataset.gateAction;
     if (action === 'no') mount('denied');
+    if (action === 'change') { mount('member'); const input = gate.querySelector('input[name="memberId"]'); if (input && pinState.memberId) { input.value = pinState.memberId; onInput(); } return; }
+    if (action === 'resend') { requestPin(pinState.memberId, true); return; }
     if (action === 'back') { if (history.length > 1) history.back(); else location.href = 'about:blank'; }
     if (action !== 'yes') return;
     setBusy(true, 'ENTERING…');
@@ -214,6 +255,15 @@
   }
 
   function onInput(event) {
+    const pin = gate?.querySelector('input[name="pin"]');
+    if (pin) {
+      if (event) { pin.value = pin.value.replace(/\D/g, '').slice(0, 6); showError(''); }
+      const submit = gate.querySelector('button[type="submit"]');
+      if (submit) submit.disabled = pin.value.length !== 6;
+      // Paste or SMS autofill fills all six at once: sign straight in.
+      if (event && pin.value.length === 6 && !gate.classList.contains('is-busy')) gate.querySelector('[data-gate-pin]').requestSubmit?.();
+      return;
+    }
     const input = gate?.querySelector('input[name="memberId"]');
     if (!input) return;
     if (event) {
@@ -226,18 +276,51 @@
 
   async function onSubmit(event) {
     event.preventDefault();
-    const memberId = gate.querySelector('input[name="memberId"]').value;
-    setBusy(true, 'CHECKING…');
+    if (event.target.matches('[data-gate-pin]')) return checkPin();
+    requestPin(gate.querySelector('input[name="memberId"]').value, false);
+  }
+
+  /** Step one: the Member ID in, a PIN out by SMS to the number CDASH holds. */
+  async function requestPin(memberId, resend) {
+    setBusy(true, resend ? null : 'SENDING PIN…');
     showError('');
     try {
       const response = await fetch('/api/members/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ memberId }) });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Active DLC member not found');
+      if (!response.ok) {
+        if (data.retryAfter) pinState.resendAt = Date.now() + data.retryAfter * 1000;
+        throw new Error(data.error || 'We could not send your PIN');
+      }
+      Object.assign(pinState, { memberId, sentTo: data.sentTo, expiresInMinutes: data.expiresInMinutes || 10, resendAt: Date.now() + (data.resendAfter || 60) * 1000 });
+      setBusy(false);
+      mount('pin');
+      if (resend) { const copy = gate.querySelector('.age-gate__copy'); if (copy) copy.insertAdjacentHTML('beforeend', ' <em class="age-gate__sent">New PIN sent.</em>'); }
+      tickResend();
+    } catch (reason) {
+      setBusy(false);
+      showError(reason.message || 'We could not send your PIN');
+    }
+  }
+
+  /** Step two: the PIN from the SMS. Only this sets the member cookie. */
+  async function checkPin() {
+    const input = gate.querySelector('input[name="pin"]');
+    if (!/^\d{6}$/.test(input.value)) return;
+    setBusy(true, 'SIGNING IN…');
+    showError('');
+    try {
+      const response = await fetch('/api/members/verify-code', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ memberId: pinState.memberId, pin: input.value }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'That PIN did not work');
+      clearInterval(resendTimer);
       passed(data.member);
       unmount();
     } catch (reason) {
       setBusy(false);
-      showError(reason.message || 'Member verification failed');
+      input.value = '';
+      onInput();
+      input.focus();
+      showError(reason.message || 'That PIN did not work');
     }
   }
 

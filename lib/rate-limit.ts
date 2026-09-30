@@ -3,14 +3,15 @@ import type { NextRequest } from "next/server"
 /**
  * Failed-attempt limiter for the member gate.
  *
- * A Member ID is six digits and is the only thing needed to sign in, so an
- * unlimited verify endpoint could be walked by a script. This counts FAILED
- * attempts per client IP in a sliding window and refuses further tries once
- * the limit is hit. Successful sign-ins do not count.
+ * Signing in takes a Member ID and then a PIN sent by SMS. This counts FAILED
+ * attempts (unknown IDs, wrong PINs) per client IP in a sliding window and
+ * refuses further tries once the limit is hit; the verify route also counts
+ * SMS sends per IP under an "sms:" key so it cannot be used to spam phones.
  *
  * Best effort: it lives in each server instance's memory, so on a serverless
- * host the effective limit is per instance. It stops casual guessing; the real
- * fix is a second factor (a one-time code to the member's phone).
+ * host the effective limit is per instance. The hard limits — 5 guesses per
+ * PIN, one PIN a minute and 5 an hour per member — are kept in the database
+ * (lib/signin-code.ts).
  */
 type Window = { failures: number[] }
 const windows = new Map<string, Window>()

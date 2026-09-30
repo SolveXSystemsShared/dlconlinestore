@@ -4,7 +4,7 @@ import { FormEvent, Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { StoreFooter, StoreHeader } from "@/components/store-header"
-import { formatMemberId, isCompleteMemberId, credits, MEMBER_ID_PREFIX } from "@/lib/format"
+import { credits } from "@/lib/format"
 import { imageFor, productUrl, shelfLabel } from "@/lib/storefront"
 import { EXCHANGE_REQUEST_STATEMENT, TERMS_VERSION } from "@/lib/legal"
 import { LegalStatement } from "@/components/legal-statement"
@@ -24,7 +24,6 @@ function CheckoutForm() {
   const [cart, setCart] = useState<CheckoutItem[]>([])
   const [addresses, setAddresses] = useState<SavedAddress[]>([])
   const [addressId, setAddressId] = useState("")
-  const [memberId, setMemberId] = useState(MEMBER_ID_PREFIX)
   const [member, setMember] = useState<{ memberId: string; name: string } | null>(null)
   const [phone, setPhone] = useState("")
   const [address, setAddress] = useState("")
@@ -77,7 +76,6 @@ function CheckoutForm() {
       .then((data) => {
         if (cancelled || !data?.member) return
         setMember(data.member)
-        setMemberId(data.member.memberId)
       })
       .catch(() => {})
     return () => { cancelled = true }
@@ -143,34 +141,6 @@ function CheckoutForm() {
 
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
   const slowQuote = useSlowFlag(cart.length > 0 && !quote && !quoteError)
-
-  // The "DLC-" prefix is furniture, not editable text: keep the caret after it
-  // and stop Backspace from eating into it.
-  function caretToEnd(event: { currentTarget: HTMLInputElement }) {
-    const input = event.currentTarget
-    requestAnimationFrame(() => {
-      if ((input.selectionStart ?? 0) < MEMBER_ID_PREFIX.length) {
-        input.setSelectionRange(input.value.length, input.value.length)
-      }
-    })
-  }
-
-  function keepPrefix(event: React.KeyboardEvent<HTMLInputElement>) {
-    const input = event.currentTarget
-    const start = input.selectionStart ?? 0
-    if (event.key === "Backspace" && start <= MEMBER_ID_PREFIX.length && start === (input.selectionEnd ?? 0)) {
-      event.preventDefault()
-    }
-  }
-
-  async function verifyMember() {
-    setMessage("")
-    setMember(null)
-    const response = await fetch("/api/members/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ memberId }) })
-    const data = await response.json()
-    if (!response.ok) return setMessage(data.error || "Member ID could not be verified")
-    setMember(data.member)
-  }
 
   async function submitOrder(event: FormEvent) {
     event.preventDefault()
@@ -279,7 +249,7 @@ function CheckoutForm() {
                       <div className="sf-panel-head"><h2 id="detailsTitle">Your details</h2><span className="sf-step">STEP 02</span></div>
                       {member
                         ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div><span className="sf-badge sf-badge--good"><i />Verified</span></div>
-                        : <div className="sf-field"><label htmlFor="memberId">DLC Member ID</label><div className="sf-inline"><input id="memberId" inputMode="numeric" value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" required /><button type="button" className="sf-ghost" onClick={verifyMember} disabled={!isCompleteMemberId(memberId)}>Verify</button></div></div>}
+                        : <div className="sf-field"><p className="sf-note">Your member session has ended. Sign in again with your Member ID and the PIN we SMS you.</p><button type="button" className="sf-ghost" onClick={() => window.location.reload()}>Sign in again</button></div>}
                       <div className="sf-field"><label htmlFor="phone">Mobile number <small>— for exchange updates</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
                     </section>
 

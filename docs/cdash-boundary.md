@@ -20,6 +20,10 @@ paid units only, then the behaviour bonuses.
 record — address, phone, notes, tracking — plus `exchange_id`, a reference to
 the CDASH exchange. They are not a source of truth for money.
 
+Sign-in PINs live in our own `online_signin_codes`, not CDASH's `otp_codes`.
+The store only reads the member's mobile number (`members.mobile_number`, or
+`users.phone` for staff) and sends through the same SMSPortal account CDASH uses.
+
 ## The order lifecycle
 
 1. **Quote.** `POST /api/store/quote` runs the waterfall over our catalogue

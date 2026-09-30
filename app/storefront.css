@@ -334,6 +334,13 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 .sfgate__field input { width: 100%; min-height: 54px; border-radius: 999px; border: 1px solid var(--g-line); background: #f4f9ff; color: var(--g-navy); font: inherit; font-size: 18px; font-weight: 900; letter-spacing: 3px; padding: 0 20px; outline: none; }
 .sfgate__field input:focus { border-color: var(--g-sky); background: #fff; box-shadow: 0 0 0 4px rgba(65,168,252,.22); }
 .sfgate__field input::placeholder { color: #9db4cf; }
+.sfgate__field input.sfgate__pin { font-size: 26px; letter-spacing: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.sfgate__copy strong { color: var(--g-navy); white-space: nowrap; }
+.sfgate__sent { font-style: normal; font-weight: 800; color: var(--g-deep, #1a6ef0); }
+.sfgate__link { appearance: none; background: none; border: 0; padding: 4px 0; margin: 0; font: inherit; font-weight: 800; color: var(--g-deep, #1a6ef0); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.sfgate__link:hover { color: var(--g-navy); }
+.sfgate__link:focus-visible { outline: 2px solid var(--g-deep, #1a6ef0); outline-offset: 2px; border-radius: 4px; }
+.sfgate__link:disabled { color: #8aa4c0; text-decoration: none; cursor: default; }
 .sfgate__error { margin: 14px 0 0; font-size: 12px; font-weight: 800; line-height: 1.5; color: #b3261e; background: #fff1f1; border: 1px solid #f5c2c2; border-radius: 14px; padding: 10px 14px; }
 .sfgate__legal { margin: 22px 0 0; font-size: 10px; line-height: 1.55; color: #6b7a90; }
 .sfgate__legal a { color: var(--g-deep); text-decoration: underline; text-underline-offset: 2px; }

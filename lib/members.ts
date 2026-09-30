@@ -24,6 +24,8 @@ export type MemberLookup =
       role?: string | null
       /** The raw CDASH status, so a refusal can say what is actually going on. */
       status?: string | null
+      /** Where the sign-in PIN goes: members.mobile_number, or users.phone for staff. */
+      mobile?: string | null
     }
 
 /**
@@ -71,14 +73,14 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
 
   if (isPreviewMode()) {
     if (memberId !== PREVIEW_MEMBER.memberId) return { found: false }
-    return { found: true, memberId: PREVIEW_MEMBER.memberId, name: PREVIEW_MEMBER.name, verdict: "active", source: "member" }
+    return { found: true, memberId: PREVIEW_MEMBER.memberId, name: PREVIEW_MEMBER.name, verdict: "active", source: "member", mobile: "0820000000" }
   }
 
   const supabase = getSupabaseAdmin()
 
   const { data: memberRow, error } = await supabase
     .from("members")
-    .select(`${MEMBER_ID_COLUMN}, full_name, status`)
+    .select(`${MEMBER_ID_COLUMN}, full_name, status, mobile_number`)
     .ilike(MEMBER_ID_COLUMN, memberId)
     .maybeSingle()
   if (error) throw new Error(error.message)
@@ -94,12 +96,13 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
       verdict: memberVerdict(row.status),
       source: "member",
       status: row.status,
+      mobile: row.mobile_number,
     }
   }
 
   const { data: staffRow, error: staffError } = await supabase
     .from(STAFF_TABLE)
-    .select(`${STAFF_ID_COLUMN}, name, role, deleted_at`)
+    .select(`${STAFF_ID_COLUMN}, name, role, deleted_at, phone`)
     .ilike(STAFF_ID_COLUMN, memberId)
     .maybeSingle()
   if (staffError) throw new Error(staffError.message)
@@ -117,5 +120,6 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
     source: "staff",
     role: staff.role,
     status: deleted ? "closed" : "active",
+    mobile: staff.phone,
   }
 }
