@@ -328,6 +328,7 @@
           <option value="name">Name: A–Z</option>
         </select>
       </label>
+      <button class="shop-clear" type="button" id="clearFilters" hidden>Clear filters ×</button>
       <button class="learn-inline" type="button" data-open-education="tiers">WHAT DO TIERS &amp; TYPES MEAN? <span>?</span></button>
     </div>
     <div class="guidance-hint" id="collectionGuidanceHint" hidden></div>
@@ -500,8 +501,8 @@
       const image = S.imageFor(product);
       const packClass = category === 'flower' ? 'flower-pack' : category === 'prerolls' ? 'preroll-pack' : '';
       const pack = image
-        ? `<div class="strain-pack ${packClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" loading="lazy" decoding="async"></div>`
-        : `<div class="strain-pack placeholder">DLC</div>`;
+        ? `<div class="strain-pack dlc-cloud-stage ${packClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" loading="lazy" decoding="async"></div>`
+        : `<div class="strain-pack dlc-cloud-stage placeholder"><span>DLC</span></div>`;
       const low = product.availableQuantity <= 3;
       // Until the catalogue says which tier has stock, speak about the category.
     const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
@@ -617,7 +618,10 @@
     };
 
     const featured = document.getElementById('featuredProductLink');
+    const clearButton = document.getElementById('clearFilters');
+    clearButton.addEventListener('click', () => { type = 'all'; sort = 'recommended'; sortSelect.value = sort; remember(); apply(); });
     const apply = () => {
+      clearButton.hidden = type === 'all' && sort === 'recommended';
       const items = shelfItems.filter(p => type === 'all' || p.strainType === type).sort(sorters[sort]);
       paintHeader(items.length, items.length ? Math.min(...items.map(p => p.price)) : null);
       paintTypes();

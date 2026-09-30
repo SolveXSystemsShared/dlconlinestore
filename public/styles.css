@@ -3021,3 +3021,136 @@ html.lounge-row-visible{--float-lift:78px}
 @media(prefers-reduced-motion:reduce){.dlc-decoder-btn,.dlc-to-top{transition:opacity .2s ease}}
 /* The "keep scrolling" hint sits left of the ? / ↑ stack, not under it. */
 .table-ui:has(.category-row.is-extended) .continue-cue,.table-ui .continue-cue{right:calc(max(18px,env(safe-area-inset-right)) + 60px)}
+
+/* ── Cloud stage: products rest on a soft cloud instead of sitting in a box ──
+   Pure CSS (no downloads): a faint sky haze behind, white puffs with a
+   baby-blue glow in front of the product's base, the product centred on top.
+   Used by the product page, shop cards and the "More from" row. */
+.dlc-cloud-stage{position:relative;isolation:isolate;display:grid;place-items:center;background:radial-gradient(62% 58% at 50% 56%,#e4f2ff 0%,rgba(228,242,255,.55) 48%,rgba(255,255,255,0) 74%)!important;border:0!important;overflow:visible!important}
+.dlc-cloud-stage::before{content:"";position:absolute;z-index:0;left:12%;right:12%;bottom:9%;height:30%;pointer-events:none;
+  background:
+    radial-gradient(closest-side,#fff 62%,rgba(255,255,255,0)) 14% 70%/34% 74% no-repeat,
+    radial-gradient(closest-side,#fff 64%,rgba(255,255,255,0)) 36% 34%/34% 92% no-repeat,
+    radial-gradient(closest-side,#fff 64%,rgba(255,255,255,0)) 64% 28%/38% 100% no-repeat,
+    radial-gradient(closest-side,#fff 62%,rgba(255,255,255,0)) 86% 70%/32% 74% no-repeat,
+    radial-gradient(closest-side,#fff 70%,rgba(255,255,255,0)) 50% 92%/96% 56% no-repeat;
+  filter:drop-shadow(0 10px 16px rgba(65,168,252,.26)) drop-shadow(0 2px 3px rgba(26,110,240,.08));
+  animation:dlcCloudFloat 7s ease-in-out infinite}
+@keyframes dlcCloudFloat{50%{transform:translateY(-4px)}}
+.dlc-cloud-stage::after{display:none!important}
+.dlc-cloud-stage>*{position:relative;z-index:1}
+@media(prefers-reduced-motion:reduce){.dlc-cloud-stage::before{animation:none}}
+
+/* Product page stage */
+.product-stage{min-height:0!important;height:auto!important;max-height:none!important;aspect-ratio:1/1;width:100%;max-width:640px;margin:0 auto}
+.product-stage-label,.product-stage-index{display:none}
+.product-stage-art{width:64%!important;height:74%!important;margin-bottom:10%}
+.product-stage-art img{object-fit:contain;object-position:center bottom;filter:drop-shadow(0 18px 22px rgba(21,31,45,.16))}
+.product-stage .strain-pack.placeholder,.product-stage-art>div{background:none!important}
+.product-thumbnails{max-width:640px;margin:6px auto 0}
+.product-thumb{border:0!important;background:radial-gradient(60% 60% at 50% 60%,#eaf4ff,rgba(234,244,255,0) 72%)!important;border-radius:16px!important}
+.product-thumb.is-active{box-shadow:inset 0 0 0 2px var(--dlc-sky)!important;color:var(--dlc-sky-deep)!important}
+
+/* Shop cards */
+.strains-page .strain-card{border:0!important;background:transparent!important;box-shadow:none!important}
+.strains-page .strain-card:hover{transform:translateY(-4px)}
+.strains-page .strain-pack{background:none!important;padding:18px!important}
+.strains-page .strain-pack::after{display:none!important}
+.strains-page .strain-pack img{position:relative;z-index:1;margin-bottom:12%!important;max-height:70%!important;filter:drop-shadow(0 14px 16px rgba(21,31,45,.14))!important}
+.strains-page .strain-meta{border-top:0!important;text-align:left}
+.strains-page .strain-pack.placeholder{color:var(--dlc-sky-deep)!important}
+
+/* "More from" — one swipeable row */
+.related-grid{display:grid!important;grid-auto-flow:column;grid-template-columns:none!important;grid-auto-columns:minmax(210px,23%);gap:14px!important;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:4px 2px 10px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.related-grid::-webkit-scrollbar{display:none}
+.related-card{scroll-snap-align:start;border:0!important;background:transparent!important;box-shadow:none!important}
+.related-card:hover{transform:translateY(-4px)}
+.related-card-art{height:230px!important;padding:14px!important}
+.related-card-art img{position:relative;z-index:1;width:auto!important;max-width:70%;height:auto!important;max-height:72%;margin-bottom:12%;object-fit:contain}
+.related-card-meta{padding:10px 4px 4px!important}
+.related-arrows{display:flex;gap:8px}
+.related-arrows button{width:42px;height:42px;border-radius:50%;border:1px solid var(--dlc-sky-line);background:#fff;color:var(--dlc-navy);font-size:16px;font-weight:900;cursor:pointer;transition:border-color .18s ease,background .18s ease}
+.related-arrows button:hover{border-color:var(--dlc-sky);background:var(--dlc-sky-soft)}
+@media(max-width:768px){
+  .related-grid{grid-auto-columns:44%;gap:10px!important}
+  .related-card-art{height:170px!important}
+  .related-card-meta h3{font-size:13px!important}
+  .related-arrows{display:none}
+}
+
+/* Product page on phones: image → name & credits → add to cart → details */
+@media(max-width:900px){
+  .product-detail-grid{grid-template-columns:minmax(0,1fr)!important;gap:10px!important;padding-top:12px!important}
+  .product-stage{max-width:min(420px,100%)}
+  .product-stage-art{width:70%!important}
+  .product-thumbnails{display:none}
+  .product-detail-info{padding-top:0}
+  .product-detail-title{font-size:clamp(30px,9vw,44px)!important;margin-bottom:8px!important}
+  .product-price{margin:10px 0 14px!important;font-size:clamp(26px,7vw,34px)!important}
+  .product-purchase-panel{padding:16px 0!important;margin-bottom:18px}
+}
+
+/* ── Shop filters, refined ──────────────────────────────────────────────────
+   Chips wrap instead of scrolling sideways, so every option is visible. */
+.shop-filters{border:0!important;border-radius:22px;background:linear-gradient(180deg,#f3f9ff 0%,#fafdff 100%)!important;box-shadow:0 1px 0 rgba(65,168,252,.18),0 12px 30px rgba(6,33,61,.06)!important;padding:18px 20px!important;gap:14px!important}
+.shop-filter-row{align-items:flex-start!important}
+.shop-filter-label{padding-top:10px;color:#5b7088!important;letter-spacing:1.5px!important}
+.shop-filters .shop-jump,.shop-filters .tier-jump,.type-jump{flex-wrap:wrap!important;overflow:visible!important;-webkit-mask-image:none!important;mask-image:none!important}
+.shop-filters .shop-jump a,.shop-filters .tier-jump a,.type-chip{min-height:36px!important;padding:0 14px!important;border-color:#d6e6f7!important;background:#fff!important;box-shadow:0 1px 2px rgba(6,33,61,.04)}
+.shop-filters .shop-jump a.active,.shop-filters .tier-jump a.active{background:var(--dlc-sky)!important;border-color:var(--dlc-sky)!important;color:var(--dlc-navy)!important;box-shadow:0 6px 14px rgba(65,168,252,.3)}
+.type-chip[aria-pressed="true"]{box-shadow:0 6px 14px rgba(6,33,61,.08)}
+.type-chip--all[aria-pressed="true"]{background:var(--dlc-sky)!important;border-color:var(--dlc-sky)!important;color:var(--dlc-navy)!important}
+.shop-filters .tier-jump a small,.type-chip small{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(6,33,61,.07);font-size:8px!important;opacity:1!important}
+.shop-filters .tier-jump a.is-empty{opacity:.4}
+.shop-filter-tools{border-top:1px solid rgba(65,168,252,.18)!important;padding-top:12px!important}
+.shop-sort select{border-color:#d6e6f7!important}
+.shop-clear{margin-left:auto;margin-right:auto;border:0;background:none;color:var(--dlc-sky-deep);font:inherit;font-size:10px;font-weight:900;letter-spacing:.8px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.shop-clear[hidden]{display:none}
+@media(max-width:768px){
+  .shop-filters{border-radius:18px;padding:14px!important;gap:12px!important}
+  .shop-filter-label{padding-top:0}
+  .shop-filters .shop-jump a,.shop-filters .tier-jump a,.type-chip{min-height:32px!important;padding:0 11px!important;font-size:8px!important}
+  .shop-filter-tools{gap:10px}
+  .shop-clear{margin:0}
+}
+
+/* Cloud stage v2: a bumpy cloud behind, small puffs in front of the product's
+   base so it looks nestled in, and the product lowered into it. */
+.dlc-cloud-stage{background:radial-gradient(58% 50% at 50% 66%,#d3eaff 0%,rgba(211,234,255,.7) 40%,rgba(234,244,255,.35) 60%,rgba(255,255,255,0) 78%)!important}
+.dlc-cloud-stage::before{left:6%!important;right:6%!important;bottom:7%!important;height:40%!important;
+  background:
+    radial-gradient(closest-side,#fff 58%,rgba(255,255,255,0)) 10% 78%/30% 58% no-repeat,
+    radial-gradient(closest-side,#fff 60%,rgba(255,255,255,0)) 27% 48%/32% 74% no-repeat,
+    radial-gradient(closest-side,#fff 62%,rgba(255,255,255,0)) 48% 22%/38% 90% no-repeat,
+    radial-gradient(closest-side,#fff 60%,rgba(255,255,255,0)) 70% 40%/34% 78% no-repeat,
+    radial-gradient(closest-side,#fff 58%,rgba(255,255,255,0)) 90% 76%/28% 58% no-repeat,
+    radial-gradient(closest-side,#fff 68%,rgba(255,255,255,0)) 50% 96%/100% 52% no-repeat!important;
+  filter:drop-shadow(0 12px 14px rgba(65,168,252,.34)) drop-shadow(0 -2px 6px rgba(65,168,252,.12))!important}
+.dlc-cloud-stage::after{display:block!important;content:""!important;position:absolute!important;z-index:2!important;inset:auto 18% 6% 18%!important;height:17%!important;border-radius:0!important;transform:none!important;filter:drop-shadow(0 6px 8px rgba(65,168,252,.28))!important;opacity:1!important;pointer-events:none;
+  background:
+    radial-gradient(closest-side,#fff 62%,rgba(255,255,255,0)) 16% 70%/34% 86% no-repeat,
+    radial-gradient(closest-side,#fff 64%,rgba(255,255,255,0)) 50% 40%/40% 100% no-repeat,
+    radial-gradient(closest-side,#fff 62%,rgba(255,255,255,0)) 84% 70%/34% 86% no-repeat,
+    radial-gradient(closest-side,#fff 70%,rgba(255,255,255,0)) 50% 100%/96% 60% no-repeat!important;
+  animation:dlcCloudFloat 7s ease-in-out -2s infinite}
+.dlc-cloud-stage>img,.dlc-cloud-stage>.product-stage-art{align-self:end!important;margin-bottom:16%!important}
+.dlc-cloud-stage>span{align-self:center}
+.strains-page .strain-pack.dlc-cloud-stage img{max-height:62%!important}
+.related-card-art.dlc-cloud-stage img{max-height:62%!important}
+.product-stage.dlc-cloud-stage .product-stage-art{height:66%!important}
+@media(prefers-reduced-motion:reduce){.dlc-cloud-stage::after{animation:none}}
+
+/* Cloud stage v3: real cloud artwork (assets/cloud-back.webp behind the
+   product, cloud-front.webp in front of its base). */
+.dlc-cloud-stage{background:radial-gradient(56% 46% at 50% 70%,rgba(214,235,255,.75) 0%,rgba(234,244,255,.4) 50%,rgba(255,255,255,0) 76%)!important}
+.dlc-cloud-stage::before{left:2%!important;right:2%!important;bottom:5%!important;height:48%!important;background:url("assets/cloud-back.webp") center bottom/contain no-repeat!important;filter:none!important}
+.dlc-cloud-stage::after{left:13%!important;right:13%!important;bottom:2%!important;height:26%!important;inset:auto 13% 2% 13%!important;background:url("assets/cloud-front.webp") center bottom/contain no-repeat!important;filter:none!important}
+.dlc-cloud-stage>img,.dlc-cloud-stage>.product-stage-art{margin-bottom:17%!important}
+.dlc-cloud-stage>img,.dlc-cloud-stage>.product-stage-art{margin-bottom:11%!important}
+/* The product image area is pinned inside the square stage: centred
+   horizontally, resting on the cloud, never larger than the stage. */
+.product-stage.dlc-cloud-stage .product-stage-art{position:absolute!important;left:50%!important;bottom:13%!important;margin:0!important;transform:translateX(-50%)!important;width:62%!important;height:62%!important;display:flex!important;align-items:flex-end;justify-content:center}
+.product-stage.dlc-cloud-stage .product-stage-art img{width:100%!important;height:100%!important;object-fit:contain;object-position:center bottom}
+@media(max-width:900px){.product-stage.dlc-cloud-stage .product-stage-art{width:66%!important;height:64%!important}}
+@media(max-width:900px){.product-stage.dlc-cloud-stage{aspect-ratio:6/5}}
+.related-heading-row{margin-bottom:10px!important}.related-products{padding-top:clamp(36px,6vw,64px)!important}

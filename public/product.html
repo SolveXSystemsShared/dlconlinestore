@@ -47,7 +47,7 @@
 
   <section class="product-detail-grid" aria-label="Product details">
     <div class="product-media-column">
-      <div class="product-stage" id="productStage">
+      <div class="product-stage dlc-cloud-stage" id="productStage">
         <span class="product-stage-label" id="stageLabel">DLC / OUTDOOR</span>
         <div class="product-stage-art" id="productVisual"></div>
         <span class="product-stage-index" id="stageIndex">01 / 06</span>
@@ -67,15 +67,6 @@
       <h1 class="product-detail-title" id="productTitle">Loading…</h1>
       <div class="product-format-row"><span id="productFormat">Flower</span><span aria-hidden="true">·</span><span id="productSize">Gram</span></div>
       <div class="product-price" id="productPrice">—</div>
-      <p class="product-detail-copy" id="productCopy">Product details will appear here.</p>
-
-      <div class="education-chip-row" aria-label="Product education">
-        <button type="button" data-open-education="current-product">WHAT IS THIS?</button>
-        <button type="button" data-open-education="tiers">WHAT IS THIS TIER?</button>
-        <button type="button" data-open-education="potency">THC &amp; CBD</button><button type="button" data-open-education="strain-types" id="strainTypeChip" hidden>INDICA · SATIVA · HYBRID?</button>
-      </div>
-      <div class="guidance-hint" id="productGuidanceHint" hidden></div>
-
       <div class="product-purchase-panel">
         <div class="product-quantity-wrap">
           <span class="field-label">QUANTITY</span>
@@ -90,6 +81,15 @@
           <button class="product-secondary-cta" id="backToCollection" type="button">BACK TO COLLECTION</button>
         </div>
       </div>
+
+      <p class="product-detail-copy" id="productCopy">Product details will appear here.</p>
+
+      <div class="education-chip-row" aria-label="Product education">
+        <button type="button" data-open-education="current-product">WHAT IS THIS?</button>
+        <button type="button" data-open-education="tiers">WHAT IS THIS TIER?</button>
+        <button type="button" data-open-education="potency">THC &amp; CBD</button><button type="button" data-open-education="strain-types" id="strainTypeChip" hidden>INDICA · SATIVA · HYBRID?</button>
+      </div>
+      <div class="guidance-hint" id="productGuidanceHint" hidden></div>
 
       <dl class="product-fact-list">
         <div><dt>CATEGORY</dt><dd id="factCategory">Flower</dd></div>
@@ -118,7 +118,7 @@
   <section class="related-products" aria-labelledby="relatedTitle">
     <div class="related-heading-row">
       <div><span class="related-kicker">KEEP BROWSING</span><h2 id="relatedTitle">MORE FROM <span id="relatedTier">OUTDOOR</span></h2></div>
-      <div class="related-arrows" aria-hidden="true"><span>←</span><span>→</span></div>
+      <div class="related-arrows"><button type="button" data-scroll-related="-1" aria-label="Previous products">←</button><button type="button" data-scroll-related="1" aria-label="More products">→</button></div>
     </div>
     <div class="related-grid" id="relatedGrid"></div>
     <a class="related-more" id="moreProductsLink" href="strains.html">VIEW COLLECTION <span>→</span></a>
@@ -276,7 +276,7 @@
     const relatedGrid = document.getElementById('relatedGrid');
     relatedGrid.innerHTML = '';
     const related = [];
-    for (let step = 1; step < siblings.length && related.length < 4; step++) related.push(siblings[(position + step) % siblings.length]);
+    for (let step = 1; step < siblings.length && related.length < 12; step++) related.push(siblings[(position + step) % siblings.length]);
     document.querySelector('.related-products').hidden = !related.length;
     related.forEach((item, i) => {
       const card = document.createElement('a');
@@ -285,7 +285,7 @@
       card.dataset.analytics = `related_product_${i + 1}_click`;
       const itemImage = S.imageFor(item);
       card.innerHTML = `
-        <div class="related-card-art">${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="${escapeHtml(item.name)}" width="520" height="520" loading="lazy" decoding="async">` : '<span style="font-size:40px;font-weight:950;color:#1a6ef0">DLC</span>'}</div>
+        <div class="related-card-art dlc-cloud-stage">${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="${escapeHtml(item.name)}" width="520" height="520" loading="lazy" decoding="async">` : '<span style="font-size:40px;font-weight:950;color:#1a6ef0">DLC</span>'}</div>
         <div class="related-card-meta"><span>${escapeHtml(shelf)} / ${escapeHtml(item.productType.toUpperCase())}</span><h3>${escapeHtml(item.name)}</h3><strong>${S.price(item.price)}</strong><small>VIEW PRODUCT →</small></div>`;
       relatedGrid.appendChild(card);
     });
@@ -342,6 +342,13 @@
     notFound(`${error.message}. Please refresh to try again.`);
   });
 
+  // "More from" is one swipeable row; the arrows page through it on desktop.
+  document.querySelectorAll('[data-scroll-related]').forEach(button => {
+    button.addEventListener('click', () => {
+      const row = document.getElementById('relatedGrid');
+      row.scrollBy({ left: Number(button.dataset.scrollRelated) * row.clientWidth * 0.85, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+  });
   document.querySelectorAll('.product-thumb').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.product-thumb').forEach(item => item.classList.toggle('is-active', item === button));
