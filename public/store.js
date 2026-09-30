@@ -86,21 +86,141 @@
     return `strains.html?category=${encodeURIComponent(category)}${tier ? `&tier=${encodeURIComponent(tier)}` : ''}`;
   }
 
-  async function api(path, options) {
+  // ── Loading bar ────────────────────────────────────────────────────────
+  // A thin light-blue bar at the top of the page while any request is in
+  // flight, so a slow connection always shows that something is happening.
+  // Shown after a short delay so fast requests never flash it.
+  let pending = 0;
+  let bar = null;
+  let barTimer = null;
+  function barStart() {
+    pending++;
+    if (pending > 1 || barTimer) return;
+    barTimer = setTimeout(() => {
+      barTimer = null;
+      if (!pending) return;
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'dlc-loadbar';
+        bar.setAttribute('aria-hidden', 'true');
+        bar.innerHTML = '<span></span>';
+        document.body.appendChild(bar);
+      }
+      bar.classList.remove('is-done');
+      // Checked again inside the frame: a frame can arrive late on a busy
+      // device, after the request already finished.
+      requestAnimationFrame(() => { if (pending) bar.classList.add('is-active'); });
+    }, 150);
+  }
+  function barEnd() {
+    pending = Math.max(0, pending - 1);
+    if (pending) return;
+    clearTimeout(barTimer);
+    barTimer = null;
+    if (!bar) return;
+    bar.classList.add('is-done');
+    setTimeout(() => { if (!pending) bar?.classList.remove('is-active', 'is-done'); }, 400);
+  }
+
+  // The silent sign-in check for a returning member is the first wait on a
+  // slow connection; show the bar for it too, until the member is in or the
+  // gate appears (the gate has its own progress indicator).
+  if (window.DLCGate?.silent) {
+    const whenBody = fn => document.body ? fn() : document.addEventListener('DOMContentLoaded', fn, { once: true });
+    whenBody(() => {
+      barStart();
+      let ended = false;
+      const end = () => { if (!ended) { ended = true; barEnd(); } };
+      gateReady.then(end);
+      window.addEventListener('dlc:gate-shown', end, { once: true });
+    });
+  }
+
+  const SLOW_AFTER_MS = 4000;
+  const TIMEOUT_MS = 20000;
+
+  /**
+   * One request to the store API. Reads time out rather than hang, and are
+   * retried once — a dropped packet on a weak signal should not cost the
+   * member a blank page. Writes are never retried automatically. Anything
+   * still waiting after a few seconds fires `dlc:slow` so the page can say so.
+   */
+  async function api(path, options = {}) {
     await gateReady;
-    const response = await fetch(path, { credentials: 'same-origin', ...options });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'The store could not be reached');
-    return data;
+    const isRead = !options.method || options.method === 'GET';
+    barStart();
+    const slowTimer = setTimeout(() => window.dispatchEvent(new CustomEvent('dlc:slow', { detail: { path } })), SLOW_AFTER_MS);
+    try {
+      for (let attempt = 0; ; attempt++) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        try {
+          const response = await fetch(path, { credentials: 'same-origin', ...options, signal: controller.signal });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw Object.assign(new Error(data.error || 'The store could not be reached'), { status: response.status });
+          return data;
+        } catch (error) {
+          const network = !error.status;
+          if (isRead && network && attempt === 0) continue;
+          if (network) throw new Error(navigator.onLine === false ? 'You appear to be offline. Check your connection and try again' : 'Your connection is too slow to reach the store right now. Please try again');
+          throw error;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+    } finally {
+      clearTimeout(slowTimer);
+      barEnd();
+    }
+  }
+
+  // ── Catalogue, cached for this tab ─────────────────────────────────────
+  // Every page needs the catalogue, and on a slow connection downloading it
+  // again on each click is most of the wait. A copy is kept in session
+  // storage (this tab only, cleared when it closes — see cookies.html): used
+  // as-is for two minutes, and after that only as a fallback if the network
+  // fails. Stock is always re-checked by the server when the bag changes.
+  const CATALOG_KEY = 'dlc_catalog_cache_v1';
+  const CATALOG_FRESH_MS = 2 * 60 * 1000;
+  const CATALOG_FALLBACK_MS = 30 * 60 * 1000;
+  function readCatalogCache() {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(CATALOG_KEY) || 'null');
+      return cached && Array.isArray(cached.products) ? cached : null;
+    } catch (e) { return null; }
   }
 
   let catalogPromise = null;
   function catalog() {
     if (!catalogPromise) {
-      catalogPromise = api('/api/catalog').then(data => data.products || []);
-      catalogPromise.catch(() => { catalogPromise = null; });
+      const cached = readCatalogCache();
+      if (cached && Date.now() - cached.at < CATALOG_FRESH_MS) {
+        catalogPromise = gateReady.then(() => cached.products);
+      } else {
+        catalogPromise = api('/api/catalog')
+          .then(data => {
+            const products = data.products || [];
+            try { sessionStorage.setItem(CATALOG_KEY, JSON.stringify({ at: Date.now(), products })); } catch (e) {}
+            return products;
+          })
+          .catch(error => {
+            if (cached && Date.now() - cached.at < CATALOG_FALLBACK_MS) return cached.products;
+            throw error;
+          });
+        catalogPromise.catch(() => { catalogPromise = null; });
+      }
     }
     return catalogPromise;
+  }
+
+  /**
+   * True only when the lounge video would do more harm than good: Data Saver
+   * on, or a 2G-class connection. 3G still gets the video — it streams in
+   * behind the poster, and the scroll-scrubbed lounge is the site's centrepiece.
+   */
+  function slowConnection() {
+    const c = navigator.connection;
+    return !!c && (c.saveData || ['slow-2g', '2g'].includes(c.effectiveType));
   }
 
   let lines = [];
@@ -137,10 +257,12 @@
   window.addEventListener('dlc:cart', event => {
     document.querySelectorAll('[data-bag-count]').forEach(el => { el.textContent = String(event.detail.count).padStart(2, '0'); });
   });
-  gateReady.then(member => { if (member) cart().catch(() => {}); });
+  // As soon as the member is confirmed, start the catalogue and bag downloads
+  // — on a slow line every page needs them, so waiting to be asked wastes time.
+  gateReady.then(member => { if (member) { cart().catch(() => {}); catalog().catch(() => {}); } });
 
   window.DLCStore = {
     TIERS, classify, tierForGrade, imageFor, price, productUrl, collectionUrl, slugify,
-    catalog, cart, setQuantity, addToCart, inCart,
+    catalog, cart, setQuantity, addToCart, inCart, slowConnection,
   };
 })();

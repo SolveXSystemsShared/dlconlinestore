@@ -135,3 +135,24 @@ export async function getCatalog(storeIdOverride?: string | null): Promise<Catal
 
   return result
 }
+
+// ── Short-lived shared copy ──────────────────────────────────────────────
+// Building the catalogue is three queries against the shared database (2–3 s
+// from the app's region). The catalogue page, the bag and saved items each
+// needed a fresh build — adding one item to the bag built it twice. They now
+// share one copy for 20 seconds per fulfilment store. Nothing that commits
+// stock reads this: exchange requests price through resolveOrderLines, and
+// CDASH checks stock again at settlement.
+const CATALOG_CACHE_MS = 20_000
+const catalogCache = new Map<string, { at: number; products: Promise<CatalogProduct[]> }>()
+
+export function getCatalogCached(storeIdOverride?: string | null): Promise<CatalogProduct[]> {
+  const key = storeIdOverride === undefined ? "default" : storeIdOverride ?? "all"
+  const hit = catalogCache.get(key)
+  if (hit && Date.now() - hit.at < CATALOG_CACHE_MS) return hit.products
+  // Cache the promise, so members arriving together share one build.
+  const products = getCatalog(storeIdOverride)
+  catalogCache.set(key, { at: Date.now(), products })
+  products.catch(() => catalogCache.delete(key))
+  return products
+}

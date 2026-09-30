@@ -33,9 +33,14 @@ const input = z.object({
   path: ["idNumber"],
 })
 
-/** Mirrors CDASH's duplicate wording so a member sees one consistent message. */
-function duplicateMessage(field: string, name: string, memberId: string | null) {
-  return `This ${field} is already registered to ${name} (Member #${memberId ?? "unknown"}). Please use a different ${field}.`
+/**
+ * Says a detail is already registered WITHOUT saying to whom. CDASH's staff
+ * screen names the member and their Member ID; on the public registration page
+ * that would hand a stranger someone's name and the only thing needed to sign
+ * in as them, just for typing in their phone number or email.
+ */
+function duplicateMessage(field: string) {
+  return `This ${field} is already registered with DLC. If it's yours, enter your Member ID at the gate, or ask the team at the lounge to help.`
 }
 
 export async function POST(request: NextRequest) {
@@ -110,7 +115,7 @@ export async function POST(request: NextRequest) {
       const match = existing?.[0] as unknown as Record<string, string | null> | undefined
       if (match) {
         return NextResponse.json(
-          { error: duplicateMessage(check.field, match.full_name ?? "an existing member", match[MEMBER_ID_COLUMN]) },
+          { error: duplicateMessage(check.field) },
           { status: 409 },
         )
       }

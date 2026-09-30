@@ -20,6 +20,7 @@
 <title>DLC Strain Collection</title>
 <link rel="stylesheet" href="styles.css"/>
 <script src="cookies.js"></script>
+<script src="loading-lines.js"></script>
 <script src="age-gate.js"></script>
 <script src="store.js"></script>
 <meta name="description" content="Browse Down Low Cannabis strain collections by category and cultivation tier."/>
@@ -415,19 +416,21 @@
   const setText = (id, text) => { document.getElementById(id).textContent = text; };
 
   function paintHeader(count, fromPrice) {
-    const shelf = category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
+    // Until the catalogue says which tier has stock, speak about the category.
+    const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
+    const shelf = category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
     setText('crumbCategory', categoryName.toUpperCase());
     document.getElementById('crumbCategory').href = collectionHref(category);
     setText('crumbTier', shelf);
     setText('overviewCategory', categoryName.toUpperCase());
-    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase());
+    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierPending ? '—' : tierName.toUpperCase());
     setText('overviewCount', count == null ? '—' : String(count).padStart(2, '0'));
     setText('overviewPrice', fromPrice == null ? '—' : `FROM ${S.price(fromPrice)}`);
     setText('categoryLabel', `${categoryName.toUpperCase()} / ${shelf}`);
     document.getElementById('bandTitle').innerHTML = `MORE FROM<br/>${escapeHtml(category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase())}`;
 
-    const titleWord = category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase();
-    const titleTail = category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
+    const titleWord = category === 'wellness' ? 'WELLNESS' : tierPending ? categoryName.toUpperCase() : tierName.toUpperCase();
+    const titleTail = tierPending ? 'COLLECTION' : category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
     document.getElementById('pageTitle').innerHTML = `<span class="title-line">${escapeHtml(titleWord)}</span><span class="title-line">${titleTail}</span>`;
     document.title = `DLC — ${category === 'wellness' ? 'Wellness Products' : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()}`;
 
@@ -436,11 +439,15 @@
       setText('pageDescription', 'The DLC wellness range, live from the lounge shelf. Select a product for its format, measured serving and current credits.');
       setText('bandCopy', 'Browse the complete DLC wellness range or open any product above to view its full product-detail page.');
       intro.textContent = 'WELLNESS COLLECTION';
-    } else if (category === 'more') {
+    } else if (category === 'more' && !tierPending) {
       setText('pageDescription', `Everything else on the DLC shelf. You are browsing ${tierName.toLowerCase()} — switch shelves below.`);
       setText('bandCopy', 'Prefer a single list you can filter and search? Open the full menu.');
       intro.textContent = 'FULL MENU';
       intro.href = '/menu';
+    } else if (tierPending) {
+      setText('pageDescription', `Loading the ${categoryName.toLowerCase()} on the DLC shelf right now…`);
+      setText('bandCopy', 'Browse another DLC collection, or open any product above to view its full details.');
+      intro.textContent = `${categoryName.toUpperCase()} COLLECTION`;
     } else {
       setText('pageDescription', `The ${tierName} ${categoryName.toLowerCase()} on the DLC shelf right now. Select a ${category === 'prerolls' ? 'preroll' : 'strain'} to view its full product information.`);
       setText('bandCopy', `Browse more ${tierName.toLowerCase()} ${categoryName.toLowerCase()} options, or open any strain above to view the full product-detail page.`);
@@ -464,6 +471,7 @@
   }
 
   function paintState(title, detail, isError) {
+    grid.removeAttribute('aria-busy');
     grid.innerHTML = `<div class="store-state${isError ? ' is-error' : ''}"><strong>${escapeHtml(title)}</strong>${detail}</div>`;
   }
 
@@ -475,6 +483,7 @@
   }
 
   function paintGrid(items) {
+    grid.removeAttribute('aria-busy');
     grid.innerHTML = '';
     items.forEach((product, index) => {
       const card = document.createElement('article');
@@ -485,7 +494,9 @@
         ? `<div class="strain-pack ${packClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" loading="lazy" decoding="async"></div>`
         : `<div class="strain-pack placeholder">DLC</div>`;
       const low = product.availableQuantity <= 3;
-      const shelf = category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
+      // Until the catalogue says which tier has stock, speak about the category.
+    const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
+    const shelf = category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
       card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${categoryName.toUpperCase()} / ${escapeHtml(shelf)}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div><p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
       card.tabIndex = 0;
@@ -521,7 +532,15 @@
   }
 
   paintHeader(null, null);
-  paintState('Loading the shelf…', 'Live stock from the DLC lounge.');
+  // Placeholder cards in the real grid while the shelf loads, so the page is
+  // laid out at once and nothing jumps when the products arrive.
+  function paintSkeleton() {
+    grid.setAttribute('aria-busy', 'true');
+    grid.innerHTML = Array.from({ length: 6 }, () => `<article class="strain-card is-skeleton" aria-hidden="true"><div class="strain-pack"><span class="sk sk-art"></span></div><div class="strain-meta"><span class="sk sk-line sk-w40"></span><span class="sk sk-title"></span><span class="sk sk-line sk-w90"></span><span class="sk sk-line sk-w60"></span></div></article>`).join('')
+      + '<p class="store-loading-line" role="status" aria-live="polite"></p>';
+    window.DLCLoadingLines?.rotate(grid.querySelector('.store-loading-line'), 'shelf');
+  }
+  paintSkeleton();
   note.textContent = 'LIVE FROM THE DLC LOUNGE — CREDITS AND STOCK UPDATE AS THE SHELF CHANGES. POTENCY: CONFIRM IN STORE.';
 
   S.catalog().then(products => {
@@ -535,7 +554,7 @@
         tierName = S.TIERS.find(t => t.slug === tier).label;
         history.replaceState(null, '', S.collectionUrl(category, tier));
       }
-    } else if (category === 'more') {
+    } else if (category === 'more' && !tierPending) {
       const byType = new Map();
       inCategory.forEach(p => {
         const slug = S.classify(p).tier;

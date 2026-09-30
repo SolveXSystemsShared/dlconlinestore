@@ -50,13 +50,14 @@ export type MemberProfile = {
   marketingOptIn: boolean | null
 }
 
+/** One exchange request in the member's history. Deliberately carries no credits or totals. */
 export type OrderSummary = {
   id: string
   orderNumber: string
   status: string
-  total: number
   createdAt: string
   itemCount: number
+  items: Array<{ name: string; type: string; grade: string | null; quantity: number }>
 }
 
 /**

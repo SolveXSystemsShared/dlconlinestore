@@ -54,17 +54,17 @@
   .dlc-consent.is-in{transform:none;opacity:1}
   .dlc-consent h2{margin:0;font-size:20px;line-height:1;letter-spacing:-.03em;text-transform:uppercase}
   .dlc-consent p{margin:0;font-size:12.5px;line-height:1.6;color:#555b66}
-  .dlc-consent a{color:#1527ff;font-weight:900;text-decoration:underline;text-underline-offset:2px}
+  .dlc-consent a{color:#1a6ef0;font-weight:900;text-decoration:underline;text-underline-offset:2px}
   .dlc-consent__eyebrow{font-size:8px;font-weight:950;letter-spacing:1.5px;color:#7c818a;margin-bottom:8px}
   .dlc-consent__actions{display:flex;flex-wrap:wrap;gap:8px}
-  .dlc-consent__actions button{min-height:44px;padding:0 18px;border:1px solid #1527ff;font:inherit;font-size:9px;font-weight:950;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;background:#fff;color:#1527ff}
-  .dlc-consent__actions button.is-primary{background:#1527ff;color:#fff}
-  .dlc-consent__actions button:focus-visible,.dlc-consent input:focus-visible{outline:2px solid #1527ff;outline-offset:3px}
+  .dlc-consent__actions button{min-height:44px;padding:0 18px;border:1px solid #1a6ef0;font:inherit;font-size:9px;font-weight:950;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;background:#fff;color:#1a6ef0}
+  .dlc-consent__actions button.is-primary{background:#1a6ef0;color:#fff}
+  .dlc-consent__actions button:focus-visible,.dlc-consent input:focus-visible{outline:2px solid #1a6ef0;outline-offset:3px}
   .dlc-consent__cats{display:grid;gap:8px}
   .dlc-consent__cat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;border:1px solid #e6e9ee;background:#fafbfc;padding:12px 14px}
   .dlc-consent__cat strong{display:block;font-size:11px;font-weight:950;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px}
   .dlc-consent__cat span{font-size:12px;line-height:1.5;color:#676d77}
-  .dlc-consent__cat input{width:20px;height:20px;accent-color:#1527ff}
+  .dlc-consent__cat input{width:20px;height:20px;accent-color:#1a6ef0}
   .dlc-consent__cat em{font-style:normal;font-size:8px;font-weight:950;letter-spacing:1px;color:#4f8a45}
   .dlc-consent[hidden]{display:none}
   @media(max-width:520px){.dlc-consent{padding:18px 16px}.dlc-consent__actions{display:grid;grid-template-columns:1fr}}

@@ -93,45 +93,61 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
   if (state === "allowed") return <>{children}</>
   if (isRegistration && state === "member") return <>{children}</>
 
-  // Same look as the storefront's gate (public/age-gate.js), so a member who
-  // lands on a React page first sees one consistent DLC entrance.
-  return <div className="sfgate" role="dialog" aria-modal="true" aria-labelledby="sfgateTitle" data-state={state}>
-    <div className="sfgate__noise" aria-hidden="true" />
-    <div className="sfgate__panel">
-      <img className="sfgate__logo" src="/assets/dlc-logo.svg" alt="Down Low Cannabis" />
-      {state === "checking" && <>
-        <p className="sfgate__eyebrow">DOWN LOW CANNABIS</p>
-        <h1 id="sfgateTitle" className="sfgate__pulse">One<br />moment.</h1>
-      </>}
-      {state === "age" && <>
-        <p className="sfgate__eyebrow">WELCOME TO DOWN LOW CANNABIS</p>
-        <h1 id="sfgateTitle">Are you<br />18 or older?</h1>
-        <p className="sfgate__copy">Please confirm that you are 18 years of age or older before entering the Down Low Cannabis website.</p>
-        <div className="sfgate__actions">
-          <button className="sfgate__btn sfgate__btn--yes" disabled={busy} onClick={confirmAge} autoFocus>YES, ENTER SITE</button>
-          <button className="sfgate__btn" onClick={() => setState("blocked")}>NO, I’M UNDER 18</button>
-        </div>
-        {error && <p className="sfgate__error" role="alert">{error}</p>}
-      </>}
-      {state === "blocked" && <>
-        <p className="sfgate__eyebrow">ACCESS RESTRICTED</p>
-        <h1 id="sfgateTitle">You must be<br />18+ to enter.</h1>
-        <p className="sfgate__copy">This website is restricted to adults aged 18 and older.</p>
-      </>}
-      {state === "member" && <form onSubmit={verifyMember}>
-        <p className="sfgate__eyebrow">DLC MEMBERS ONLY</p>
-        <h1 id="sfgateTitle">Enter your<br />Member ID.</h1>
-        <p className="sfgate__copy">Use the active DLC Member ID registered at the lounge. Your bag, exchanges and member benefits follow it.</p>
-        <label className="sfgate__field">
-          <span>DLC MEMBER ID</span>
-          <input id="gate-member-id" autoFocus inputMode="numeric" autoComplete="off" spellCheck={false} value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" aria-describedby={error ? "sfgateError" : undefined} required />
-        </label>
-        {error && <p className="sfgate__error" id="sfgateError" role="alert">{error}</p>}
-        <div className="sfgate__actions"><button className="sfgate__btn sfgate__btn--yes" disabled={busy || !isCompleteMemberId(memberId)}>{busy ? "CHECKING…" : "ENTER"}</button></div>
-        <p className="sfgate__legal">No Member ID yet? <Link href="/register">Register as a member</Link></p>
-      </form>}
-      {memberName && <p className="sfgate__copy">Welcome, {memberName}.</p>}
-      {state !== "checking" && <p className="sfgate__legal">By entering, you confirm that you meet the minimum age requirement. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/cookies.html">Cookies</a></p>}
+  // Same look as the storefront's gate (public/age-gate.js): light-blue sky,
+  // the 3D mascot feathered into it, the form on a white card.
+  const bubble = {
+    checking: "One sec — just checking you in…",
+    age: "Howzit! Quick check before we go in.",
+    blocked: "Sorry — this one is for adults only.",
+    member: "Welcome in. Pop your Member ID below.",
+    allowed: "",
+  }[state]
+
+  return <div className={`sfgate ${busy ? "is-busy" : ""}`} role="dialog" aria-modal="true" aria-labelledby="sfgateTitle" data-state={state}>
+    <div className="sfgate__sky" aria-hidden="true"><span /><span /><span /></div>
+    <div className="sfgate__stage">
+      <figure className="sfgate__mascot" aria-hidden="true">
+        <p className="sfgate__bubble" key={state}>{bubble}</p>
+        <img src="/assets/dlc-mascot-3d.jpg" alt="" width={506} height={760} decoding="async" />
+        <span className="sfgate__shadow" />
+      </figure>
+      <div className="sfgate__card">
+        <img className="sfgate__logo" src="/assets/dlc-logo.svg" alt="Down Low Cannabis" width={108} height={35} />
+        {state === "checking" && <>
+          <p className="sfgate__eyebrow">DOWN LOW CANNABIS</p>
+          <h1 id="sfgateTitle">One<br />moment.</h1>
+          <div className="sfgate__progress" role="progressbar" aria-label="Checking your session"><span /></div>
+        </>}
+        {state === "age" && <>
+          <p className="sfgate__eyebrow">WELCOME TO DOWN LOW CANNABIS</p>
+          <h1 id="sfgateTitle">Are you<br />18 or older?</h1>
+          <p className="sfgate__copy">Please confirm that you are 18 years of age or older before entering the Down Low Cannabis website.</p>
+          <div className="sfgate__actions">
+            <button className="sfgate__btn sfgate__btn--yes" disabled={busy} onClick={confirmAge} autoFocus>{busy ? <><i className="sfgate__spinner" aria-hidden="true" />ENTERING…</> : "YES, ENTER SITE"}</button>
+            <button className="sfgate__btn" disabled={busy} onClick={() => setState("blocked")}>NO, I’M UNDER 18</button>
+          </div>
+          {error && <p className="sfgate__error" role="alert">{error}</p>}
+        </>}
+        {state === "blocked" && <>
+          <p className="sfgate__eyebrow">ACCESS RESTRICTED</p>
+          <h1 id="sfgateTitle">You must be<br />18+ to enter.</h1>
+          <p className="sfgate__copy">This website is restricted to adults aged 18 and older.</p>
+        </>}
+        {state === "member" && <form onSubmit={verifyMember}>
+          <p className="sfgate__eyebrow">DLC MEMBERS ONLY</p>
+          <h1 id="sfgateTitle">Enter your<br />Member ID.</h1>
+          <p className="sfgate__copy">Use the active DLC Member ID registered at the lounge. Your bag, exchanges and member benefits follow it.</p>
+          <label className="sfgate__field">
+            <span>DLC MEMBER ID</span>
+            <input id="gate-member-id" autoFocus inputMode="numeric" autoComplete="off" spellCheck={false} value={memberId} onChange={(event) => setMemberId(formatMemberId(event.target.value))} onKeyDown={keepPrefix} onFocus={caretToEnd} onClick={caretToEnd} placeholder="DLC-1234-56" aria-describedby={error ? "sfgateError" : undefined} required />
+          </label>
+          {error && <p className="sfgate__error" id="sfgateError" role="alert">{error}</p>}
+          <div className="sfgate__actions"><button className="sfgate__btn sfgate__btn--yes" disabled={busy || !isCompleteMemberId(memberId)}>{busy ? <><i className="sfgate__spinner" aria-hidden="true" />CHECKING…</> : "ENTER"}</button></div>
+          <p className="sfgate__legal">No Member ID yet? <Link href="/register">Register as a member</Link></p>
+        </form>}
+        {memberName && <p className="sfgate__copy">Welcome, {memberName}.</p>}
+        {state !== "checking" && <p className="sfgate__legal">By entering, you confirm that you meet the minimum age requirement. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/cookies.html">Cookies</a></p>}
+      </div>
     </div>
   </div>
 }

@@ -40,13 +40,13 @@ COMPANY = {
     "legal_status": None,             # e.g. "private company" / "non-profit company" / "voluntary association"
     "registration_number": None,      # CIPC registration number
     "trading_name": "Down Low Cannabis (DLC)",
-    "physical_address": None,         # street address for legal notices (ECTA s43(1)(e))
-    "area": "Halfway House, Midrand, Gauteng, South Africa",
-    "phone": None,
-    "email": None,                    # general contact / legal notices
-    "office_bearers": None,           # directors or office bearers (ECTA s43(1)(g))
-    "information_officer": None,      # POPIA Information Officer name
-    "information_officer_email": None,
+    "physical_address": "Unit B12, Leogem Innovation Worx Business Park, 1 Scale End, Halfway House Estate, Midrand, 1685",
+    "area": "Gauteng, South Africa",
+    "phone": "+27 64 555 2612",
+    "email": "cam@solvex.web.co.za",
+    "office_bearers": "Cameron Roberts (lead director) and Miguel De Gouveia (director)",
+    "information_officer": "Cameron Roberts",
+    "information_officer_email": "cam@solvex.web.co.za",
     "regulator_registration": None,   # Information Regulator registration reference
     "paia_manual_url": None,          # link to the PAIA manual, if published online
     "data_region": None,              # where Supabase stores member data, e.g. "the EU (Frankfurt)"
@@ -310,6 +310,7 @@ NECESSARY = [
     ("dlc_consent", "Cookie", "Remembers your cookie choices so we do not ask on every page.", "12 months"),
     ("dlc_age_verified_v1", "Local storage", "Avoids flashing the 18+ screen at a device that has already confirmed. Holds only “yes”.", "Until cleared"),
     ("dlc_member_verified_v1", "Local storage", "Avoids flashing the Member ID screen at a signed-in device. Holds only “yes” — never your Member ID.", "Until cleared"),
+    ("dlc_catalog_cache_v1", "Session storage", "A copy of the product list so pages load quickly on a slow connection. Contains no personal information.", "Until you close the tab"),
     ("dlcLoungeState, dlcReturnToLounge, dlcCollectionState, dlcCollectionCrossScroll, dlcTransitionIn", "Session storage", "Returns you to the same place in the lounge or a collection when you go back. No personal information.", "Until you close the tab"),
 ]
 PREFERENCES = [

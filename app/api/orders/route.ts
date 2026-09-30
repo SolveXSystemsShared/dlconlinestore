@@ -19,34 +19,75 @@ const input = z.object({
   ...acceptanceInput,
 })
 
+const PERIOD_MONTHS = { "3m": 3, "6m": 6, "12m": 12 } as const
+const historyQuery = z.object({
+  period: z.enum(["3m", "6m", "12m", "all", "custom"]).default("3m"),
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+})
+
+/** Start of a calendar day in South Africa (UTC+2, no daylight saving). */
+const saDayStart = (day: string) => new Date(`${day}T00:00:00+02:00`)
+
 /**
- * The member's own order history.
+ * The member's own exchange history, for a period (default: last 3 months).
  *
- * Scoped to the verified member from the signed cookie rather than anything the
- * caller sends, so one member can never read another's orders.
+ * Scoped to the verified member from the signed cookie — never to anything the
+ * caller sends — so one member can never read another's history. Returns only
+ * what the history screen shows: number, date, status and the items requested.
+ * No credits, totals, addresses or phone numbers leave the server here.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const access = await getMemberAccess()
   if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
-  const { data, error } = await getSupabaseAdmin()
+
+  const params = Object.fromEntries(new URL(request.url).searchParams)
+  const parsed = historyQuery.safeParse(params)
+  if (!parsed.success) return NextResponse.json({ error: "Choose a valid period" }, { status: 400 })
+  const { period, from, to } = parsed.data
+
+  let since: Date | null = null
+  let until: Date | null = null
+  if (period === "custom") {
+    if (!from || !to) return NextResponse.json({ error: "Choose a start and end date" }, { status: 400 })
+    since = saDayStart(from)
+    until = new Date(saDayStart(to).getTime() + 24 * 60 * 60 * 1000)
+    if (Number.isNaN(since.getTime()) || Number.isNaN(until.getTime()) || since >= until) {
+      return NextResponse.json({ error: "The start date must be before the end date" }, { status: 400 })
+    }
+  } else if (period !== "all") {
+    since = new Date()
+    since.setMonth(since.getMonth() - PERIOD_MONTHS[period])
+  }
+
+  let query = getSupabaseAdmin()
     .from("online_orders")
-    .select("id, order_number, status, subtotal, delivery_fee, total, created_at, online_order_items(quantity)")
+    .select("id, order_number, status, created_at, online_order_items(product_type, strain_name, grade, quantity)")
     .eq("member_id", access.memberId)
     .order("created_at", { ascending: false })
-    .limit(100)
+    .limit(200)
+  if (since) query = query.gte("created_at", since.toISOString())
+  if (until) query = query.lt("created_at", until.toISOString())
+
+  const { data, error } = await query
   if (error) {
-    console.error("Order history error", error)
+    console.error("Exchange history error", error)
     return NextResponse.json({ error: "Could not load your exchanges" }, { status: 500 })
   }
+  type Line = { product_type: string; strain_name: string; grade: string | null; quantity: number }
   return NextResponse.json({
-    orders: (data || []).map((order) => ({
-      id: order.id,
-      orderNumber: order.order_number,
-      status: order.status,
-      total: Number(order.total),
-      createdAt: order.created_at,
-      itemCount: (order.online_order_items || []).reduce((sum: number, line: { quantity: number }) => sum + Number(line.quantity), 0),
-    })),
+    period,
+    orders: (data || []).map((order) => {
+      const lines = (order.online_order_items || []) as Line[]
+      return {
+        id: order.id,
+        orderNumber: order.order_number,
+        status: order.status,
+        createdAt: order.created_at,
+        itemCount: lines.reduce((sum, line) => sum + Number(line.quantity), 0),
+        items: lines.map((line) => ({ name: line.strain_name, type: line.product_type, grade: line.grade, quantity: Number(line.quantity) })),
+      }
+    }),
   })
 }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
-import { getCatalog } from "@/lib/catalog"
+import { getCatalogCached } from "@/lib/catalog"
 import type { CartLine } from "@/lib/types"
 
 /**
@@ -27,7 +27,7 @@ async function readCart(memberId: string): Promise<{ lines: CartLine[]; removed:
   const rows = data || []
   if (!rows.length) return { lines: [], removed: 0 }
 
-  const catalog = await getCatalog()
+  const catalog = await getCatalogCached()
   const byId = new Map(catalog.map((product) => [product.id, product]))
   const lines: CartLine[] = []
   const stale: string[] = []
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(await readCart(access.memberId))
     }
 
-    const catalog = await getCatalog()
+    const catalog = await getCatalogCached()
     const product = catalog.find((item) => item.id === productId)
     if (!product) return NextResponse.json({ error: "That product is no longer available" }, { status: 409 })
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
-import { getCatalog } from "@/lib/catalog"
+import { getCatalogCached } from "@/lib/catalog"
 import type { CatalogProduct } from "@/lib/types"
 
 /**
@@ -22,7 +22,7 @@ async function readWishlist(memberId: string) {
     .order("created_at", { ascending: false })
   if (error) throw new Error(error.message)
 
-  const catalog = await getCatalog()
+  const catalog = await getCatalogCached()
   const live = new Map(catalog.map((product) => [product.id, product]))
 
   return (data || []).map((row) => {

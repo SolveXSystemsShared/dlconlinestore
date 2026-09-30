@@ -8,6 +8,7 @@
 <meta content="View Down Low Cannabis product information and navigate the current strain collection." name="description"/>
 <link href="styles.css" rel="stylesheet"/>
 <script src="cookies.js"></script>
+<script src="loading-lines.js"></script>
 <script src="age-gate.js"></script>
 <script src="store.js"></script>
 <link href="https://dlconlinestore-8qpm.vercel.app/product.html" rel="canonical"/>
@@ -182,6 +183,7 @@
   }
 
   function notFound(message) {
+    doneLoading();
     setText('productTitle', 'Not on the shelf');
     setText('productPrice', '—');
     setText('productCopy', message);
@@ -212,6 +214,7 @@
   }
 
   function paint(product, siblings) {
+    doneLoading();
     const place = S.classify(product);
     category = place.category;
     tier = place.tier;
@@ -297,9 +300,15 @@
     });
   }
 
+  // Shimmer placeholders over the real layout until the product arrives.
+  const detailGrid = document.querySelector('.product-detail-grid');
+  detailGrid.classList.add('is-loading');
+  detailGrid.setAttribute('aria-busy', 'true');
+  let stopLines = () => {};
+  const doneLoading = () => { stopLines(); detailGrid.classList.remove('is-loading'); detailGrid.removeAttribute('aria-busy'); };
   setText('productTitle', 'Loading…');
   setText('productPrice', '—');
-  setText('productCopy', 'Fetching live details from the DLC lounge.');
+  stopLines = window.DLCLoadingLines?.rotate(document.getElementById('productCopy'), 'product') || stopLines;
   lock('ADD TO CART', 'LOADING');
 
   Promise.all([S.catalog(), S.cart().catch(() => [])]).then(([products]) => {

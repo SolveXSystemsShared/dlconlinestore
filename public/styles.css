@@ -2278,7 +2278,7 @@ input,select,textarea{max-width:100%}
   .age-pill,.menu-btn{height:44px;min-height:44px}
   .nav-actions{gap:.45rem}
 
-  .experience{max-width:100%;overflow:hidden}
+  .experience{max-width:100%;overflow:clip}
   .sticky-stage{max-width:100vw}
   .hero-copy{left:clamp(1rem,5vw,1.5rem);right:1rem;width:auto;top:50%}
   .hero-copy h1{font-size:clamp(3rem,15vw,5.5rem);line-height:.82}
@@ -2707,3 +2707,155 @@ html.education-open,html.search-open{overflow:hidden}
 .legal-table td{font-size:13px;line-height:1.55;color:rgba(255,255,255,.85);padding:12px 14px;border-top:1px solid rgba(255,255,255,.12);vertical-align:top}
 .legal-table code{font-size:12px;color:#fff;word-break:break-word}
 @media(max-width:640px){.legal-toc ol{columns:1}.legal-card dl>div{grid-template-columns:minmax(0,1fr);gap:4px}}
+
+/* ── Gate, light-blue edition (CDASH #41A8FC) ─────────────────────────────
+   The background matches the 3D mascot's baked-in backdrop (~#3FA7FC), so the
+   mascot is feathered into the sky instead of sitting in a visible box. Text
+   lives on the white card: white on this blue would fail contrast. */
+:root{--dlc-sky:#41a8fc;--dlc-sky-soft:#eaf4ff;--dlc-sky-deep:#1a6ef0;--dlc-navy:#06213d;--dlc-sky-line:#cfe3fb}
+.age-gate{background:radial-gradient(90% 70% at 28% 30%,#6cbcfe 0%,#41a8fc 48%,#3399f7 100%);color:var(--dlc-navy);overflow-y:auto}
+.age-gate__noise{display:none}
+.age-gate__sky{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.age-gate__sky span{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),rgba(255,255,255,0) 68%);filter:blur(6px);animation:dlcCloudDrift 18s ease-in-out infinite alternate}
+.age-gate__sky span:nth-child(1){width:46vmax;height:22vmax;left:-12vmax;top:6%}
+.age-gate__sky span:nth-child(2){width:38vmax;height:18vmax;right:-10vmax;top:58%;animation-duration:22s}
+.age-gate__sky span:nth-child(3){width:26vmax;height:12vmax;left:40%;bottom:-6vmax;animation-duration:26s}
+@keyframes dlcCloudDrift{to{transform:translate3d(4vmax,-1.5vmax,0)}}
+.age-gate__stage{position:relative;width:min(1060px,100%);display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,480px);gap:clamp(20px,5vw,72px);align-items:center}
+.age-gate__mascot{position:relative;margin:0;display:grid;justify-items:center;align-content:center;min-height:420px}
+.age-gate__mascot img{width:min(400px,36vw);height:auto;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;
+  -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 52%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 52%,#000 58%,transparent 100%)}
+.age-gate__mascot.is-loaded img{opacity:1;transform:none;animation:dlcMascotBob 3.4s ease-in-out .5s infinite}
+.age-gate__shadow{width:130px;height:16px;margin-top:-58px;border-radius:50%;background:rgba(6,33,61,.2);filter:blur(6px);animation:dlcMascotShadow 3.4s ease-in-out .5s infinite}
+@keyframes dlcMascotBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes dlcMascotShadow{0%,100%{transform:scaleX(1);opacity:.9}50%{transform:scaleX(.82);opacity:.55}}
+.age-gate__bubble{position:relative;z-index:1;margin:0 0 -18px;max-width:280px;padding:12px 16px;border-radius:18px 18px 18px 6px;background:#fff;color:var(--dlc-navy);font-size:13px;font-weight:800;line-height:1.35;box-shadow:0 14px 34px rgba(6,33,61,.18);animation:dlcBubbleIn .45s ease both}
+.age-gate__bubble:empty{visibility:hidden}
+@keyframes dlcBubbleIn{from{opacity:0;transform:translateY(8px) scale(.96)}}
+.age-gate.is-busy .age-gate__mascot.is-loaded img{animation-duration:1.1s}
+.age-gate__card{background:#fff;border-radius:28px;padding:clamp(24px,4vw,40px);box-shadow:0 34px 90px rgba(6,33,61,.24);text-align:left}
+.age-gate .age-gate__logo{width:108px;height:auto;margin:0 0 22px;filter:none}
+.age-gate__eyebrow{color:var(--dlc-sky-deep);opacity:1;letter-spacing:1.8px}
+.age-gate h1{color:var(--dlc-navy);font-size:clamp(38px,4.6vw,60px);line-height:.92}
+.age-gate__copy{margin:18px 0 0;max-width:none;color:#4a5a70;opacity:1}
+.age-gate__actions{justify-content:flex-start;margin-top:26px}
+.age-gate__btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border-color:var(--dlc-sky-line)}
+.age-gate__btn--yes{background:var(--dlc-sky-deep);border-color:var(--dlc-sky-deep);color:#fff}
+.age-gate__btn--yes:hover:not(:disabled){background:#1560d6}
+.age-gate__btn--no{background:#fff;color:var(--dlc-navy)}
+.age-gate__btn:disabled{opacity:.55}
+.age-gate__spinner{width:13px;height:13px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:dlcSpin .7s linear infinite}
+@keyframes dlcSpin{to{transform:rotate(360deg)}}
+.age-gate__field{margin:24px 0 0;width:100%}
+.age-gate__field span{color:#4a5a70;opacity:1}
+.age-gate__field input{border-color:var(--dlc-sky-line);background:#f4f9ff;color:var(--dlc-navy);text-align:left;letter-spacing:3px}
+.age-gate__field input:focus{border-color:var(--dlc-sky);background:#fff;box-shadow:0 0 0 4px rgba(65,168,252,.22)}
+.age-gate__field input::placeholder{color:#9db4cf}
+.age-gate__error{margin:14px 0 0;max-width:none;color:#b3261e;background:#fff1f1;border-color:#f5c2c2}
+.age-gate__legal{margin:22px 0 0;max-width:none;color:#6b7a90;opacity:1;font-size:10px}
+.age-gate__legal a{color:var(--dlc-sky-deep)}
+.age-gate__progress{height:6px;margin-top:26px;border-radius:999px;background:var(--dlc-sky-soft);overflow:hidden}
+.age-gate__progress span{display:block;width:40%;height:100%;border-radius:inherit;background:var(--dlc-sky);animation:dlcIndeterminate 1.3s ease-in-out infinite}
+@keyframes dlcIndeterminate{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+.age-gate[data-state="checking"] h1{animation:none}
+.age-gate :focus-visible{outline:3px solid var(--dlc-sky-deep);outline-offset:3px}
+@media(max-width:820px){
+  .age-gate{align-items:start;padding-top:max(18px,env(safe-area-inset-top))}
+  .age-gate__stage{grid-template-columns:minmax(0,1fr);gap:0;justify-items:center}
+  .age-gate__mascot{min-height:0}
+  .age-gate__mascot img{width:min(170px,44vw)}
+  .age-gate__shadow{width:70px;margin-top:-26px}
+  .age-gate__bubble{font-size:12px;margin-bottom:-8px}
+  .age-gate__card{width:100%;margin-top:14px;border-radius:24px}
+  .age-gate__actions{display:grid;grid-template-columns:1fr;width:100%}
+  .age-gate__btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.age-gate__sky span,.age-gate__mascot.is-loaded img,.age-gate__shadow,.age-gate__progress span,.age-gate__spinner{animation:none!important}.age-gate__mascot img{transition:none}}
+
+/* ── Loading states for slow connections ───────────────────────────────── */
+.dlc-loadbar{position:fixed;z-index:100002;top:0;left:0;right:0;height:3px;pointer-events:none;opacity:0;transition:opacity .3s ease}
+.dlc-loadbar.is-active{opacity:1}
+.dlc-loadbar span{display:block;height:100%;width:100%;background:linear-gradient(90deg,#41a8fc,#1a6ef0);transform-origin:left;transform:scaleX(0);box-shadow:0 0 10px rgba(65,168,252,.7)}
+.dlc-loadbar.is-active span{animation:dlcLoadCrawl 8s cubic-bezier(.1,.7,.2,1) forwards}
+.dlc-loadbar.is-done span{animation:none;transform:scaleX(1);transition:transform .25s ease}
+@keyframes dlcLoadCrawl{from{transform:scaleX(0)}to{transform:scaleX(.9)}}
+
+.sk{display:block;border-radius:6px;background:linear-gradient(90deg,#eef3f9 0%,#f8fbfe 40%,#eef3f9 80%);background-size:220% 100%;animation:dlcShimmer 1.3s ease-in-out infinite}
+@keyframes dlcShimmer{from{background-position:120% 0}to{background-position:-100% 0}}
+.strain-card.is-skeleton{cursor:default;pointer-events:none}
+.strain-card.is-skeleton:hover{transform:none;box-shadow:none}
+.sk-art{width:46%;aspect-ratio:1;border-radius:50%}
+.sk-line{height:10px;margin-top:10px;grid-column:1/-1}
+.sk-title{height:20px;width:70%;margin-top:6px;grid-column:1/-1}
+.sk-w40{width:40%}.sk-w60{width:60%}.sk-w90{width:90%}
+.store-slow{grid-column:1/-1;margin:4px 0 0;padding:12px 14px;background:#eaf4ff;border-left:3px solid #41a8fc;color:#4a5a70;font-size:12px;line-height:1.5}
+.store-slow[hidden]{display:none}
+
+.product-detail-grid.is-loading #productTitle,
+.product-detail-grid.is-loading #productPrice,
+.product-detail-grid.is-loading #tierPill,
+.product-detail-grid.is-loading .product-format-row span{color:transparent!important;border-radius:8px;background:linear-gradient(90deg,#eef3f9 0%,#f8fbfe 40%,#eef3f9 80%);background-size:220% 100%;animation:dlcShimmer 1.3s ease-in-out infinite}
+.product-detail-grid.is-loading #productTitle{max-width:70%}
+.product-detail-grid.is-loading #productPrice{display:inline-block;min-width:140px}
+.product-detail-grid.is-loading .product-stage-art{background:linear-gradient(90deg,#eef3f9 0%,#f8fbfe 40%,#eef3f9 80%);background-size:220% 100%;animation:dlcShimmer 1.3s ease-in-out infinite;border-radius:12px;min-height:280px}
+@media(prefers-reduced-motion:reduce){.sk,.product-detail-grid.is-loading *{animation:none!important}.dlc-loadbar.is-active span{animation:none;transform:scaleX(.6)}}
+.lounge-loader__bar span{background:linear-gradient(90deg,#41a8fc,#eaf4ff)}
+/* Bubble sits by the mascot's head (the artwork has headroom above him). */
+.age-gate__mascot{align-content:end}
+.age-gate__bubble{position:absolute;top:13%;left:50%;margin:0;transform:translateX(-8%);white-space:nowrap}
+@media(max-width:820px){.age-gate__bubble{top:4%;left:58%;transform:none;white-space:normal;max-width:min(190px,44vw)}}
+/* The artwork has empty sky under his feet (~30% of its width); tuck the
+   shadow up under them. */
+.age-gate__shadow{margin-top:calc(min(400px,36vw) * -.3)}
+@media(max-width:820px){.age-gate__shadow{margin-top:calc(min(170px,44vw) * -.3)}}
+/* Measured on screen: the shadow needs ~.43 × the artwork's width to reach
+   his feet. On phones the bubble moves to his left (he waves with his other
+   hand) and the card tucks up under the artwork's empty lower sky. */
+.age-gate__shadow{margin-top:calc(min(400px,36vw) * -.43)}
+@media(max-width:820px){
+  .age-gate__shadow{margin-top:calc(min(170px,44vw) * -.43)}
+  .age-gate__bubble{top:20%;left:auto;right:calc(50% + 34px);max-width:min(170px,40vw);border-radius:18px 18px 6px 18px;font-size:11.5px}
+  .age-gate__card{margin-top:-6px}
+  .age-gate__mascot{margin-bottom:-8px;width:100%}
+}
+
+/* Rotating loading lines (loading-lines.js) */
+.is-swapping{opacity:0!important;transform:translateY(4px)}
+.lounge-loader__text,.age-gate__bubble,.store-loading-line,#productCopy{transition:opacity .18s ease,transform .18s ease}
+.store-loading-line{grid-column:1/-1;order:-1;margin:0 0 4px;padding:14px 16px;background:#eaf4ff;border-left:3px solid #41a8fc;color:#1a3a5c;font-size:13px;font-weight:800;letter-spacing:.2px}
+.lounge-loader__text{min-height:1.4em;text-align:center;max-width:80vw}
+.lounge-loader__text{font-size:11px;letter-spacing:1.4px;line-height:1.4}
+.age-gate__bubble{white-space:normal;width:max-content;max-width:260px}
+
+/* ── Lounge category row with every CDASH category ────────────────────────
+   Once the catalogue adds categories (.is-extended) the pill becomes a
+   sideways-scrolling row at every size, with soft fades at the edges. */
+.category-row.is-extended{
+  overflow-x:auto!important;overflow-y:hidden!important;justify-content:flex-start!important;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 22px,#000 calc(100% - 22px),transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 22px,#000 calc(100% - 22px),transparent 100%);
+}
+.category-row.is-extended::-webkit-scrollbar{display:none}
+.category-row.is-extended .category{flex:0 0 auto!important;min-width:0!important;padding:0 18px!important;scroll-snap-align:center;white-space:nowrap!important}
+@media(min-width:1025px){
+  .category-row.is-extended{max-width:min(1040px,calc(100vw - 6rem))!important;width:max-content!important}
+}
+@media(max-width:640px) and (orientation:portrait){
+  .category-row.is-extended{overflow-x:auto!important;justify-content:flex-start!important}
+  .category-row.is-extended .category{padding:0 14px!important}
+}
+.pack .pack-name{display:block;max-width:88%;margin-top:6px;font-size:9px;font-weight:900;letter-spacing:.6px;line-height:1.25;text-align:center;text-transform:uppercase;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;color:inherit;opacity:.9}
+.pack:has(.pack-name){align-content:center;gap:0}
+/* Keep the pills full height inside the scrolling row, and lift the
+   "keep scrolling" cue above the longer row instead of under it. */
+.category-row.is-extended .category{padding:12px 18px!important;min-height:40px}
+@media(max-width:640px) and (orientation:portrait){.category-row.is-extended .category{padding:0 14px!important;height:40px!important}}
+.table-ui:has(.category-row.is-extended) .continue-cue{bottom:94px}
+/* overflow:hidden on .experience made it its own scroll box on phones, so the
+   sticky lounge stage scrolled away and left a black gap. clip trims the same
+   overflow without breaking position:sticky. */
+.experience{overflow:clip}
+/* Phone rules force .category to display:grid!important; a hidden category
+   (nothing in stock) must still stay hidden. */
+.category[hidden]{display:none!important}

@@ -33,6 +33,8 @@
 
   // Hide the page up front unless the hints say this visitor already got in.
   const expectPass = read(AGE_KEY) && (ageOnly || read(MEMBER_HINT_KEY));
+  // A returning member is checked silently; store.js shows its loading bar for it.
+  window.DLCGate.silent = expectPass;
   let gate = null;
   if (!expectPass) {
     document.documentElement.classList.add('age-gate-active');
@@ -54,6 +56,7 @@
       <div class="age-gate__question">
         <p class="age-gate__eyebrow">DOWN LOW CANNABIS</p>
         <h1 id="ageGateTitle">ONE<br>MOMENT.</h1>
+        <div class="age-gate__progress" role="progressbar" aria-label="Checking your session"><span></span></div>
       </div>`,
     age: () => `
       <div class="age-gate__question">
@@ -85,12 +88,21 @@
         </label>
         <p class="age-gate__error" id="ageGateError" data-gate-error hidden></p>
         <div class="age-gate__actions">
-          <button class="age-gate__btn age-gate__btn--yes" type="submit" disabled>ENTER STORE</button>
+          <button class="age-gate__btn age-gate__btn--yes" type="submit" disabled>ENTER</button>
         </div>
         <p class="age-gate__legal">No Member ID yet? <a href="/register">Register as a member</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="cookies.html">Cookies</a></p>
       </form>`,
   };
 
+  // What the mascot says on each screen.
+  const bubbles = {
+    checking: 'One sec — just checking you in…',
+    age: 'Howzit! Quick check before we go in.',
+    denied: 'Sorry — this one is for adults only.',
+    member: 'Welcome in. Pop your Member ID below.',
+  };
+
+  let stopLines = () => {};
   function mount(state) {
     if (!gate) {
       gate = document.createElement('div');
@@ -98,6 +110,23 @@
       gate.setAttribute('role', 'dialog');
       gate.setAttribute('aria-modal', 'true');
       gate.setAttribute('aria-labelledby', 'ageGateTitle');
+      // The mascot and sky are built once and stay put between screens, so a
+      // slow connection only ever downloads and paints them a single time.
+      gate.innerHTML = `<div class="age-gate__sky" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="age-gate__stage">
+          <figure class="age-gate__mascot" aria-hidden="true">
+            <p class="age-gate__bubble" data-gate-bubble></p>
+            <img src="assets/dlc-mascot-3d.jpg" alt="" width="506" height="760" decoding="async" fetchpriority="high">
+            <span class="age-gate__shadow"></span>
+          </figure>
+          <div class="age-gate__card">
+            <img class="age-gate__logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis" width="120" height="39">
+            <div data-gate-screen></div>
+          </div>
+        </div>`;
+      const mascot = gate.querySelector('.age-gate__mascot img');
+      const ready = () => gate?.querySelector('.age-gate__mascot')?.classList.add('is-loaded');
+      if (mascot.complete) ready(); else mascot.addEventListener('load', ready, { once: true });
       document.body.prepend(gate);
       gate.addEventListener('keydown', trapFocus);
       gate.addEventListener('click', onClick);
@@ -105,11 +134,15 @@
       gate.addEventListener('input', onInput);
     }
     document.documentElement.classList.add('age-gate-active');
+    window.dispatchEvent(new CustomEvent('dlc:gate-shown'));
     gate.dataset.state = state;
-    gate.innerHTML = `<div class="age-gate__noise" aria-hidden="true"></div>
-      <div class="age-gate__panel"><img class="age-gate__logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis">${screens[state]()}</div>`;
+    const bubble = gate.querySelector('[data-gate-bubble]');
+    stopLines();
+    bubble.textContent = bubbles[state] || '';
+    if (state === 'checking' && window.DLCLoadingLines) stopLines = window.DLCLoadingLines.rotate(bubble, 'gate');
+    gate.querySelector('[data-gate-screen]').innerHTML = screens[state]();
     const shown = gate;
-    setTimeout(() => (shown.querySelector('input') || shown.querySelector('button'))?.focus(), 50);
+    setTimeout(() => (shown.querySelector('[data-gate-screen] input') || shown.querySelector('[data-gate-screen] button'))?.focus(), 50);
   }
 
   function unmount() {
@@ -128,10 +161,21 @@
     el.hidden = !message;
   }
 
-  function setBusy(busy) {
-    gate?.querySelectorAll('button').forEach(button => {
-      if (busy) button.disabled = true;
-      else if (button.type !== 'submit') button.disabled = false;
+  // Disables the buttons and, on a slow connection, says what is happening on
+  // the button that was pressed instead of leaving it looking frozen.
+  function setBusy(busy, label) {
+    gate?.classList.toggle('is-busy', busy);
+    gate?.querySelectorAll('[data-gate-screen] button').forEach(button => {
+      if (busy) {
+        button.disabled = true;
+        if (label && (button.type === 'submit' || button.dataset.gateAction === 'yes')) {
+          button.dataset.label = button.textContent;
+          button.innerHTML = `<i class="age-gate__spinner" aria-hidden="true"></i>${label}`;
+        }
+      } else {
+        if (button.dataset.label) { button.textContent = button.dataset.label; delete button.dataset.label; }
+        if (button.type !== 'submit') button.disabled = false;
+      }
     });
     if (!busy) onInput();
   }
@@ -150,13 +194,19 @@
     if (action === 'no') mount('denied');
     if (action === 'back') { if (history.length > 1) history.back(); else location.href = 'about:blank'; }
     if (action !== 'yes') return;
-    setBusy(true);
+    setBusy(true, 'ENTERING…');
     try {
       const response = await fetch('/api/access/age', { method: 'POST' });
       if (!response.ok) throw new Error();
       write(AGE_KEY, true);
       if (ageOnly) { unmount(); return; }
-      await resolveSession();
+      // The same response says whether this browser is already signed in, so
+      // there is no second request before the member step on a slow line.
+      const data = await response.json().catch(() => ({}));
+      if (data.member) { passed(data.member); unmount(); return; }
+      setBusy(false);
+      write(MEMBER_HINT_KEY, false);
+      mount('member');
     } catch (e) {
       setBusy(false);
       showError('That did not go through. Please try again.');
@@ -177,7 +227,7 @@
   async function onSubmit(event) {
     event.preventDefault();
     const memberId = gate.querySelector('input[name="memberId"]').value;
-    setBusy(true);
+    setBusy(true, 'CHECKING…');
     showError('');
     try {
       const response = await fetch('/api/members/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ memberId }) });

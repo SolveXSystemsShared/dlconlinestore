@@ -10,8 +10,12 @@
   const productCloudReveal = document.getElementById('productCloudReveal');
   const loungeLoader = document.getElementById('loungeLoader');
   const loungeLoaderBar = document.getElementById('loungeLoaderBar');
+  // Rotating lines while the lounge buffers; stops itself when the loader goes.
+  window.DLCLoadingLines?.rotate(loungeLoader?.querySelector('.lounge-loader__text'), 'lounge');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducedMotion) document.documentElement.classList.add('reduced-motion');
+  const liteVideo = !!window.DLCStore?.slowConnection?.();
+  if (liteVideo) document.documentElement.classList.add('lite-video');
 
   const STATE_KEY = 'dlcLoungeState';
   const RETURN_KEY = 'dlcReturnToLounge';
@@ -195,7 +199,9 @@
     activeVideoProfile = nextProfile;
     video.poster = next.poster || '';
     document.documentElement.dataset.videoProfile = nextProfile;
-    if (reducedMotion) {
+    // Reduced motion, a slow connection or Data Saver: keep the still poster
+    // and skip the multi-megabyte video. The scroll experience still works.
+    if (reducedMotion || liteVideo) {
       durationReady = false;
       video.removeAttribute('src');
       video.load();
@@ -243,6 +249,10 @@
   // perceived scrub distance; the additional page height is used for Flower →
   // Prerolls → Wellness before the sticky lounge releases into the next content.
   let scrollDrivenCategory = null;
+  let pinnedCategory = null;
+  // The three the lounge scroll moves through; every other CDASH category is
+  // filled from the live catalogue and shown on demand.
+  const CORE_CATEGORIES = ['flower', 'prerolls', 'wellness'];
   let manualCategoryOverride = null;
   let manualCategoryOverrideUntil = 0;
 
@@ -296,10 +306,19 @@
     });
     renderCategory(category, animate);
     scrollDrivenCategory = category;
+    revealCategoryButton(category);
     if (persist) {
       const prior = getSavedLoungeState() || {};
       sessionStorage.setItem(STATE_KEY, JSON.stringify({...prior, category, scrollY:window.scrollY, savedAt:Date.now()}));
     }
+  }
+
+  function revealCategoryButton(category){
+    const row = document.querySelector('.category-row');
+    const btn = categories.find(b => b.dataset.category === category);
+    if (!row || !btn || row.scrollWidth <= row.clientWidth) return;
+    const left = btn.offsetLeft - (row.clientWidth - btn.offsetWidth) / 2;
+    row.scrollTo({ left: Math.max(0, left), behavior: reducedMotion ? 'auto' : 'smooth' });
   }
 
   let lastSeekAt = 0;
@@ -342,6 +361,12 @@
         nextScrollCategory = categoryForProgress(p);
       }
     }
+    // A category outside the scroll sequence (edibles, vapes…) stays on the
+    // table until the member scrolls on; then the scroll takes over again.
+    if (pinnedCategory) {
+      if (Math.abs(window.scrollY - pinnedCategory.y) < 140) nextScrollCategory = pinnedCategory.category;
+      else pinnedCategory = null;
+    }
     if (nextScrollCategory && nextScrollCategory !== scrollDrivenCategory) {
       activateCategory(nextScrollCategory, {persist:true, animate:!reducedMotion});
     }
@@ -375,6 +400,8 @@
     'pain-relax': 'assets/webp/wellness/pain-relax.webp',
     'happy-pet': 'assets/webp/wellness/happy-pet.webp'
   };
+
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
   const categoryProducts = {
     flower: [
@@ -420,7 +447,7 @@
       const button = card.querySelector('.product-action');
       const canOpenStrains = category === 'flower' || category === 'prerolls';
       const directHref = item[2] || '';
-      button.textContent = canOpenStrains ? 'VIEW STRAINS →' : (directHref ? 'VIEW CATEGORY →' : 'VIEW PRODUCT →');
+      button.textContent = canOpenStrains ? 'VIEW STRAINS →' : item[4] ? item[4] : (directHref ? 'VIEW PRODUCT →' : 'VIEW PRODUCT →');
       card.dataset.analytics = `${category}_${tierSlug}_click`;
       card.dataset.href = canOpenStrains
         ? `strains.html?category=${encodeURIComponent(category)}&tier=${encodeURIComponent(tierSlug)}`
@@ -461,8 +488,10 @@
         } else {
           pack.innerHTML = '<span>DLC</span>';
         }
+      } else if (item[3]) {
+        pack.innerHTML = `<img class="pack-figure" src="${escapeHtml(item[3])}" alt="${escapeHtml(item[1])}" width="520" height="780" decoding="async">`;
       } else {
-        pack.innerHTML = '<span>DLC</span>';
+        pack.innerHTML = `<span>DLC</span><small class="pack-name">${escapeHtml(item[4] ? item[4].replace(' →', '') : item[1])}</small>`;
       }
 
       if (animate && !reducedMotion && typeof card.animate === 'function') {
@@ -510,13 +539,49 @@
       // Clicking the already-active category should not cause a flash/re-render.
       if (current === category && alreadyInTargetPhase) return;
 
+      if (!CORE_CATEGORIES.includes(category)) {
+        if (!categoryProducts[category]) { window.location.assign(`strains.html?category=more&tier=${encodeURIComponent(category)}`); return; }
+        pinnedCategory = { category, y: window.scrollY };
+        activateCategory(category, {persist:true, animate: current !== category});
+        return;
+      }
+      pinnedCategory = null;
       activateCategory(category, {persist:true, animate: current !== category});
       scrollToCategoryPhase(category, reducedMotion ? 'auto' : 'smooth');
     });
   });
 
+  // Every other CDASH category with stock gets its button and up to four live
+  // products, plus a card for the whole shelf. Categories with nothing in
+  // stock stay hidden rather than open onto an empty table.
+  window.DLCStore?.catalog().then(products => {
+    const S = window.DLCStore;
+    const byShelf = new Map();
+    products.forEach(p => {
+      const place = S.classify(p);
+      if (place.category !== 'more') return;
+      if (!byShelf.has(place.tier)) byShelf.set(place.tier, { label: p.productType, items: [] });
+      byShelf.get(place.tier).items.push(p);
+    });
+    let shown = 0;
+    categories.filter(b => b.hasAttribute('data-extra')).forEach(btn => {
+      const shelf = byShelf.get(btn.dataset.category);
+      btn.hidden = !shelf;
+      if (!shelf) return;
+      shown++;
+      const label = shelf.label.toUpperCase();
+      const picks = [...shelf.items].sort((a, b) => b.availableQuantity - a.availableQuantity);
+      const count = picks.length >= 4 ? 4 : picks.length >= 2 ? 2 : 1;
+      categoryProducts[btn.dataset.category] = [
+        ...picks.slice(0, count).map(p => [label, p.name, S.productUrl(p), S.imageFor(p)]),
+        [label, `All ${shelf.label.toLowerCase()}`, S.collectionUrl('more', btn.dataset.category), null, `VIEW ALL ${shelf.items.length} →`],
+      ];
+    });
+    document.querySelector('.category-row')?.classList.toggle('is-extended', shown > 0);
+  }).catch(() => {});
+
   const savedState = getSavedLoungeState();
-  const initialCategory = isExplicitHomeEntry ? 'flower' : (savedState?.category || 'flower');
+  const initialCategory = isExplicitHomeEntry || !CORE_CATEGORIES.includes(savedState?.category) ? 'flower' : savedState.category;
   categories.forEach(b => { const active = b.dataset.category === initialCategory; b.classList.toggle('active', active); b.setAttribute('aria-pressed', String(active)); });
   renderCategory(initialCategory, false);
   scrollDrivenCategory = initialCategory;

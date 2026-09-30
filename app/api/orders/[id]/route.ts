@@ -10,7 +10,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   const access = await getMemberAccess()
   if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
   const supabase = getSupabaseAdmin()
-  const { data: order, error } = await supabase.from("online_orders").select("id, order_number, status, subtotal, delivery_fee, total, member_name, created_at").eq("id", id).eq("member_id", access.memberId).maybeSingle()
+  const { data: order, error } = await supabase.from("online_orders").select("id, order_number, status, created_at, online_order_items(product_type, strain_name, grade, quantity)").eq("id", id).eq("member_id", access.memberId).maybeSingle()
   if (error) return NextResponse.json({ error: "Could not load this exchange request" }, { status: 500 })
   if (!order) return NextResponse.json({ error: "Exchange request not found" }, { status: 404 })
   return NextResponse.json({ order })

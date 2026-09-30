@@ -8,6 +8,8 @@ import { formatMemberId, isCompleteMemberId, credits, MEMBER_ID_PREFIX } from "@
 import { imageFor, productUrl, shelfLabel } from "@/lib/storefront"
 import { EXCHANGE_REQUEST_STATEMENT, TERMS_VERSION } from "@/lib/legal"
 import { LegalStatement } from "@/components/legal-statement"
+import { SkeletonPage } from "@/components/skeleton"
+import { LoadingLine, SlowNotice, useSlowFlag } from "@/components/slow-notice"
 import type { CatalogProduct, CheckoutQuote, SavedAddress } from "@/lib/types"
 
 /** One line of text for the exchange request, from the parts the member filled in. */
@@ -140,6 +142,7 @@ function CheckoutForm() {
   }
 
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const slowQuote = useSlowFlag(cart.length > 0 && !quote && !quoteError)
 
   // The "DLC-" prefix is furniture, not editable text: keep the caret after it
   // and stop Backspace from eating into it.
@@ -209,8 +212,9 @@ function CheckoutForm() {
           <div className="sf-total sf-total--cash"><span>SETTLING IN CASH</span><strong>{credits(quote.cash.amountDue)}</strong></div>
           <div className="sf-total"><span>SETTLING BY CARD</span><strong>{credits(quote.card.amountDue)}</strong></div>
         </div>
-      : <div className="sf-totals"><div className="sf-total" style={{ gridColumn: "1 / -1" }}><span>TOTAL</span><strong>{quoteError || !cart.length ? "—" : "Calculating…"}</strong></div></div>}
+      : <div className="sf-totals"><div className="sf-total" style={{ gridColumn: "1 / -1" }}><span>TOTAL</span><strong>{quoteError || !cart.length ? "—" : <span className="sk sk-inline" aria-label="Calculating credits" />}</strong></div></div>}
     {quoteError && <p className="sf-error">{quoteError}</p>}
+    <SlowNotice show={slowQuote} what="the credits for your bag" />
     {quote && quote.card.pointsEarned > 0 && <p className="sf-note sf-note--ok">Earns around <strong>{quote.card.pointsEarned} points</strong> once the exchange is settled.</p>}
 
     <label className="sf-check" style={{ marginTop: 4 }}><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} /><span><LegalStatement text={EXCHANGE_REQUEST_STATEMENT} /></span></label>
@@ -240,7 +244,7 @@ function CheckoutForm() {
         <div className="sf-body">
           {message && !cart.length && <p className="sf-error" role="alert">{message}</p>}
           {!loaded
-            ? <div className="sf-loading"><strong>Loading your bag…</strong></div>
+            ? <><div className="sf-body"><LoadingLine context="bag" /></div><SkeletonPage label="Loading your bag" /></>
             : !cart.length
               ? <div className="sf-empty"><strong>Your bag is empty.</strong>Add something from the lounge — it will wait here for you.<div className="sf-actions"><a className="sf-cta" href="/strains.html?category=flower">Browse flower</a><a className="sf-ghost" href="/strains.html?category=more">Browse everything</a></div></div>
               : <div className="sf-checkout">
@@ -305,5 +309,5 @@ function CheckoutForm() {
 }
 
 export default function CheckoutPage() {
-  return <Suspense fallback={<div className="sf"><div className="sf-loading"><strong>Loading your bag…</strong></div></div>}><CheckoutForm /></Suspense>
+  return <Suspense fallback={<div className="sf"><SkeletonPage label="Loading your bag" /></div>}><CheckoutForm /></Suspense>
 }
