@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+<meta content="#ffffff" name="theme-color"/>
+<title>DLC Product Details</title>
+<meta content="View Down Low Cannabis product information and navigate the current strain collection." name="description"/>
+<link href="styles.css" rel="stylesheet"/>
+<script src="cookies.js"></script>
+<script src="age-gate.js"></script>
+<script src="store.js"></script>
+<link href="https://dlconlinestore-8qpm.vercel.app/product.html" rel="canonical"/>
+<meta content="noindex,follow" name="robots"/>
+<link href="assets/dlc-logo.svg" rel="icon" type="image/svg+xml"/>
+<link href="assets/icons/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/icons/icon-192.png" rel="apple-touch-icon"/>
+<link href="site.webmanifest" rel="manifest"/>
+<meta content="website" property="og:type"/>
+<meta content="https://dlconlinestore-8qpm.vercel.app/assets/social/og-dlc.jpg" property="og:image"/>
+<meta content="1200" property="og:image:width"/>
+<meta content="630" property="og:image:height"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://dlconlinestore-8qpm.vercel.app/assets/social/og-dlc.jpg" name="twitter:image"/>
+<meta content="DLC Product Details" property="og:title"/>
+<meta content="View product details from Down Low Cannabis." property="og:description"/>
+<meta content="https://dlconlinestore-8qpm.vercel.app/product.html" property="og:url"/>
+</head>
+<body class="product-page">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="nav product-nav">
+  <a aria-label="Down Low Cannabis home" class="brand" href="index.html?home=1">
+    <img alt="Down Low Cannabis logo" class="brand-logo" decoding="async" height="52" src="assets/dlc-logo.svg" width="160"/>
+  </a>
+  <nav aria-label="Primary navigation" class="nav-links">
+    <a data-analytics="lounge_nav_click" href="index.html#experience">LOUNGE</a>
+    <a href="strains.html?category=flower">FLOWER</a><a href="strains.html?category=prerolls">PREROLLS</a><a href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+  </nav>
+  <div class="nav-actions"><a class="nav-bag-pill" href="/bag" aria-label="Your bag">BAG <b data-bag-count>00</b></a><span class="age-pill">18+</span><button aria-label="Open menu" class="menu-btn" id="menuBtn" type="button">MENU</button></div>
+</header>
+
+<main class="product-detail-shell" id="main-content">
+  <nav aria-label="Breadcrumb" class="product-breadcrumbs">
+    <a href="strains.html?category=flower" id="crumbCategory">FLOWER</a><span>/</span><a href="strains.html?category=flower" id="crumbTier">OUTDOOR</a><span>/</span><strong id="crumbProduct">PRODUCT</strong>
+  </nav>
+
+  <section class="product-detail-grid" aria-label="Product details">
+    <div class="product-media-column">
+      <div class="product-stage" id="productStage">
+        <span class="product-stage-label" id="stageLabel">DLC / OUTDOOR</span>
+        <div class="product-stage-art" id="productVisual"></div>
+        <span class="product-stage-index" id="stageIndex">01 / 06</span>
+      </div>
+      <div class="product-thumbnails" aria-label="Product image views" id="productThumbs">
+        <button class="product-thumb is-active" data-view="full" type="button" aria-label="Full product view"><span>01</span><div class="thumb-art" id="thumbArt1"></div></button>
+        <button class="product-thumb" data-view="detail" type="button" aria-label="Closer product view"><span>02</span><div class="thumb-art" id="thumbArt2"></div></button>
+        <button class="product-thumb" data-view="macro" type="button" aria-label="Product detail view"><span>03</span><div class="thumb-art" id="thumbArt3"></div></button>
+      </div>
+    </div>
+
+    <div class="product-detail-info">
+      <div class="product-tier-row">
+        <span class="product-tier-pill" id="tierPill">OUTDOOR</span>
+        <span class="product-availability"><i aria-hidden="true"></i> CHECKING STOCK</span>
+      </div>
+      <h1 class="product-detail-title" id="productTitle">Loading…</h1>
+      <div class="product-format-row"><span id="productFormat">Flower</span><span aria-hidden="true">·</span><span id="productSize">Gram</span></div>
+      <div class="product-price" id="productPrice">—</div>
+      <p class="product-detail-copy" id="productCopy">Product details will appear here.</p>
+
+      <div class="education-chip-row" aria-label="Product education">
+        <button type="button" data-open-education="current-product">WHAT IS THIS?</button>
+        <button type="button" data-open-education="tiers">WHAT IS THIS TIER?</button>
+        <button type="button" data-open-education="potency">THC &amp; CBD</button>
+      </div>
+      <div class="guidance-hint" id="productGuidanceHint" hidden></div>
+
+      <div class="product-purchase-panel">
+        <div class="product-quantity-wrap">
+          <span class="field-label">QUANTITY</span>
+          <div class="quantity-control" aria-label="Quantity selector">
+            <button type="button" id="qtyMinus" aria-label="Decrease quantity">−</button>
+            <output id="qtyValue" aria-live="polite">1</output>
+            <button type="button" id="qtyPlus" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+        <div class="product-purchase-actions">
+          <button class="product-primary-cta" type="button" disabled aria-disabled="true">ADD TO CART <span>LOADING</span></button>
+          <button class="product-secondary-cta" id="backToCollection" type="button">BACK TO COLLECTION</button>
+        </div>
+      </div>
+
+      <dl class="product-fact-list">
+        <div><dt>CATEGORY</dt><dd id="factCategory">Flower</dd></div>
+        <div><dt>TIER</dt><dd id="factTier">Outdoor</dd></div>
+        <div><dt>CREDITS</dt><dd id="factPrice">—</dd></div>
+        <div><dt>POTENCY</dt><dd>Confirm in store</dd></div>
+      </dl>
+
+      <div class="product-accordions" id="productAccordions">
+        <details open>
+          <summary>PRODUCT DETAILS <span>+</span></summary>
+          <p id="detailsCopy">Product-specific information can be connected to the final catalogue without changing this page layout.</p>
+        </details>
+        <details>
+          <summary>COMPOSITION &amp; POTENCY <span>+</span></summary>
+          <p>Strain-specific THC, CBD, terpene and genetics information has not been supplied in this build. Confirm the current product information in store.</p>
+        </details>
+        <details>
+          <summary>AVAILABILITY <span>+</span></summary>
+          <p>Availability can change. The displayed credits reflect the current DLC menu for this tier; live stock can be connected when the catalogue is ready.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="related-products" aria-labelledby="relatedTitle">
+    <div class="related-heading-row">
+      <div><span class="related-kicker">KEEP BROWSING</span><h2 id="relatedTitle">MORE FROM <span id="relatedTier">OUTDOOR</span></h2></div>
+      <div class="related-arrows" aria-hidden="true"><span>←</span><span>→</span></div>
+    </div>
+    <div class="related-grid" id="relatedGrid"></div>
+    <a class="related-more" id="moreProductsLink" href="strains.html">VIEW COLLECTION <span>→</span></a>
+  </section>
+
+  <section class="recently-viewed" id="recentlyViewed" hidden aria-labelledby="recentlyViewedTitle">
+    <div class="recently-viewed__heading"><span>YOUR BROWSING</span><h2 id="recentlyViewedTitle">RECENTLY VIEWED</h2></div>
+    <div class="recently-viewed__track" id="recentlyViewedTrack"></div>
+  </section>
+
+  <section class="product-exchange-band">
+    <div>
+      <span>DOWN LOW CANNABIS</span>
+      <h2>KEEP IT<br/>DOWN LOW.</h2>
+    </div>
+    <div class="product-exchange-band__copy">
+      <p>Browse the rest of the DLC collection directly.</p>
+      <a href="strains.html?category=wellness&amp;tier=wellness" id="browseBandLink">BROWSE WELLNESS <span>→</span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer product-footer">
+  <div class="site-footer__brand"><img alt="" decoding="async" height="52" loading="lazy" src="assets/dlc-logo.svg" width="160"/><span>DOWN LOW CANNABIS</span></div>
+  <nav aria-label="Legal"><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <p>18+ · Halfway House, Midrand</p>
+</footer>
+
+<script>
+(() => {
+  const S = window.DLCStore;
+  const params = new URLSearchParams(location.search);
+  const requestedId = params.get('id') || '';
+  const requestedName = (params.get('name') || '').trim();
+  let category = params.get('category') || 'flower';
+  let tier = params.get('tier') || 'outdoor';
+  const titleCase = value => value.replaceAll('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const setText = (id, text) => { document.getElementById(id).textContent = text; };
+  // Names typed by hand in CDASH vs the lounge ("EC 3.5" / "ECS 3.5").
+  const nameKey = value => S.slugify(value).replace(/^ecs-/, 'ec-');
+
+  const cta = document.querySelector('.product-primary-cta');
+  const note = document.createElement('p');
+  note.className = 'product-cart-note';
+  note.hidden = true;
+  document.querySelector('.product-purchase-actions').after(note);
+  const showNote = (html, isError) => { note.innerHTML = html; note.className = `product-cart-note${isError ? ' is-error' : ''}`; note.hidden = !html; };
+
+  let quantity = 1;
+  let maxQuantity = 1;
+  const qtyValue = document.getElementById('qtyValue');
+  const paintQty = () => { qtyValue.value = quantity; qtyValue.textContent = quantity; };
+  document.getElementById('qtyMinus').addEventListener('click', () => { quantity = Math.max(1, quantity - 1); paintQty(); });
+  document.getElementById('qtyPlus').addEventListener('click', () => { quantity = Math.min(Math.max(1, maxQuantity), quantity + 1); paintQty(); });
+  document.getElementById('backToCollection').addEventListener('click', () => { location.href = S.collectionUrl(category, tier); });
+
+  function lock(label, sub) {
+    cta.disabled = true;
+    cta.setAttribute('aria-disabled', 'true');
+    cta.innerHTML = `${label}${sub ? ` <span>${sub}</span>` : ''}`;
+  }
+
+  function notFound(message) {
+    setText('productTitle', 'Not on the shelf');
+    setText('productPrice', '—');
+    setText('productCopy', message);
+    setText('crumbProduct', 'UNAVAILABLE');
+    lock('UNAVAILABLE');
+    document.querySelector('.related-products').hidden = true;
+    const link = document.getElementById('moreProductsLink');
+    showNote(`<a href="${S.collectionUrl(category, tier)}">Browse the rest of the collection →</a>`);
+    link.href = S.collectionUrl(category, tier);
+  }
+
+  function paintAvailability(product) {
+    const pill = document.querySelector('.product-availability');
+    const left = product.availableQuantity - S.inCart(product.id);
+    maxQuantity = Math.max(0, Math.min(10, left));
+    quantity = Math.min(quantity, Math.max(1, maxQuantity));
+    paintQty();
+    pill.classList.toggle('is-low', left > 0 && left <= 3);
+    pill.classList.toggle('is-out', left <= 0);
+    pill.innerHTML = `<i aria-hidden="true"></i> ${product.availableQuantity <= 3 ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}`;
+    if (left <= 0) lock('ALL IN YOUR BAG', 'NONE LEFT TO ADD');
+    else {
+      cta.disabled = false;
+      cta.removeAttribute('aria-disabled');
+      cta.removeAttribute('title');
+      if (!cta.classList.contains('is-added')) cta.innerHTML = `ADD TO CART <span>${S.price(product.price)}</span>`;
+    }
+  }
+
+  function paint(product, siblings) {
+    const place = S.classify(product);
+    category = place.category;
+    tier = place.tier;
+    const tierLabel = category === 'wellness' ? 'Wellness' : S.TIERS.find(t => t.slug === tier)?.label || product.productType;
+    const categoryName = category === 'prerolls' ? 'Prerolls' : category === 'wellness' ? 'Wellness' : category === 'more' ? product.productType : 'Flower';
+    const shelf = category === 'wellness' ? 'PRODUCTS' : tierLabel.toUpperCase();
+    const collection = S.collectionUrl(category, tier);
+    const image = S.imageFor(product);
+    const displayPrice = S.price(product.price);
+
+    document.title = `DLC — ${product.name}`;
+    setText('productTitle', product.name);
+    setText('tierPill', category === 'more' ? (product.grade || product.productType).toUpperCase() : shelf === 'PRODUCTS' ? 'WELLNESS' : shelf);
+    setText('productFormat', product.productType);
+    setText('productSize', product.grade || product.brand || 'DLC');
+    setText('productPrice', displayPrice);
+    setText('factCategory', product.productType);
+    setText('factTier', category === 'more' ? (product.grade || '—') : tierLabel);
+    setText('factPrice', displayPrice);
+    setText('crumbCategory', categoryName.toUpperCase());
+    document.getElementById('crumbCategory').href = collection;
+    setText('crumbTier', category === 'more' ? product.productType.toUpperCase() : shelf);
+    document.getElementById('crumbTier').href = collection;
+    setText('crumbProduct', product.name.toUpperCase());
+    setText('stageLabel', `DLC / ${category === 'more' ? product.productType.toUpperCase() : shelf}`);
+    setText('relatedTier', category === 'more' ? product.productType.toUpperCase() : shelf === 'PRODUCTS' ? 'WELLNESS' : shelf);
+    document.getElementById('moreProductsLink').href = collection;
+
+    const kind = category === 'prerolls' ? 'preroll' : category === 'flower' ? 'flower' : category === 'wellness' ? 'wellness product' : product.productType.toLowerCase();
+    const copy = product.description || `${product.name} — ${category === 'flower' || category === 'prerolls' ? `${tierLabel.toLowerCase()} ${kind}` : kind}${product.brand ? ` from ${product.brand}` : ''}, live from the DLC lounge shelf at ${displayPrice}.`;
+    setText('productCopy', copy);
+    setText('detailsCopy', product.description || `${product.name} is listed in CDASH as ${product.productType}${product.grade ? ` · ${product.grade}` : ''}. ${image && !product.imageUrl ? 'The image shown is DLC collection artwork, not a photograph of this exact product.' : ''}`.trim());
+    const availability = document.querySelectorAll('#productAccordions details p')[2];
+    if (availability) availability.textContent = 'Stock is live from the DLC lounge. Adding to your bag does not hold stock — it is confirmed when you send your exchange request, and the team confirms the final credits at hand-over.';
+
+    const art = image
+      ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" decoding="async">`
+      : `<div class="strain-pack placeholder" style="height:100%;display:grid;place-items:center;font-size:64px;font-weight:950;color:#1527ff">DLC</div>`;
+    document.getElementById('productVisual').innerHTML = art;
+    ['thumbArt1', 'thumbArt2', 'thumbArt3'].forEach(id => {
+      document.getElementById(id).innerHTML = image ? `<img src="${escapeHtml(image)}" alt="" width="180" height="180" loading="eager" decoding="async">` : '';
+    });
+
+    const position = siblings.findIndex(p => p.id === product.id);
+    setText('stageIndex', `${String(position + 1).padStart(2, '0')} / ${String(siblings.length).padStart(2, '0')}`);
+
+    const relatedGrid = document.getElementById('relatedGrid');
+    relatedGrid.innerHTML = '';
+    const related = [];
+    for (let step = 1; step < siblings.length && related.length < 4; step++) related.push(siblings[(position + step) % siblings.length]);
+    document.querySelector('.related-products').hidden = !related.length;
+    related.forEach((item, i) => {
+      const card = document.createElement('a');
+      card.className = 'related-card';
+      card.href = S.productUrl(item);
+      card.dataset.analytics = `related_product_${i + 1}_click`;
+      const itemImage = S.imageFor(item);
+      card.innerHTML = `
+        <div class="related-card-art">${itemImage ? `<img src="${escapeHtml(itemImage)}" alt="${escapeHtml(item.name)}" width="520" height="520" loading="lazy" decoding="async">` : '<span style="font-size:40px;font-weight:950;color:#1527ff">DLC</span>'}</div>
+        <div class="related-card-meta"><span>${escapeHtml(shelf)} / ${escapeHtml(item.productType.toUpperCase())}</span><h3>${escapeHtml(item.name)}</h3><strong>${S.price(item.price)}</strong><small>VIEW PRODUCT →</small></div>`;
+      relatedGrid.appendChild(card);
+    });
+
+    // The URL is the shareable address of this product from now on.
+    history.replaceState(null, '', S.productUrl(product));
+    paintAvailability(product);
+
+    cta.addEventListener('click', async () => {
+      if (cta.disabled) return;
+      lock('ADDING…');
+      showNote('');
+      try {
+        await S.addToCart(product.id, quantity);
+        cta.classList.add('is-added');
+        cta.innerHTML = 'ADDED TO BAG <span>✓</span>';
+        showNote(`${quantity} × ${escapeHtml(product.name)} is in your bag. <a href="/bag">Review your bag →</a>`);
+        setTimeout(() => { cta.classList.remove('is-added'); paintAvailability(product); }, 1600);
+        paintAvailability(product);
+      } catch (error) {
+        paintAvailability(product);
+        showNote(escapeHtml(error.message || 'Could not add to your bag'), true);
+      }
+    });
+  }
+
+  setText('productTitle', 'Loading…');
+  setText('productPrice', '—');
+  setText('productCopy', 'Fetching live details from the DLC lounge.');
+  lock('ADD TO CART', 'LOADING');
+
+  Promise.all([S.catalog(), S.cart().catch(() => [])]).then(([products]) => {
+    let product = requestedId ? products.find(p => p.id === requestedId) : null;
+    if (!product && requestedName) {
+      const wanted = nameKey(requestedName);
+      const pool = products.filter(p => S.classify(p).category === category);
+      product = pool.find(p => nameKey(p.name) === wanted) || pool.find(p => nameKey(p.name).startsWith(wanted) || wanted.startsWith(nameKey(p.name)));
+    }
+    if (!product) {
+      notFound('This product is out of stock or no longer listed. Stock changes through the day — browse the collection for what is on the shelf now.');
+      return;
+    }
+    const place = S.classify(product);
+    const siblings = products.filter(p => { const c = S.classify(p); return c.category === place.category && (place.category === 'wellness' || c.tier === place.tier); })
+      .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
+    paint(product, siblings);
+  }).catch(error => {
+    notFound(`${error.message}. Please refresh to try again.`);
+  });
+
+  document.querySelectorAll('.product-thumb').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.product-thumb').forEach(item => item.classList.toggle('is-active', item === button));
+      document.getElementById('productStage').dataset.view = button.dataset.view;
+    });
+  });
+
+  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('product-page-ready')));
+})();
+</script>
+<script defer src="common.js"></script>
+<script defer src="education.js"></script>
+</body>
+</html>

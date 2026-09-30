@@ -6,7 +6,7 @@ import { Reveal } from "@/components/reveal"
 import { MascotLoader } from "@/components/mascot-loader"
 import { applyFilters, Filters, NO_FILTERS, StoreFilters } from "@/components/store-filters"
 import { Pagination, usePagination } from "@/components/pagination"
-import { money } from "@/lib/format"
+import { credits } from "@/lib/format"
 import type { CatalogProduct, CartLine } from "@/lib/types"
 
 const artClasses = ["art-lime", "art-sand", "art-blue", "art-berry"]
@@ -89,10 +89,10 @@ export default function StorePage() {
   return <main className="shell store-page">
     <header className="topbar floating-nav">
       <Link className="brand-logo" href="/"><img src="/assets/dlc-logo-black.png" alt="DLC" /></Link>
-      <nav className="desktop-nav" aria-label="Store navigation"><a href="#shop">Shop</a><a href="#why-dlc">Why DLC</a><a href="#drops">Drops</a><Link href="/account">Account</Link></nav>
+      <nav className="desktop-nav" aria-label="Store navigation"><a href="#shop">Browse</a><a href="#why-dlc">Why DLC</a><a href="#drops">Drops</a><Link href="/account">Account</Link></nav>
       <div className="topbar-actions">
         <Link className="account-pill" href="/account" aria-label="Your account"><span aria-hidden="true">☺</span><b>Account</b></Link>
-        <Link className="cart-pill" href="/checkout"><span>Bag</span><b>{String(cartCount).padStart(2, "0")}</b></Link>
+        <Link className="cart-pill" href="/bag"><span>Bag</span><b>{String(cartCount).padStart(2, "0")}</b></Link>
       </div>
     </header>
 
@@ -130,7 +130,7 @@ export default function StorePage() {
           <div className={`product-art ${artClasses[index % artClasses.length]}`}><span>{product.productType}</span><div className="art-ring" /><div className="art-dot" />
             <button type="button" className={`save-button ${saved.has(product.id) ? "save-on" : ""}`} aria-pressed={saved.has(product.id)} aria-label={saved.has(product.id) ? `Remove ${product.name} from saved` : `Save ${product.name}`} onClick={() => toggleSaved(product)}>{saved.has(product.id) ? "♥" : "♡"}</button>
           </div>
-          <div className="product-details"><div><div className="product-kicker">{product.grade || product.brand || "DLC selection"}</div><h3>{product.name}</h3></div><div className="product-bottom"><span className="price">{money(product.price)}</span><button className="add-button" aria-label={`Add ${product.name}`} onClick={() => addToCart(product)}>+</button></div></div>
+          <div className="product-details"><div><div className="product-kicker">{product.grade || product.brand || "DLC selection"}</div><h3>{product.name}</h3></div><div className="product-bottom"><span className="price">{credits(product.price)}</span><button className="add-button" aria-label={`Add ${product.name}`} onClick={() => addToCart(product)}>+</button></div></div>
         </article></Reveal>)}
       </div>
       <Pagination
@@ -153,7 +153,7 @@ export default function StorePage() {
       <div className="content manifesto-grid"><Reveal><div className="manifesto-art"><div className="manifesto-circle"><span>✳</span></div><div className="manifesto-label">DLC<br /><small>community goods</small></div></div></Reveal><Reveal delay={100}><div className="manifesto-copy"><div className="eyebrow">Why it feels different</div><h2>Built around<br /><em>your ritual.</em></h2><p>From the first tap to fulfilment, the store moves with the same care as the lounge. No mystery stock. No stale menus. Just the right things, ready when you are.</p><div className="manifesto-points"><div><b>01</b><span>Live stock from CDASH</span></div><div><b>02</b><span>Member-only access</span></div><div><b>03</b><span>WhatsApp-ready updates</span></div></div></div></Reveal></div>
     </section>
 
-    <section className="content drops-section" id="drops"><Reveal className="section-heading"><div><div className="eyebrow dark-eyebrow">Stay in the loop</div><h2>New drops,<br />same good energy.</h2></div><p>Save the store link in WhatsApp<br />for quick access next time.</p></Reveal><Reveal delay={100}><div className="drop-banner"><div><span className="drop-number">03</span><div className="eyebrow">One shared flow</div><h3>Web, WhatsApp<br />& CDASH.</h3><p>One member profile. One live inventory. One order trail.</p></div><img src="/assets/dlc-mascot.png" alt="DLC mascot" /></div></Reveal></section>
+    <section className="content drops-section" id="drops"><Reveal className="section-heading"><div><div className="eyebrow dark-eyebrow">Stay in the loop</div><h2>New drops,<br />same good energy.</h2></div><p>Save the store link in WhatsApp<br />for quick access next time.</p></Reveal><Reveal delay={100}><div className="drop-banner"><div><span className="drop-number">03</span><div className="eyebrow">One shared flow</div><h3>Web, WhatsApp<br />& CDASH.</h3><p>One member profile. One live inventory. One exchange trail.</p></div><img src="/assets/dlc-mascot.png" alt="DLC mascot" /></div></Reveal></section>
 
     <footer className="footer footer-new"><img src="/assets/dlc-logo-black.png" alt="DLC" /><span>18+ · registered DLC members only</span><span>© DLC Online</span></footer>
   </main>

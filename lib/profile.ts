@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from "./supabase-admin"
 import { MEMBER_ID_COLUMN, ONLINE_REGISTRATION_SOURCE } from "./members-schema"
 import { lookupMember } from "./members"
 import type { MemberProfile, SavedAddress } from "./types"
+import { getFulfillmentStoreId } from "./store-settings"
 
 type AddressRow = {
   id: string
@@ -84,7 +85,7 @@ export async function logProfileUpdate(memberRowId: string, memberId: string, ch
     user_id: null,
     user_name: ONLINE_REGISTRATION_SOURCE,
     user_role: null,
-    store_id: process.env.DEFAULT_STORE_ID || null,
+    store_id: await getFulfillmentStoreId(),
     details: { memberId, changedBy: "member", source: "online_store", changed },
   })
   // The edit stands even if its log line does not.

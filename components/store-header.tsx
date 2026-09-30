@@ -1,0 +1,65 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
+/**
+ * The storefront's white header, for the React pages.
+ *
+ * Links are plain anchors on purpose: the lounge and collections are static
+ * pages in public/, not Next routes, so they need a full navigation.
+ * `bagCount` lets a page that already holds the bag (checkout) keep the pill
+ * live as lines change; without it the header reads the saved bag itself.
+ */
+export function StoreHeader({ bagCount, current }: { bagCount?: number; current?: "account" | "bag" }) {
+  const [fetched, setFetched] = useState<number | null>(null)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (bagCount !== undefined) return
+    fetch("/api/cart")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => data && setFetched((data.lines as Array<{ quantity: number }>).reduce((sum, line) => sum + line.quantity, 0)))
+      .catch(() => {})
+  }, [bagCount])
+
+  useEffect(() => {
+    if (!open) return
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false) }
+    document.addEventListener("keydown", close)
+    return () => document.removeEventListener("keydown", close)
+  }, [open])
+
+  const count = bagCount ?? fetched ?? 0
+  const links = <>
+    <a href="/index.html#experience">LOUNGE</a>
+    <a href="/strains.html?category=flower">FLOWER</a>
+    <a href="/strains.html?category=prerolls">PREROLLS</a>
+    <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>
+    <a href="/strains.html?category=more">MORE</a>
+    <a href="/account" aria-current={current === "account" ? "page" : undefined}>ACCOUNT</a>
+  </>
+
+  return <>
+    <a className="sf-skip" href="#main-content">Skip to main content</a>
+    <header className="sf-nav">
+      <a className="sf-brand" href="/index.html?home=1" aria-label="Down Low Cannabis home">
+        <img src="/assets/dlc-logo.svg" alt="Down Low Cannabis logo" width={52} height={52} />
+      </a>
+      <nav className="sf-nav-links" aria-label="Primary navigation">{links}</nav>
+      <div className="sf-nav-actions">
+        <a className={`sf-bag ${current === "bag" ? "is-current" : ""}`} href="/bag" aria-label={`Your bag, ${count} ${count === 1 ? "item" : "items"}`}>BAG <b>{String(count).padStart(2, "0")}</b></a>
+        <span className="sf-pill sf-age">18+</span>
+        <button type="button" className="sf-pill sf-menu" aria-expanded={open} aria-controls="sfMobileNav" onClick={() => setOpen(!open)}>{open ? "CLOSE" : "MENU"}</button>
+      </div>
+    </header>
+    <nav id="sfMobileNav" className="sf-mobile-nav" hidden={!open} aria-label="Mobile navigation" onClick={() => setOpen(false)}>{links}</nav>
+  </>
+}
+
+export function StoreFooter() {
+  return <footer className="sf-footer">
+    <div className="sf-footer-brand"><img src="/assets/dlc-logo.svg" alt="" width={52} height={52} /><span>DOWN LOW CANNABIS</span></div>
+    <nav aria-label="Legal"><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="/cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+    <p>18+ · Halfway House, Midrand</p>
+  </footer>
+}

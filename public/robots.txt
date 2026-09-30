@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /product.html
+Disallow: /strains.html
+
+Sitemap: https://dlconlinestore-8qpm.vercel.app/sitemap.xml

@@ -12,6 +12,8 @@ import {
   ONLINE_REGISTRATION_SOURCE,
   ONLINE_REGISTRATION_STATUS,
 } from "@/lib/members-schema"
+import { getFulfillmentStoreId } from "@/lib/store-settings"
+import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptance, staleTermsMessage } from "@/lib/acceptance"
 
 const input = z.object({
   fullName: z.string().trim().min(2).max(120),
@@ -25,6 +27,7 @@ const input = z.object({
   // Consent is recorded as an explicit true/false, never left NULL — CDASH
   // reads NULL as "never asked" and re-prompts at the exchange counter.
   marketingOptIn: z.boolean().optional().default(false),
+  ...acceptanceInput,
 }).refine((value) => value.idNumber.length > 0 || value.foreignPassport.length > 0, {
   message: "An ID number or passport number is required",
   path: ["idNumber"],
@@ -46,6 +49,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Please check the details you entered" }, { status: 400 })
     }
     const body = parsed.data
+    const stale = staleTermsMessage(body.termsVersion)
+    if (stale) return NextResponse.json({ error: stale, termsOutdated: true }, { status: 409 })
 
     // Server-side age check — the client date picker is a convenience, not a control.
     const age = ageInYears(body.dateOfBirth)
@@ -111,6 +116,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Evidence before the member exists: if the acceptance cannot be written,
+    // no membership record is created. member_id is linked once CDASH issues it.
+    const acceptanceId = await recordAcceptance(request, { context: "registration", memberId: null })
+
+    // New members belong to whichever store fulfils online orders, so a
+    // storefront registration lands with the team who will actually serve them.
+    const onlineStoreId = await getFulfillmentStoreId()
+
     // member_id is deliberately omitted: the CDASH trigger generates it as
     // DLC-<last 4 of mobile>-<random 01-99> and guarantees uniqueness. Reading
     // it back is what tells the customer their real Member ID.
@@ -127,7 +140,7 @@ export async function POST(request: NextRequest) {
         digital_signature: body.digitalSignature,
         signature_date: signatureDate,
         registered_by: ONLINE_REGISTRATION_SOURCE,
-        store_id: process.env.DEFAULT_STORE_ID || null,
+        store_id: onlineStoreId,
         status: ONLINE_REGISTRATION_STATUS,
         marketing_opt_in: body.marketingOptIn,
         marketing_opt_in_at: new Date().toISOString(),
@@ -139,6 +152,7 @@ export async function POST(request: NextRequest) {
 
     const row = created as unknown as Record<string, string | null>
     const memberNumber = row[MEMBER_ID_COLUMN] ?? ""
+    await linkAcceptance(acceptanceId, { memberId: memberNumber || undefined })
 
     // CDASH logs every member.create to audit_logs; storefront registrations
     // write the same row so they appear in the CDASH audit trail rather than
@@ -150,7 +164,7 @@ export async function POST(request: NextRequest) {
       user_id: null,
       user_name: ONLINE_REGISTRATION_SOURCE,
       user_role: null,
-      store_id: process.env.DEFAULT_STORE_ID || null,
+      store_id: onlineStoreId,
       details: {
         memberId: memberNumber,
         fullName: body.fullName,
@@ -182,6 +196,9 @@ export async function POST(request: NextRequest) {
     }
     return response
   } catch (error) {
+    if (error instanceof AcceptanceNotRecorded) {
+      return NextResponse.json({ error: "We could not record your acceptance of the terms, so your application was not submitted. Please try again shortly." }, { status: 503 })
+    }
     console.error("Member registration error", error)
     return NextResponse.json({ error: "Registration is unavailable right now. Please try again shortly." }, { status: 500 })
   }

@@ -1,0 +1,12 @@
+{
+  "name": "Down Low Cannabis",
+  "short_name": "DLC",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05060a",
+  "theme_color": "#0717ff",
+  "icons": [
+    {"src":"/assets/icons/icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"/assets/icons/icon-512.png","sizes":"512x512","type":"image/png"}
+  ]
+}

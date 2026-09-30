@@ -58,3 +58,32 @@ export type OrderSummary = {
   createdAt: string
   itemCount: number
 }
+
+/**
+ * The checkout total as CDASH computed it.
+ *
+ * Both channels come back because §7 rule 2 gives ONE membership discount and it
+ * matches how the member pays — online, that is only known at the door. Where
+ * only one figure fits, show the card one: it is the smaller discount at every
+ * tier, so it can never under-quote.
+ */
+export type CheckoutQuoteChannel = {
+  channel: "card" | "cash"
+  goodsTotal: number
+  deliveryFee: number
+  amountDue: number
+  memberDiscountPercent: number
+  memberDiscountAmount: number
+  creditsApplied: number
+  pointsEarned: number
+}
+
+export type CheckoutQuote = {
+  tier: { key: string; name: string } | null
+  gross: number
+  credits: { balance: number; maxOnThisBasket: number; basketCapPercent: number }
+  card: CheckoutQuoteChannel
+  cash: CheckoutQuoteChannel
+  /** Always false — prices come from our catalogue, so a quote is a preview. */
+  authoritative: boolean
+}

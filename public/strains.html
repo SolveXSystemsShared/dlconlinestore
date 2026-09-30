@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<script>
+(() => {
+  try {
+    const raw = sessionStorage.getItem('dlcTransitionIn');
+    const state = raw ? JSON.parse(raw) : null;
+    if (!state || !state.href || Date.now() - state.at > 4000) return;
+    const target = new URL(state.href, location.href);
+    if (target.pathname === location.pathname && target.search === location.search) {
+      document.documentElement.classList.add('dlc-arriving');
+    }
+  } catch(e) {}
+})();
+</script>
+<meta name="theme-color" content="#ffffff"/>
+<title>DLC Strain Collection</title>
+<link rel="stylesheet" href="styles.css"/>
+<script src="cookies.js"></script>
+<script src="age-gate.js"></script>
+<script src="store.js"></script>
+<meta name="description" content="Browse Down Low Cannabis strain collections by category and cultivation tier."/>
+<link rel="canonical" href="https://dlconlinestore-8qpm.vercel.app/strains.html"/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="icon" href="assets/dlc-logo.svg" type="image/svg+xml"/>
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png"/>
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+<meta property="og:type" content="website"/>
+<meta property="og:image" content="https://dlconlinestore-8qpm.vercel.app/assets/social/og-dlc.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://dlconlinestore-8qpm.vercel.app/assets/social/og-dlc.jpg"/>
+<meta property="og:title" content="DLC Strain Collection"/>
+<meta property="og:description" content="Browse DLC strain collections."/>
+<meta property="og:url" content="https://dlconlinestore-8qpm.vercel.app/strains.html"/>
+<meta name="twitter:title" content="DLC Strain Collection"/>
+<meta name="twitter:description" content="Browse DLC strain collections."/>
+<style>
+  body.strains-page{
+    --collection-blue:#1527ff;
+    --collection-ink:#11131a;
+    --collection-muted:#6e737d;
+    --collection-line:#dfe2e8;
+    --collection-soft:#f4f6f2;
+    background:#fff;
+    color:var(--collection-ink);
+    min-height:100vh;
+    overscroll-behavior-y:auto;
+  }
+  body.strains-page .nav{
+    background:rgba(255,255,255,.94);
+    border-bottom:1px solid rgba(17,19,26,.1);
+    color:var(--collection-ink);
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+  }
+  body.strains-page .nav-links a{color:var(--collection-ink);opacity:.66}
+  body.strains-page .nav-links a:hover{opacity:1}
+  body.strains-page .age-pill,
+  body.strains-page .menu-btn{border-color:rgba(17,19,26,.22);background:#fff;color:var(--collection-ink)}
+  body.strains-page .mobile-nav{background:rgba(255,255,255,.98);border-bottom-color:rgba(17,19,26,.12);color:var(--collection-ink)}
+  body.strains-page .mobile-nav a{background:#f5f6f8;color:var(--collection-ink)}
+  body.strains-page .skip-link{background:var(--collection-blue);color:#fff}
+
+  .strains-shell{padding-top:84px;background:#fff;overflow:hidden}
+  .strains-breadcrumbs{
+    width:min(1380px,calc(100% - clamp(36px,8vw,120px)));
+    margin:0 auto;
+    min-height:70px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border-bottom:1px solid var(--collection-line);
+    color:#777c87;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:1.25px;
+    text-transform:uppercase;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .strains-breadcrumbs a{transition:color .18s ease;white-space:nowrap}
+  .strains-breadcrumbs a:hover{color:var(--collection-blue)}
+  .strains-breadcrumbs strong,.strains-breadcrumbs span.current{color:var(--collection-ink);font-weight:900;white-space:nowrap}
+  .strains-breadcrumbs .sep{opacity:.45}
+
+  .strains-hero{
+    width:min(1380px,calc(100% - clamp(36px,8vw,120px)));
+    margin:0 auto;
+    padding:44px 0 38px;
+    display:grid;
+    grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);
+    gap:clamp(34px,7vw,96px);
+    align-items:end;
+  }
+  .hero-overline{font-size:8px;font-weight:950;letter-spacing:1.5px;color:#7c818a;text-transform:uppercase;margin:0 0 12px}
+  .back-link{
+    display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;margin-bottom:28px;
+    border:1px solid var(--collection-line);border-radius:999px;background:#fff;color:var(--collection-ink);
+    text-decoration:none;font-size:9px;font-weight:950;letter-spacing:1.1px;transition:border-color .18s ease,transform .18s ease,color .18s ease;
+  }
+  .back-link:hover{transform:translateY(-2px);border-color:#b9bec8;color:var(--collection-blue)}
+  .strains-kicker{font-size:8px;letter-spacing:1.5px;font-weight:950;color:#7c818a;text-transform:uppercase;margin-bottom:12px}
+  .strains-title{font-size:clamp(48px,6vw,96px);line-height:.88;letter-spacing:-.06em;margin:0;text-transform:uppercase;color:var(--collection-ink);overflow-wrap:normal;word-break:normal;hyphens:none}
+  .strains-title .title-line{display:block;max-width:100%;text-wrap:balance;overflow-wrap:normal;word-break:normal;hyphens:none}
+  .strains-sub{max-width:680px;font-size:14px;line-height:1.72;color:#636872;margin:22px 0 0}
+
+  .strains-intro-card{
+    border:1px solid var(--collection-line);
+    background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);
+    padding:24px 24px 22px;
+    display:grid;gap:22px;align-self:start;
+  }
+  .intro-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .intro-stat{padding:16px;border:1px solid var(--collection-line);background:var(--collection-soft)}
+  .intro-stat span{display:block;font-size:8px;font-weight:950;letter-spacing:1.35px;color:#7d828a;margin-bottom:8px}
+  .intro-stat strong{display:block;font-size:25px;line-height:.95;letter-spacing:-.04em;color:var(--collection-ink);overflow-wrap:normal;word-break:keep-all;hyphens:none;white-space:normal;max-width:100%}
+  .intro-copy{margin:0;color:#676c76;font-size:12px;line-height:1.7}
+  .intro-actions{display:flex;flex-wrap:wrap;gap:10px}
+  .intro-actions a{
+    display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;
+    border:1px solid var(--collection-blue);font-size:9px;font-weight:950;letter-spacing:1.2px;text-transform:uppercase;transition:transform .18s ease,background .18s ease,color .18s ease;
+  }
+  .intro-actions a.primary{background:var(--collection-blue);color:#fff}
+  .intro-actions a.secondary{background:#fff;color:var(--collection-blue)}
+  .intro-actions a:hover{transform:translateY(-2px)}
+
+  .shop-jump-wrap{width:min(1380px,calc(100% - clamp(36px,8vw,120px)));margin:0 auto 30px}
+  .shop-jump{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:3px}
+  .shop-jump a{
+    flex:0 0 auto;color:var(--collection-ink);text-decoration:none;border:1px solid var(--collection-line);border-radius:999px;
+    padding:11px 14px;font-size:9px;font-weight:950;letter-spacing:1.1px;background:#fff;transition:border-color .18s ease,transform .18s ease,color .18s ease;
+  }
+  .shop-jump a:hover{transform:translateY(-2px);border-color:#b8bdc7;color:var(--collection-blue)}
+  .shop-jump a.active{background:var(--collection-blue);border-color:var(--collection-blue);color:#fff}
+
+  .strains-grid-shell{width:min(1380px,calc(100% - clamp(36px,8vw,120px)));margin:0 auto;padding:6px 0 84px}
+  .strain-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .strain-card{
+    border:1px solid var(--collection-line);background:#fff;display:flex;flex-direction:column;min-width:0;cursor:pointer;
+    transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+  }
+  .strain-card:hover{transform:translateY(-5px);border-color:#bdc1ca;box-shadow:0 18px 35px rgba(17,19,26,.07)}
+  .strain-pack{height:340px;background:#f2f5ef;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;position:relative}
+  .strain-pack::after{
+    content:"";position:absolute;left:18%;right:18%;bottom:7%;height:8%;border-radius:50%;
+    background:rgba(42,52,65,.12);filter:blur(18px);transform:scaleX(.8);pointer-events:none;
+  }
+  .strain-pack img{
+    display:block;
+    width:auto;
+    height:auto;
+    max-width:72%;
+    max-height:72%;
+    margin:auto;
+    object-fit:contain;
+    object-position:center center;
+    filter:drop-shadow(0 18px 22px rgba(21,31,45,.13));
+    transition:transform .25s ease;
+  }
+  .strain-pack.flower-pack{background:#f7f8f5;padding:34px}
+  .strain-pack.flower-pack img{
+    width:auto;
+    height:auto;
+    max-width:min(72%,280px);
+    max-height:min(72%,220px);
+    margin:auto;
+    object-fit:contain;
+    object-position:center center;
+    filter:drop-shadow(0 16px 20px rgba(21,31,45,.10));
+  }
+  .strain-pack.preroll-pack img{
+    width:auto;
+    height:auto;
+    max-width:min(68%,220px);
+    max-height:min(84%,286px);
+    margin:auto;
+    object-fit:contain;
+    object-position:center center;
+    filter:drop-shadow(0 18px 20px rgba(21,31,45,.12));
+  }
+  .strain-card:hover .strain-pack img{transform:scale(1.035)}
+  .strain-pack.placeholder{
+    background:radial-gradient(circle at 50% 26%,rgba(255,255,255,.96),rgba(245,247,242,.92) 42%,rgba(238,241,236,.97) 100%);
+    color:var(--collection-blue);font-size:52px;font-weight:950;letter-spacing:-.06em;
+  }
+  .strain-meta{padding:18px 18px 20px;display:grid;grid-template-columns:1fr auto;column-gap:16px;align-items:end}
+  .strain-number{grid-column:1/-1;font-size:7px;font-weight:950;letter-spacing:1.18px;color:#858a92;margin-bottom:8px;text-transform:uppercase}
+  .strain-card h2{font-size:18px;line-height:1.02;letter-spacing:-.03em;margin:0;text-transform:uppercase;min-width:0;color:var(--collection-ink)}
+  .strain-price{font-size:14px;font-weight:950;white-space:nowrap;color:var(--collection-ink)}
+  .strain-card p{grid-column:1/-1;font-size:12px;line-height:1.68;color:#69707a;margin:12px 0 0}
+  .strain-card .strain-action{grid-column:1/-1;display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:8px;font-weight:950;letter-spacing:1.2px;color:var(--collection-blue);text-transform:uppercase}
+
+  .placeholder-note{width:min(1380px,calc(100% - clamp(36px,8vw,120px)));margin:0 auto 78px;color:#7b8089;font-size:9px;font-weight:900;letter-spacing:1.15px;text-transform:uppercase}
+  .collection-band{
+    width:min(1380px,calc(100% - clamp(36px,8vw,120px)));margin:0 auto 88px;padding:34px clamp(20px,5vw,42px);
+    background:var(--collection-blue);color:#fff;display:grid;grid-template-columns:minmax(0,.95fr) minmax(280px,.85fr);gap:36px;align-items:end;
+  }
+  .collection-band span{display:block;font-size:8px;font-weight:950;letter-spacing:1.45px;opacity:.72;margin-bottom:12px;text-transform:uppercase}
+  .collection-band h2{font-size:clamp(34px,5vw,64px);line-height:.9;letter-spacing:-.055em;margin:0;text-transform:uppercase}
+  .collection-band p{margin:0;color:rgba(255,255,255,.84);font-size:13px;line-height:1.72;max-width:460px}
+  .collection-band__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .collection-band__actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.36);font-size:9px;font-weight:950;letter-spacing:1.2px;color:#fff;text-transform:uppercase;transition:transform .18s ease,background .18s ease}
+  .collection-band__actions a:hover{transform:translateY(-2px);background:rgba(255,255,255,.08)}
+
+  body.strains-page .site-footer{background:#f7f8f4;color:var(--collection-ink);border-top:1px solid var(--collection-line)}
+  body.strains-page .site-footer a{color:var(--collection-ink)}
+
+  @media(max-width:1024px){
+    .strains-hero{grid-template-columns:1fr}
+    .strain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .strains-title{font-size:clamp(3rem,8.6vw,5.5rem)}
+    .strain-pack{height:300px}
+    .strain-pack.flower-pack{padding:28px}
+    .strain-pack.flower-pack img{max-width:min(70%,250px);max-height:min(70%,200px)}
+    .strain-pack.preroll-pack img{max-width:min(66%,210px);max-height:min(82%,250px)}
+    .collection-band{grid-template-columns:1fr}
+  }
+  @media(max-width:640px){
+    .strains-shell{padding-top:72px}
+    .strains-title{font-size:clamp(2.7rem,12.2vw,4rem);line-height:.9;letter-spacing:-.055em}
+    .strains-breadcrumbs,.strains-hero,.shop-jump-wrap,.strains-grid-shell,.placeholder-note,.collection-band{width:calc(100% - 32px)}
+    .back-link{margin-bottom:22px}
+    .strains-hero{padding-top:34px;padding-bottom:26px}
+    .strain-grid{grid-template-columns:minmax(0,1fr)}
+    .strain-pack{height:clamp(15rem,70vw,20rem)}
+    .strain-pack.flower-pack{padding:24px}
+    .strain-pack.flower-pack img{max-width:min(68%,230px);max-height:min(68%,180px)}
+    .strain-pack.preroll-pack img{max-width:min(64%,190px);max-height:min(80%,232px)}
+    .intro-stat-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+<style id="responsive-hardening">
+  @media(max-width:1024px){
+    .strains-shell{padding-top:clamp(4rem,7vw,4.5rem)}
+    .strains-breadcrumbs,.strains-hero,.shop-jump-wrap,.strains-grid-shell,.placeholder-note,.collection-band{width:min(100% - 2rem,1380px)}
+    .strains-hero{grid-template-columns:minmax(0,1fr);gap:2rem}
+    .strain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .strains-title{font-size:clamp(3rem,8.5vw,5.5rem)}
+    .collection-band{grid-template-columns:minmax(0,1fr)}
+    .intro-actions a,.collection-band__actions a,.shop-jump a,.back-link{min-height:44px}
+  }
+  @media(max-width:768px){
+    .strains-shell{padding-top:4rem}
+    .strains-breadcrumbs,.strains-hero,.shop-jump-wrap,.strains-grid-shell,.placeholder-note,.collection-band{width:calc(100% - 2rem)}
+    .strains-breadcrumbs{min-height:52px}
+    .strains-hero{padding:2rem 0 1.5rem}
+    .strains-title{font-size:clamp(2.8rem,12vw,4.5rem);line-height:.88}
+    .strains-sub{font-size:clamp(.875rem,3.6vw,1rem)}
+    .strains-intro-card{padding:1.1rem;gap:1rem}
+    .intro-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .intro-stat{padding:.85rem}
+    .intro-stat strong{font-size:clamp(1rem,4.2vw,1.4rem);line-height:1.05;letter-spacing:-.025em;overflow-wrap:normal!important;word-break:keep-all!important;hyphens:none!important;white-space:normal!important;text-wrap:balance}
+    .shop-jump{max-width:100%;padding-bottom:.25rem}
+    .shop-jump a{padding:.65rem .8rem}
+    .strain-grid{grid-template-columns:minmax(0,1fr);gap:.75rem}
+    .strain-pack{height:clamp(15rem,68vw,20rem)}
+    .strain-meta{padding:1rem;grid-template-columns:minmax(0,1fr) auto}
+    .strain-card h2{font-size:clamp(1rem,5vw,1.2rem)}
+    .strain-card p{font-size:.875rem}
+    .collection-band{padding:1.5rem 1.15rem;margin-bottom:3.5rem}
+    .collection-band h2{font-size:clamp(2.25rem,10vw,3.8rem)}
+  }
+  @media(max-width:480px){
+    .strains-breadcrumbs,.strains-hero,.shop-jump-wrap,.strains-grid-shell,.placeholder-note,.collection-band{width:calc(100% - 1.5rem)}
+    .strains-title{font-size:clamp(2.45rem,13vw,3.7rem)}
+    .intro-stat-grid{grid-template-columns:minmax(0,1fr)!important}
+    .intro-actions,.collection-band__actions{display:grid;grid-template-columns:minmax(0,1fr)}
+    .intro-actions a,.collection-band__actions a{width:100%}
+    .strain-pack{height:clamp(14rem,72vw,18rem);padding:1rem}
+    .strain-pack.flower-pack{padding:1rem}
+    .strain-meta{grid-template-columns:minmax(0,1fr)}
+    .strain-price{margin-top:.5rem}
+    .placeholder-note{font-size:.48rem;line-height:1.55}
+  }
+</style>
+
+</head>
+<body class="strains-page">
+<div aria-hidden="true" class="product-page-transition"></div>
+<div aria-hidden="true" class="dlc-arrival-transition"><div class="dlc-arrival-transition__white"></div><div class="dlc-arrival-transition__clouds"></div></div>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="nav">
+  <a class="brand" href="index.html?home=1" aria-label="Down Low Cannabis home">
+    <img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/>
+  </a>
+  <nav class="nav-links" aria-label="Primary navigation">
+    <a href="index.html#experience" data-analytics="lounge_nav_click">LOUNGE</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+  </nav>
+  <div class="nav-actions"><a class="nav-bag-pill" href="/bag" aria-label="Your bag">BAG <b data-bag-count>00</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
+</header>
+<main class="strains-shell" id="main-content">
+  <nav class="strains-breadcrumbs breadcrumbs" aria-label="Breadcrumb">
+    <a href="strains.html?category=flower" id="crumbCategory">FLOWER</a><span class="sep">/</span><span class="current" id="crumbTier">OUTDOOR</span>
+  </nav>
+
+  <section class="strains-hero strains-top">
+    <div>
+      <a class="back-link" href="index.html#experience" id="backLink">← BACK TO LOUNGE</a>
+      <div class="strains-kicker" id="categoryLabel">FLOWER / OUTDOOR</div>
+      <h1 class="strains-title" id="pageTitle"><span class="title-line">OUTDOOR</span><span class="title-line">STRAINS</span></h1>
+      <p class="strains-sub" id="pageDescription">Explore the available strains in this DLC category. Live stock from the DLC lounge.</p>
+    </div>
+    <aside class="strains-intro-card" aria-label="Collection overview">
+      <p class="hero-overline">COLLECTION OVERVIEW</p>
+      <div class="intro-stat-grid">
+        <div class="intro-stat"><span>CATEGORY</span><strong id="overviewCategory">FLOWER</strong></div>
+        <div class="intro-stat"><span>TIER</span><strong id="overviewTier">OUTDOOR</strong></div>
+        <div class="intro-stat"><span>PRODUCTS</span><strong id="overviewCount">06</strong></div>
+        <div class="intro-stat"><span>CREDITS</span><strong id="overviewPrice">SEE MENU</strong></div>
+      </div>
+      <p class="intro-copy" id="introCopy">Select a strain to open the full DLC product page with imagery, credits and product details.</p>
+      <div class="intro-actions">
+        <a class="primary" href="strains.html?category=flower">FLOWER COLLECTION</a>
+        <a class="secondary" href="index.html#experience">RETURN TO LOUNGE</a>
+      </div>
+    </aside>
+  </section>
+
+  <div class="shop-jump-wrap">
+    <nav class="shop-jump" aria-label="Product collections"><a data-shop="flower" href="strains.html?category=flower">FLOWER</a><a data-shop="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-shop="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-shop="more" href="strains.html?category=more">MORE</a></nav>
+    <button class="learn-inline" type="button" data-open-education="tiers">WHAT DO THESE TIERS MEAN? <span>?</span></button>
+    <div class="guidance-hint" id="collectionGuidanceHint" hidden></div>
+  </div>
+
+  <section class="strains-grid-shell">
+    <section class="strain-grid" id="strainGrid" aria-label="Available strains"></section>
+  </section>
+  <p class="placeholder-note">LIVE FROM THE DLC LOUNGE.</p>
+
+  <section class="collection-band" aria-label="Collection continuation">
+    <div>
+      <span>DOWN LOW CANNABIS</span>
+      <h2 id="bandTitle">MORE FROM<br/>OUTDOOR</h2>
+    </div>
+    <div>
+      <p id="bandCopy">Browse another DLC collection, or open any strain above to view the full product-detail page.</p>
+      <div class="collection-band__actions">
+        <a href="strains.html?category=prerolls">EXPLORE PREROLLS</a>
+        <a href="strains.html" id="featuredProductLink">OPEN FIRST PRODUCT</a>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="site-footer__brand"><img alt="" decoding="async" height="52" loading="lazy" src="assets/dlc-logo.svg" width="52"/><span>DOWN LOW CANNABIS</span></div>
+  <nav aria-label="Legal"><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <p>18+ · Halfway House, Midrand</p>
+</footer>
+<script>
+(() => {
+  const S = window.DLCStore;
+  const params = new URLSearchParams(location.search);
+  const category = ['flower', 'prerolls', 'wellness', 'more'].includes(params.get('category')) ? params.get('category') : 'flower';
+  // No tier in the URL means "wherever there is stock" — resolved once the catalogue loads.
+  let tier = category === 'wellness' ? 'wellness' : (params.get('tier') || '');
+  const titleCase = value => value.replaceAll('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const categoryName = category === 'prerolls' ? 'Prerolls' : category === 'wellness' ? 'Wellness' : category === 'more' ? 'More' : 'Flower';
+  let tierName = S.TIERS.find(t => t.slug === tier)?.label || titleCase(tier || 'products');
+  // Flower and prerolls keep their cultivation tier when switching between them.
+  const sharedTier = S.TIERS.some(t => t.slug === tier) ? tier : '';
+
+  const COLLECTION_STATE_KEY = 'dlcCollectionState';
+  const COLLECTION_SCROLL_KEY = 'dlcCollectionCrossScroll';
+  const saveCrossCategoryScroll = () => {
+    sessionStorage.setItem(COLLECTION_SCROLL_KEY, JSON.stringify({ scrollY: window.scrollY, savedAt: Date.now(), fromCategory: category, fromTier: tier }));
+  };
+  const restoreCrossCategoryScroll = () => {
+    try {
+      const raw = sessionStorage.getItem(COLLECTION_SCROLL_KEY);
+      const state = raw ? JSON.parse(raw) : null;
+      if (!state || !Number.isFinite(state.scrollY) || Date.now() - state.savedAt > 15000) return;
+      sessionStorage.removeItem(COLLECTION_SCROLL_KEY);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        window.scrollTo(0, Math.min(state.scrollY, maxScroll));
+      }));
+    } catch (e) {}
+  };
+  window.addEventListener('pageshow', () => {
+    document.documentElement.classList.remove('product-leaving');
+    document.querySelectorAll('.strain-card.is-product-source').forEach(card => card.classList.remove('is-product-source'));
+  });
+
+  document.getElementById('backLink').addEventListener('click', () => {
+    sessionStorage.setItem('dlcLoungeState', JSON.stringify({ category: category === 'more' ? 'flower' : category, scrollY: 0, savedAt: Date.now() }));
+    sessionStorage.setItem('dlcReturnToLounge', '1');
+  });
+
+  const collectionHref = (dest) => dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest, sharedTier);
+  document.querySelectorAll('[data-shop]').forEach(link => {
+    const destination = link.dataset.shop;
+    const active = destination === category;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+    link.dataset.analytics = `collection_${destination}_jump_click`;
+    link.href = collectionHref(destination);
+    if (!active) link.addEventListener('click', saveCrossCategoryScroll);
+  });
+  restoreCrossCategoryScroll();
+  document.querySelectorAll('[data-global-collection]').forEach(link => {
+    const destination = link.dataset.globalCollection;
+    link.href = collectionHref(destination);
+    if (destination !== category) link.addEventListener('click', saveCrossCategoryScroll);
+  });
+
+  const grid = document.getElementById('strainGrid');
+  const note = document.querySelector('.placeholder-note');
+  const setText = (id, text) => { document.getElementById(id).textContent = text; };
+
+  function paintHeader(count, fromPrice) {
+    const shelf = category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
+    setText('crumbCategory', categoryName.toUpperCase());
+    document.getElementById('crumbCategory').href = collectionHref(category);
+    setText('crumbTier', shelf);
+    setText('overviewCategory', categoryName.toUpperCase());
+    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase());
+    setText('overviewCount', count == null ? '—' : String(count).padStart(2, '0'));
+    setText('overviewPrice', fromPrice == null ? '—' : `FROM ${S.price(fromPrice)}`);
+    setText('categoryLabel', `${categoryName.toUpperCase()} / ${shelf}`);
+    document.getElementById('bandTitle').innerHTML = `MORE FROM<br/>${escapeHtml(category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase())}`;
+
+    const titleWord = category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase();
+    const titleTail = category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
+    document.getElementById('pageTitle').innerHTML = `<span class="title-line">${escapeHtml(titleWord)}</span><span class="title-line">${titleTail}</span>`;
+    document.title = `DLC — ${category === 'wellness' ? 'Wellness Products' : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()}`;
+
+    const intro = document.querySelector('.intro-actions .primary');
+    if (category === 'wellness') {
+      setText('pageDescription', 'The DLC wellness range, live from the lounge shelf. Select a product for its format, measured serving and current credits.');
+      setText('bandCopy', 'Browse the complete DLC wellness range or open any product above to view its full product-detail page.');
+      intro.textContent = 'WELLNESS COLLECTION';
+    } else if (category === 'more') {
+      setText('pageDescription', `Everything else on the DLC shelf. You are browsing ${tierName.toLowerCase()} — switch shelves below.`);
+      setText('bandCopy', 'Prefer a single list you can filter and search? Open the full menu.');
+      intro.textContent = 'FULL MENU';
+      intro.href = '/menu';
+    } else {
+      setText('pageDescription', `The ${tierName} ${categoryName.toLowerCase()} on the DLC shelf right now. Select a ${category === 'prerolls' ? 'preroll' : 'strain'} to view its full product information.`);
+      setText('bandCopy', `Browse more ${tierName.toLowerCase()} ${categoryName.toLowerCase()} options, or open any strain above to view the full product-detail page.`);
+      intro.textContent = `${categoryName.toUpperCase()} COLLECTION`;
+    }
+    if (category !== 'more') intro.href = collectionHref(category);
+    setText('introCopy', 'Credits and stock are live from the DLC lounge. Add to your bag from any product page; your bag is saved to your Member ID.');
+  }
+
+  /** Tier chips for flower/prerolls, product-type chips for "more". */
+  function paintShelves(shelves) {
+    let row = document.getElementById('tierJump');
+    if (!row) {
+      row = document.createElement('nav');
+      row.id = 'tierJump';
+      row.className = 'tier-jump';
+      row.setAttribute('aria-label', category === 'more' ? 'Product types' : 'Cultivation tiers');
+      document.querySelector('.shop-jump').after(row);
+    }
+    row.innerHTML = shelves.map(shelf => `<a class="${shelf.slug === tier ? 'active' : ''} ${shelf.count ? '' : 'is-empty'}" href="${S.collectionUrl(category, shelf.slug)}"${shelf.slug === tier ? ' aria-current="page"' : ''}>${escapeHtml(shelf.label.toUpperCase())} <small>${shelf.count}</small></a>`).join('');
+  }
+
+  function paintState(title, detail, isError) {
+    grid.innerHTML = `<div class="store-state${isError ? ' is-error' : ''}"><strong>${escapeHtml(title)}</strong>${detail}</div>`;
+  }
+
+  function describe(product) {
+    if (product.description) return product.description;
+    if (category === 'wellness') return `${product.name} from the DLC wellness range${product.grade ? ` by ${product.grade}` : ''}.`;
+    if (category === 'more') return [product.grade, product.brand].filter(Boolean).join(' · ') || product.productType;
+    return `${product.name} from the ${tierName.toLowerCase()} ${category === 'prerolls' ? 'preroll' : 'flower'} collection.`;
+  }
+
+  function paintGrid(items) {
+    grid.innerHTML = '';
+    items.forEach((product, index) => {
+      const card = document.createElement('article');
+      card.className = 'strain-card';
+      const image = S.imageFor(product);
+      const packClass = category === 'flower' ? 'flower-pack' : category === 'prerolls' ? 'preroll-pack' : '';
+      const pack = image
+        ? `<div class="strain-pack ${packClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" loading="lazy" decoding="async"></div>`
+        : `<div class="strain-pack placeholder">DLC</div>`;
+      const low = product.availableQuantity <= 3;
+      const shelf = category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
+      card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${categoryName.toUpperCase()} / ${escapeHtml(shelf)}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div><p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
+      card.setAttribute('role', 'link');
+      card.tabIndex = 0;
+      card.setAttribute('aria-label', `View ${product.name}`);
+      card.dataset.analytics = `${category}_${tier}_${S.slugify(product.name).replace(/-/g, '_')}_click`;
+      const productUrl = S.productUrl(product);
+      const prefetchProduct = () => {
+        if (image) { const img = new Image(); img.src = image; }
+      };
+      const openProduct = () => {
+        sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: window.scrollY, category, tier }));
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { location.href = productUrl; return; }
+        card.classList.add('is-product-source');
+        document.documentElement.classList.add('product-leaving');
+        window.setTimeout(() => { location.href = productUrl; }, 320);
+      };
+      card.addEventListener('pointerenter', prefetchProduct, { once: true });
+      card.addEventListener('focus', prefetchProduct, { once: true });
+      card.addEventListener('click', openProduct);
+      card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openProduct(); } });
+      grid.appendChild(card);
+    });
+  }
+
+  function restoreScroll() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(COLLECTION_STATE_KEY) || 'null');
+      if (saved && saved.url === location.href && Number.isFinite(saved.scrollY)) requestAnimationFrame(() => window.scrollTo(0, saved.scrollY));
+    } catch (e) {}
+    window.addEventListener('scroll', () => {
+      sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: window.scrollY, category, tier }));
+    }, { passive: true });
+  }
+
+  paintHeader(null, null);
+  paintState('Loading the shelf…', 'Live stock from the DLC lounge.');
+  note.textContent = 'LIVE FROM THE DLC LOUNGE — CREDITS AND STOCK UPDATE AS THE SHELF CHANGES. POTENCY: CONFIRM IN STORE.';
+
+  S.catalog().then(products => {
+    const inCategory = products.filter(p => S.classify(p).category === category);
+
+    let shelves = [];
+    if (category === 'flower' || category === 'prerolls') {
+      shelves = S.TIERS.map(t => ({ slug: t.slug, label: t.label, count: inCategory.filter(p => S.classify(p).tier === t.slug).length }));
+      if (!tier) {
+        tier = (shelves.find(s => s.count) || shelves[0]).slug;
+        tierName = S.TIERS.find(t => t.slug === tier).label;
+        history.replaceState(null, '', S.collectionUrl(category, tier));
+      }
+    } else if (category === 'more') {
+      const byType = new Map();
+      inCategory.forEach(p => {
+        const slug = S.classify(p).tier;
+        const entry = byType.get(slug) || { slug, label: p.productType, count: 0 };
+        entry.count++;
+        byType.set(slug, entry);
+      });
+      shelves = [...byType.values()].sort((a, b) => a.label.localeCompare(b.label));
+      if (!shelves.some(s => s.slug === tier)) tier = shelves[0]?.slug || '';
+      tierName = shelves.find(s => s.slug === tier)?.label || 'Products';
+    }
+    if (shelves.length) paintShelves(shelves);
+
+    const items = inCategory.filter(p => category === 'wellness' || S.classify(p).tier === tier)
+      .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
+    sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: 0, category, tier }));
+    paintHeader(items.length, items.length ? Math.min(...items.map(p => p.price)) : null);
+
+    const featured = document.getElementById('featuredProductLink');
+    if (items.length) {
+      paintGrid(items);
+      featured.href = S.productUrl(items[0]);
+      featured.hidden = false;
+    } else {
+      const stocked = shelves.filter(s => s.count);
+      const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
+      paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
+      featured.hidden = true;
+    }
+    restoreScroll();
+  }).catch(error => {
+    paintState('The shelf could not be loaded', `${escapeHtml(error.message)}. <a href="${escapeHtml(location.href)}">Try again</a>.`, true);
+  });
+
+  if (document.documentElement.classList.contains('dlc-arriving')) {
+    requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('dlc-arrival-reveal')));
+    window.setTimeout(() => {
+      document.documentElement.classList.remove('dlc-arriving', 'dlc-arrival-reveal');
+      sessionStorage.removeItem('dlcTransitionIn');
+    }, 1050);
+  } else {
+    sessionStorage.removeItem('dlcTransitionIn');
+  }
+})();
+</script>
+<script defer src="common.js"></script>
+<script defer src="education.js"></script>
+</body>
+</html>

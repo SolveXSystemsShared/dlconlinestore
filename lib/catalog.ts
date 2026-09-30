@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "./supabase-admin"
 import type { CatalogProduct } from "./types"
+import { getFulfillmentStoreId } from "./store-settings"
 
 type CatalogRow = {
   id: string
@@ -41,7 +42,10 @@ function gradeKey(grade: string | null) {
   return (grade || "").trim().toLowerCase()
 }
 
-export async function getCatalog(storeId = process.env.DEFAULT_STORE_ID || null): Promise<CatalogProduct[]> {
+export async function getCatalog(storeIdOverride?: string | null): Promise<CatalogProduct[]> {
+  // The catalogue is scoped to whichever store fulfils online orders, so the
+  // shelf can never advertise stock that store cannot pick.
+  const storeId = storeIdOverride !== undefined ? storeIdOverride : await getFulfillmentStoreId()
   const supabase = getSupabaseAdmin()
 
   let productQuery = supabase.from("online_products").select("*").eq("is_published", true).order("sort_order").order("display_name")

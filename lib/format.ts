@@ -1,5 +1,9 @@
-export function money(value: number) {
-  return new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(value)
+/**
+ * DLC amounts are credits, never currency — compliance wording, not styling.
+ * Keep in step with price() in public/store.js: "C 79.99".
+ */
+export function credits(value: number) {
+  return `C ${Number(value || 0).toFixed(2)}`
 }
 
 export function normalizeMemberId(value: string) {
@@ -22,4 +26,25 @@ export function formatMemberId(raw: string) {
 
 export function isCompleteMemberId(value: string) {
   return value.replace(/\D/g, "").length === MEMBER_ID_DIGITS
+}
+
+/**
+ * Exchange-request statuses in member-facing words. The database keeps its own
+ * status names (pending_payment, paid…); members never see those.
+ */
+const EXCHANGE_STATUS: Record<string, string> = {
+  draft: "Draft",
+  pending_payment: "Awaiting settlement",
+  pending: "Received",
+  paid: "Settled",
+  preparing: "Preparing",
+  ready: "Ready",
+  out_for_delivery: "On its way",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  expired: "Expired",
+}
+
+export function exchangeStatus(status: string) {
+  return EXCHANGE_STATUS[status] ?? status.replaceAll("_", " ")
 }

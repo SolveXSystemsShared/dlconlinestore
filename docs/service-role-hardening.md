@@ -12,7 +12,7 @@ tables, and they must be updated in the same commit as any query that adds one.
 
 `service_role` bypasses row-level security and reaches every table in the
 project: exchanges, staff PINs, compliance documents, the lot. The storefront
-needs nine tables and four functions:
+needs eleven tables and two functions:
 
 | Access | Objects |
 | --- | --- |
@@ -20,7 +20,9 @@ needs nine tables and four functions:
 | `SELECT`, `INSERT` | `members` |
 | `INSERT` | `audit_logs`, `online_order_items` |
 | `SELECT`, `INSERT`, `UPDATE` | `online_orders` |
-| `EXECUTE` | `reserve_online_order`, `cancel_online_order`, `finalize_online_order`, `sync_online_products` |
+| `SELECT`, `INSERT`, `UPDATE` | `online_store_settings` |
+| `SELECT` | `stores` (director fulfilment picker) |
+| `EXECUTE` | `cancel_online_order`, `sync_online_products` |
 
 Nothing is ever deleted by the storefront, so no `DELETE` is granted anywhere.
 The reservation and order-event rows are written inside the `SECURITY DEFINER`
@@ -64,9 +66,13 @@ GRANT SELECT, INSERT, UPDATE ON public.online_orders  TO dlc_store;
 
 -- Signatures verified against the migrations; defaulted arguments are still
 -- part of the identity, so they must all be listed.
-GRANT EXECUTE ON FUNCTION public.reserve_online_order(uuid)                    TO dlc_store;
+--
+-- finalize_online_order is NOT here, and must never be re-granted: it wrote
+-- exchanges itself and decremented inventory_items directly. It was dropped in
+-- 20260909120000_cdash_owns_money.sql. reserve_online_order is not granted
+-- either — the storefront no longer reserves CDASH stock; see
+-- docs/cdash-boundary.md.
 GRANT EXECUTE ON FUNCTION public.cancel_online_order(uuid, text)               TO dlc_store;
-GRANT EXECUTE ON FUNCTION public.finalize_online_order(uuid, text, jsonb)      TO dlc_store;
 GRANT EXECUTE ON FUNCTION public.sync_online_products()                        TO dlc_store;
 ```
 
@@ -163,7 +169,11 @@ through all six is a role that will fail on whichever one you skipped.
 - Load the catalogue — reads `online_products`, the sellable view and reservations.
 - Register a throwaway member, then delete it — writes `members` and `audit_logs`.
 - Place an order and cancel it — writes `online_orders`, `online_order_items`,
-  and calls `reserve_online_order` and `cancel_online_order`.
+  calls `cancel_online_order`, and reaches CDASH over the Store API. The order
+  itself is created by CDASH, not by this role: the storefront writes no
+  `exchanges` row and moves no stock.
+- Change the fulfilment store as a director — reads `stores`, writes
+  `online_store_settings`.
 - Change a stock row in CDASH and confirm the catalogue follows — the trigger
   runs `sync_online_products` as its definer, so this proves the trigger path
   still works under the new role.
