@@ -1,10 +1,11 @@
 (() => {
-  // Line icons shared by the header buttons (education.js uses search).
+  // Line icons shared by the header buttons (education.js uses search and grid).
   const svg = paths => `<svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
   window.DLCIcons = {
     search: svg('<circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.3-4.3"/>'),
     menu: svg('<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'),
     close: svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+    grid: svg('<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>'),
   };
   const header = document.querySelector('.nav');
   const menuButton = document.getElementById('menuBtn');

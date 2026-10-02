@@ -409,10 +409,21 @@
   guidanceSwitch.addEventListener('click', () => setGuidance(!getGuidance()));
 
   // ── Site search ──────────────────────────────────────────────────────────
+  // A compact panel over the page: collections first, then products with
+  // their picture and credits. Every word typed must match; closer matches
+  // rank higher. ↑/↓ move, Enter opens, Esc or a click outside closes.
   const search = document.createElement('div');
   search.className = 'search-overlay';
   search.setAttribute('aria-hidden', 'true');
-  search.innerHTML = `<div class="search-shell" role="dialog" aria-modal="true" aria-labelledby="searchTitle"><div class="search-top"><h2 id="searchTitle">FIND IT FAST.</h2><button class="search-close" type="button" aria-label="Close search">×</button></div><input class="search-input" type="search" placeholder="Search products, categories or tiers…" aria-label="Search DLC"><div class="search-results" aria-live="polite"></div></div>`;
+  search.innerHTML = `<div class="search-shell" role="dialog" aria-modal="true" aria-label="Search DLC">
+    <div class="search-field">
+      <span class="search-field__icon" aria-hidden="true">${window.DLCIcons?.search || '⌕'}</span>
+      <input class="search-input" type="search" placeholder="Search products and collections" aria-label="Search DLC" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="searchResults" aria-autocomplete="list">
+      <button class="search-clear" type="button" aria-label="Clear search" hidden>×</button>
+      <button class="search-close" type="button" aria-label="Close search"><kbd>Esc</kbd><span>Cancel</span></button>
+    </div>
+    <div class="search-results" id="searchResults" role="listbox" aria-label="Search results"></div>
+  </div>`;
   document.body.appendChild(search);
 
   const navActions = document.querySelector('.nav-actions');
@@ -424,38 +435,149 @@
     btn.addEventListener('click', () => openSearch());
   }
 
-  // Categories and tiers are always searchable; live products join them once
-  // the member's catalogue has loaded (see store.js).
-  const searchData = [
-    ['FLOWER', 'CATEGORY', 'strains.html?category=flower'], ['PREROLLS', 'CATEGORY', 'strains.html?category=prerolls'], ['WELLNESS', 'CATEGORY', 'strains.html?category=wellness&tier=wellness'], ['MORE', 'CATEGORY', 'strains.html?category=more'],
-    ...TIER_ORDER.map(key => [TIER_NAMES[key].toUpperCase(), 'FLOWER TIER', `strains.html?category=flower&tier=${key}`]),
+  // Collections are always searchable; live products join once the member's
+  // catalogue has loaded (see store.js).
+  const COLLECTIONS = [
+    { name: 'Flower', meta: 'Collection', href: 'strains.html?category=flower' },
+    { name: 'Prerolls', meta: 'Collection', href: 'strains.html?category=prerolls' },
+    { name: 'Wellness', meta: 'Collection', href: 'strains.html?category=wellness&tier=wellness' },
+    { name: 'More', meta: 'Edibles, vapes, papers and more', href: 'strains.html?category=more' },
   ];
+  const collections = [
+    ...COLLECTIONS,
+    ...TIER_ORDER.map(key => ({ name: `${TIER_NAMES[key]} flower`, meta: 'Flower tier', href: `strains.html?category=flower&tier=${key}` })),
+    ...TIER_ORDER.map(key => ({ name: `${TIER_NAMES[key]} prerolls`, meta: 'Preroll tier', href: `strains.html?category=prerolls&tier=${key}` })),
+  ];
+  let products = [];
   if (S) {
-    S.catalog().then(products => {
+    S.catalog().then(list => {
       const seen = new Set();
-      products.forEach(p => {
+      list.forEach(p => {
         const place = S.classify(p);
         if (place.category === 'more' && !seen.has(place.tier)) {
           seen.add(place.tier);
-          searchData.push([p.productType.toUpperCase(), 'CATEGORY', S.collectionUrl('more', place.tier)]);
+          collections.push({ name: p.productType, meta: 'Collection', href: S.collectionUrl('more', place.tier) });
         }
-        searchData.push([p.name.toUpperCase(), `${p.productType}${p.grade ? ' · ' + p.grade : ''} · ${S.price(p.price)}`.toUpperCase(), S.productUrl(p)]);
       });
+      products = list.map(p => ({
+        name: p.name,
+        meta: [p.productType, p.grade || p.brand].filter(Boolean).join(' · '),
+        price: S.price(p.price),
+        image: S.imageFor(p),
+        href: S.productUrl(p),
+      }));
       if (search.classList.contains('is-open')) renderSearch(input.value);
     }).catch(() => {});
   }
-  const input = search.querySelector('.search-input'), results = search.querySelector('.search-results');
-  function renderSearch(q = '') {
-    const query = q.trim().toLowerCase();
-    const matches = (query ? searchData.filter(x => `${x[0]} ${x[1]}`.toLowerCase().includes(query)) : searchData.slice(0, 8)).slice(0, 10);
-    const decoderHint = query ? `<button type="button" class="search-result search-result--decoder" data-search-decoder><div><span>DLC DECODER</span><strong>WHAT IS “${esc(q.trim().toUpperCase())}”?</strong></div><em>?</em></button>` : '';
-    results.innerHTML = (matches.length ? matches.map(x => `<a class="search-result" href="${esc(x[2])}"><div><span>${esc(x[1])}</span><strong>${esc(x[0])}</strong></div><em>→</em></a>`).join('') : '<div class="search-empty">No matching DLC products or categories found.</div>') + decoderHint;
+
+  const input = search.querySelector('.search-input');
+  const results = search.querySelector('.search-results');
+  const clearBtn = search.querySelector('.search-clear');
+  let active = -1;
+
+  /** 0 = no match. Higher is better: whole name, then name start, then word start, then anywhere. */
+  function score(item, terms) {
+    const name = item.name.toLowerCase();
+    const hay = `${name} ${item.meta.toLowerCase()}`;
+    if (!terms.every(t => hay.includes(t))) return 0;
+    const q = terms.join(' ');
+    if (name === q) return 100;
+    if (name.startsWith(q)) return 80;
+    if (terms.every(t => name.split(/[\s·\-/]+/).some(w => w.startsWith(t)))) return 60;
+    if (terms.every(t => name.includes(t))) return 40;
+    return 20;
   }
-  function openSearch() { document.querySelector('.nav-search-btn')?.setAttribute('aria-expanded', 'true'); lastFocus = document.activeElement; renderSearch(''); search.classList.add('is-open'); search.setAttribute('aria-hidden', 'false'); document.documentElement.classList.add('search-open'); setTimeout(() => input.focus(), 20); }
-  function closeSearch() { document.querySelector('.nav-search-btn')?.setAttribute('aria-expanded', 'false'); search.classList.remove('is-open'); search.setAttribute('aria-hidden', 'true'); document.documentElement.classList.remove('search-open'); lastFocus?.focus?.(); }
+
+  function highlight(text, terms) {
+    if (!terms.length) return esc(text);
+    const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+    return text.split(pattern).map((part, i) => i % 2 ? `<mark>${esc(part)}</mark>` : esc(part)).join('');
+  }
+
+  const rank = (list, terms, limit) => list
+    .map(item => [item, score(item, terms)])
+    .filter(([, s]) => s > 0)
+    .sort((a, b) => b[1] - a[1] || a[0].name.localeCompare(b[0].name))
+    .slice(0, limit)
+    .map(([item]) => item);
+
+  function renderSearch(q = '') {
+    const raw = q.trim();
+    const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+    clearBtn.hidden = !raw;
+    active = -1;
+    input.removeAttribute('aria-activedescendant');
+
+    if (!terms.length) {
+      results.innerHTML = `<p class="search-label">Browse</p><div class="search-chips">${COLLECTIONS.map(c => `<a class="search-chip" href="${esc(c.href)}">${esc(c.name)}</a>`).join('')}</div>
+        <p class="search-tip">${products.length ? `Search ${products.length} products on the shelf right now — by name, type or brand.` : 'Search by product name, type or brand.'}</p>`;
+      return;
+    }
+
+    const foundCollections = rank(collections, terms, 4);
+    const foundProducts = rank(products, terms, 8);
+    let index = 0;
+    const row = (item, kind) => {
+      const id = `searchOption${index++}`;
+      const art = kind === 'product'
+        ? `<span class="search-row__art">${item.image ? `<img src="${esc(item.image)}" alt="" decoding="async">` : '<b>DLC</b>'}</span>`
+        : `<span class="search-row__art search-row__art--icon" aria-hidden="true">${window.DLCIcons?.grid || ''}</span>`;
+      return `<a class="search-row" id="${id}" role="option" aria-selected="false" href="${esc(item.href)}">${art}<span class="search-row__text"><strong>${highlight(item.name, terms)}</strong><small>${esc(item.meta)}</small></span>${item.price ? `<span class="search-row__price">${esc(item.price)}</span>` : '<span class="search-row__go" aria-hidden="true">→</span>'}</a>`;
+    };
+
+    let html = '';
+    if (foundCollections.length) html += `<p class="search-label">Collections</p>${foundCollections.map(c => row(c, 'collection')).join('')}`;
+    if (foundProducts.length) html += `<p class="search-label">Products</p>${foundProducts.map(p => row(p, 'product')).join('')}`;
+    if (!html) html = `<div class="search-empty"><strong>Nothing on the shelf matches “${esc(raw)}”.</strong><span>The shop only lists what is in stock — try another name, or browse a collection.</span></div>`;
+    html += `<button type="button" class="search-decoder" data-search-decoder>Not a product? Ask the DLC Decoder what “${esc(raw)}” means <span aria-hidden="true">→</span></button>`;
+    results.innerHTML = html;
+  }
+
+  function options() { return [...results.querySelectorAll('.search-row')]; }
+  function setActive(next) {
+    const list = options();
+    if (!list.length) return;
+    active = (next + list.length) % list.length;
+    list.forEach((el, i) => { el.classList.toggle('is-active', i === active); el.setAttribute('aria-selected', String(i === active)); });
+    input.setAttribute('aria-activedescendant', list[active].id);
+    list[active].scrollIntoView({ block: 'nearest' });
+  }
+
+  function openSearch() {
+    document.querySelector('.nav-search-btn')?.setAttribute('aria-expanded', 'true');
+    lastFocus = document.activeElement;
+    renderSearch(input.value);
+    search.classList.add('is-open');
+    search.setAttribute('aria-hidden', 'false');
+    document.documentElement.classList.add('search-open');
+    setTimeout(() => { input.focus(); input.select(); }, 20);
+  }
+  function closeSearch() {
+    document.querySelector('.nav-search-btn')?.setAttribute('aria-expanded', 'false');
+    search.classList.remove('is-open');
+    search.setAttribute('aria-hidden', 'true');
+    document.documentElement.classList.remove('search-open');
+    lastFocus?.focus?.();
+  }
+
   input.addEventListener('input', () => renderSearch(input.value));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+    else if (e.key === 'Enter') {
+      const target = options()[active >= 0 ? active : 0];
+      if (target) { e.preventDefault(); target.click(); }
+    }
+  });
+  clearBtn.addEventListener('click', () => { input.value = ''; renderSearch(''); input.focus(); });
   search.querySelector('.search-close').addEventListener('click', closeSearch);
-  // "What is X?" hands the query straight to the decoder's term search.
+  // A click on the dimmed backdrop, outside the panel, closes it.
+  search.addEventListener('mousedown', e => { if (e.target === search) closeSearch(); });
+  results.addEventListener('mousemove', e => {
+    const row = e.target.closest('.search-row');
+    if (row) { const i = options().indexOf(row); if (i !== active) setActive(i); }
+  });
+  // "What does X mean?" hands the query straight to the decoder's term search.
   results.addEventListener('click', e => {
     if (!e.target.closest('[data-search-decoder]')) return;
     const q = input.value;
@@ -463,6 +585,15 @@
     openEducation('basics');
     searchEl.value = q;
     renderSearchResults(q);
+  });
+  // ⌘K / Ctrl+K anywhere, or "/" when not typing, opens search.
+  document.addEventListener('keydown', e => {
+    if (document.documentElement.classList.contains('age-gate-active')) return;
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '') || document.activeElement?.isContentEditable;
+    if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing)) {
+      e.preventDefault();
+      if (search.classList.contains('is-open')) closeSearch(); else openSearch();
+    }
   });
 
   document.addEventListener('keydown', e => {
