@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "./supabase-admin"
+import type { CollectionPoint } from "./types"
 
 /**
  * Which CDASH store fulfils online orders.
@@ -66,4 +67,31 @@ export async function requireFulfillmentStoreId(): Promise<string> {
   const storeId = await getFulfillmentStoreId()
   if (!storeId) throw new Error("No fulfilment store is configured for online orders")
   return storeId
+}
+
+/**
+ * Where members collect online exchange requests: the fulfilment store, as
+ * CDASH's `stores` row describes it.
+ *
+ * Online requests are collection only. Members arrange their own Uber to the
+ * store, so checkout and the confirmation page need the address to send them
+ * to — read from CDASH rather than typed into the store, so a director moving
+ * fulfilment moves the address with it.
+ */
+export async function getCollectionPoint(): Promise<CollectionPoint | null> {
+  const storeId = await getFulfillmentStoreId()
+  if (!storeId) return null
+  const { data, error } = await getSupabaseAdmin().from("stores").select("name, address, phone").eq("id", storeId).maybeSingle()
+  if (error) {
+    console.error("Collection point could not be read", error)
+    return null
+  }
+  if (!data) return null
+  return { name: data.name as string, address: (data.address as string | null)?.trim() || null, phone: (data.phone as string | null)?.trim() || null }
+}
+
+/** One line for the exchange record, so staff see at a glance how it leaves the store. */
+export function collectionRecord(point: CollectionPoint | null) {
+  const where = point ? [point.name, point.address].filter(Boolean).join(", ") : "the fulfilment store"
+  return `Collection at ${where} — member arranges their own Uber`
 }

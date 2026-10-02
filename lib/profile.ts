@@ -1,38 +1,8 @@
 import { getSupabaseAdmin } from "./supabase-admin"
 import { MEMBER_ID_COLUMN, ONLINE_REGISTRATION_SOURCE } from "./members-schema"
 import { lookupMember } from "./members"
-import type { MemberProfile, SavedAddress } from "./types"
+import type { MemberProfile } from "./types"
 import { getFulfillmentStoreId } from "./store-settings"
-
-type AddressRow = {
-  id: string
-  label: string | null
-  recipient: string
-  phone: string
-  line1: string
-  line2: string | null
-  suburb: string | null
-  city: string | null
-  postal_code: string | null
-  notes: string | null
-  is_default: boolean
-}
-
-export function toSavedAddress(row: AddressRow): SavedAddress {
-  return {
-    id: row.id,
-    label: row.label,
-    recipient: row.recipient,
-    phone: row.phone,
-    line1: row.line1,
-    line2: row.line2,
-    suburb: row.suburb,
-    city: row.city,
-    postalCode: row.postal_code,
-    notes: row.notes,
-    isDefault: row.is_default,
-  }
-}
 
 /** Everything the account page shows about the person, from whichever table knows them. */
 export async function getMemberProfile(memberId: string): Promise<MemberProfile | null> {

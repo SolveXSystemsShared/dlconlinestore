@@ -1,7 +1,6 @@
 "use client"
 
 import { FormEvent, Suspense, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { StoreFooter, StoreHeader } from "@/components/store-header"
 import { credits } from "@/lib/format"
@@ -10,23 +9,17 @@ import { EXCHANGE_REQUEST_STATEMENT, TERMS_VERSION } from "@/lib/legal"
 import { LegalStatement } from "@/components/legal-statement"
 import { SkeletonPage } from "@/components/skeleton"
 import { LoadingLine, SlowNotice, useSlowFlag } from "@/components/slow-notice"
-import type { CatalogProduct, CheckoutQuote, SavedAddress } from "@/lib/types"
+import { CollectionPointCard } from "@/components/collection-point"
+import type { CatalogProduct, CheckoutQuote, CollectionPoint } from "@/lib/types"
 
-/** One line of text for the exchange request, from the parts the member filled in. */
-function formatAddress(entry: SavedAddress) {
-  return [entry.line1, entry.line2, entry.suburb, entry.city, entry.postalCode, entry.notes].filter(Boolean).join(", ")
-}
-
-type CheckoutItem = Pick<CatalogProduct, "id" | "name" | "productType" | "grade" | "price" | "availableQuantity" | "imageUrl"> & { quantity: number }
+type CheckoutItem = Pick<CatalogProduct, "id" | "slug" | "name" | "productType" | "grade" | "price" | "availableQuantity" | "imageUrl"> & { quantity: number }
 
 function CheckoutForm() {
   const router = useRouter()
   const [cart, setCart] = useState<CheckoutItem[]>([])
-  const [addresses, setAddresses] = useState<SavedAddress[]>([])
-  const [addressId, setAddressId] = useState("")
+  const [collectionPoint, setCollectionPoint] = useState<CollectionPoint | null>(null)
   const [member, setMember] = useState<{ memberId: string; name: string } | null>(null)
   const [phone, setPhone] = useState("")
-  const [address, setAddress] = useState("")
   const [notes, setNotes] = useState("")
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
@@ -50,20 +43,21 @@ function CheckoutForm() {
       .finally(() => setLoaded(true))
   }, [])
 
-  // Saved addresses fill the delivery field in one tap. Typing a different one
-  // stays possible — a member sending an order somewhere new should not have to
-  // save it first.
+  // Online requests are collection only — the member books their own Uber to
+  // the fulfilment store — so there is no address to ask for, only where to go.
   useEffect(() => {
-    fetch("/api/profile/addresses")
+    fetch("/api/collection-point")
       .then((response) => response.ok ? response.json() : null)
-      .then((data) => {
-        if (!data?.addresses?.length) return
-        setAddresses(data.addresses)
-        const preferred = (data.addresses as SavedAddress[]).find((entry) => entry.isDefault) ?? data.addresses[0]
-        setAddressId(preferred.id)
-        setAddress(formatAddress(preferred))
-        if (!phone) setPhone(preferred.phone)
-      })
+      .then((data) => { if (data?.collectionPoint) setCollectionPoint(data.collectionPoint) })
+      .catch(() => {})
+  }, [])
+
+  // The team messages the member when the request is ready to collect, so start
+  // from the mobile number on their membership. They can still change it.
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (data?.profile?.mobileNumber) setPhone((current) => current || data.profile.mobileNumber) })
       .catch(() => {})
   }, [])
 
@@ -80,14 +74,6 @@ function CheckoutForm() {
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
-
-  function chooseAddress(id: string) {
-    setAddressId(id)
-    const found = addresses.find((entry) => entry.id === id)
-    if (!found) return
-    setAddress(formatAddress(found))
-    setPhone(found.phone)
-  }
 
   // The catalogue subtotal, shown only as the "before discount" line. It is not
   // the total and never was: under §7 the membership discount, the card-XOR-cash
@@ -153,7 +139,7 @@ function CheckoutForm() {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ memberId: member.memberId, phone, deliveryAddress: address, customerNotes: notes, dlcCreditsRequested: creditSpend, acceptedTerms: accepted, termsVersion: TERMS_VERSION, items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })) }),
+        body: JSON.stringify({ memberId: member.memberId, phone, customerNotes: notes, dlcCreditsRequested: creditSpend, acceptedTerms: accepted, termsVersion: TERMS_VERSION, items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })) }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not send your exchange request")
@@ -168,7 +154,7 @@ function CheckoutForm() {
     <div className="sf-sumrow"><span>Subtotal</span><strong>{credits(gross)}</strong></div>
     {quote && quote.card.memberDiscountAmount > 0 && <div className="sf-sumrow sf-sumrow--minus"><span>{quote.tier?.name || "Member"} discount</span><strong>&minus;{credits(quote.cash.memberDiscountAmount)} settling in cash<br />&minus;{credits(quote.card.memberDiscountAmount)} settling by card</strong></div>}
     {quote && quote.card.creditsApplied > 0 && <div className="sf-sumrow sf-sumrow--minus"><span>DLC Credits</span><strong>&minus;{credits(quote.card.creditsApplied)}</strong></div>}
-    {quote && quote.card.deliveryFee > 0 && <div className="sf-sumrow"><span>Delivery</span><strong>{credits(quote.card.deliveryFee)}</strong></div>}
+    {quote && quote.card.deliveryFee > 0 && <div className="sf-sumrow"><span>Online request fee</span><strong>{credits(quote.card.deliveryFee)}</strong></div>}
 
     {quote && quote.credits.balance > 0 && <div className="sf-credits">
       <label className="sf-label" htmlFor="credits">Use DLC Credits</label>
@@ -206,7 +192,7 @@ function CheckoutForm() {
           <div>
             <p className="sf-kicker">DLC MEMBERS / REVIEW &amp; REQUEST</p>
             <h1 className="sf-title">Your<br />bag.</h1>
-            <p className="sf-sub">Review your bag, tell us where it goes, and send it to the DLC team as an exchange request.</p>
+            <p className="sf-sub">Review your bag and send it to the DLC team as an exchange request. Collect it from the lounge when it is ready.</p>
           </div>
           {member && <div className="sf-hero-stats"><div className="sf-stat"><span>Member</span><strong>{member.name.split(" ")[0]}</strong></div><div className="sf-stat"><span>Items</span><strong>{String(itemCount).padStart(2, "0")}</strong></div></div>}
         </section>
@@ -250,23 +236,14 @@ function CheckoutForm() {
                       {member
                         ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div><span className="sf-badge sf-badge--good"><i />Verified</span></div>
                         : <div className="sf-field"><p className="sf-note">Your member session has ended. Sign in again with your Member ID and the PIN we SMS you.</p><button type="button" className="sf-ghost" onClick={() => window.location.reload()}>Sign in again</button></div>}
-                      <div className="sf-field"><label htmlFor="phone">Mobile number <small>— for exchange updates</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
+                      <div className="sf-field"><label htmlFor="phone">Mobile number <small>— we message you when it is ready to collect</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
                     </section>
 
-                    <section className="sf-panel" aria-labelledby="deliveryTitle">
-                      <div className="sf-panel-head"><h2 id="deliveryTitle">Delivery</h2><span className="sf-step">STEP 03</span></div>
-                      {addresses.length > 0 && <>
-                        <p className="sf-label" id="savedAddresses">Saved addresses</p>
-                        <div className="sf-choices" role="group" aria-labelledby="savedAddresses">
-                          {addresses.map((entry) => <button type="button" key={entry.id} className="sf-choice" aria-pressed={addressId === entry.id} onClick={() => chooseAddress(entry.id)}>
-                            <strong>{entry.label || entry.recipient}{entry.isDefault && <em className="sf-badge sf-badge--blue" style={{ fontStyle: "normal" }}>Default</em>}</strong>
-                            <span>{formatAddress(entry)}</span>
-                          </button>)}
-                        </div>
-                      </>}
-                      <div className="sf-field"><label htmlFor="address">{addresses.length ? "Or type a delivery / collection note" : "Delivery / collection details"}</label><input id="address" value={address} onChange={(event) => { setAddress(event.target.value); setAddressId("") }} placeholder="Street address, or “I’ll collect at Midrand”" required /></div>
-                      <div className="sf-field"><label htmlFor="notes">Notes for the team <small>— optional</small></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Gate code, best time to reach you, anything the team should know" /></div>
-                      <p className="sf-hint">Manage saved addresses in <Link href="/account" style={{ color: "var(--sf-blue)", fontWeight: 900 }}>your account</Link>.</p>
+                    <section className="sf-panel" aria-labelledby="collectionTitle">
+                      <div className="sf-panel-head"><h2 id="collectionTitle">Collection</h2><span className="sf-step">STEP 03</span></div>
+                      <p className="sf-note">Online exchange requests are collection only — we do not deliver. Once the team messages you that your request is ready, book your own Uber to the lounge and collect it there. Bring your ID.</p>
+                      <CollectionPointCard point={collectionPoint} />
+                      <div className="sf-field"><label htmlFor="notes">Notes for the team <small>— optional</small></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Roughly when you plan to collect, or anything the team should know" /></div>
                     </section>
                   </form>
                   {summary}

@@ -102,7 +102,7 @@ export default function StorePage() {
       <div className="hero-inner hero-grid">
         <div className="hero-copy">
           <Reveal><div className="eyebrow">DLC member store · live from CDASH</div></Reveal>
-          <Reveal delay={80}><h1>Good energy.<br /><em>Delivered.</em></h1></Reveal>
+          <Reveal delay={80}><h1>Good energy.<br /><em>Ready to collect.</em></h1></Reveal>
           <Reveal delay={160}><p>Curated essentials for the DLC community, with live availability and member-first fulfilment from the store you know.</p></Reveal>
           <Reveal delay={240}><div className="hero-actions"><a className="button hero-button" href="#shop">Explore the drop <span>↓</span></a><span className="hero-caption">18+ · registered members only</span></div></Reveal>
         </div>
@@ -119,7 +119,7 @@ export default function StorePage() {
     <div className="ticker" aria-label="DLC store highlights"><div className="ticker-track"><span>MEMBER FIRST</span><i>✳</i><span>LIVE INVENTORY</span><i>✳</i><span>GOOD ENERGY</span><i>✳</i><span>MEMBER FIRST</span><i>✳</i><span>LIVE INVENTORY</span><i>✳</i><span>GOOD ENERGY</span><i>✳</i></div></div>
 
     <section className="content shop-section" id="shop">
-      <Reveal className="section-heading shop-heading"><div><div className="eyebrow dark-eyebrow">The current drop</div><h2>Pick your mood.</h2></div><p>Live CDASH stock, always current.</p></Reveal>
+      <Reveal className="section-heading shop-heading"><div><div className="eyebrow dark-eyebrow">The current drop</div><h2>Pick your mood.</h2></div><p>Only what is in stock, always current.</p></Reveal>
       {loading && <MascotLoader label="Loading the drop" size="lg" />}
       {error && <p className="error">{error}</p>}
       {!loading && !error && products.length === 0 && <p className="empty">There are no published products available right now.</p>}

@@ -8,9 +8,9 @@ import { SkeletonPage } from "@/components/skeleton"
 import { LoadingLine } from "@/components/slow-notice"
 import { credits, exchangeStatus } from "@/lib/format"
 import { imageFor, productUrl, shelfLabel } from "@/lib/storefront"
-import type { CatalogProduct, MemberProfile, OrderSummary, SavedAddress } from "@/lib/types"
+import type { CatalogProduct, MemberProfile, OrderSummary } from "@/lib/types"
 
-type Tab = "profile" | "addresses" | "orders" | "saved"
+type Tab = "profile" | "orders" | "saved"
 type Period = "3m" | "6m" | "12m" | "all" | "custom"
 
 const PERIODS: Array<{ id: Period; label: string }> = [
@@ -27,29 +27,23 @@ type SavedItem = CatalogProduct & { inStock: boolean }
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: "profile", label: "My details" },
-  { id: "addresses", label: "Addresses" },
   { id: "orders", label: "My exchanges" },
   { id: "saved", label: "Saved items" },
 ]
 
-// An order history and a wishlist both grow without limit; addresses do not.
+// An order history and a wishlist both grow without limit.
 const ORDERS_PER_PAGE = 10
 const SAVED_PER_PAGE = 12
-
-const EMPTY_ADDRESS = { id: "", label: "", recipient: "", phone: "", line1: "", line2: "", suburb: "", city: "", postalCode: "", notes: "", isDefault: false }
-type AddressDraft = typeof EMPTY_ADDRESS
 
 export default function AccountPage() {
   const [tab, setTab] = useState<Tab>("profile")
   const [profile, setProfile] = useState<MemberProfile | null>(null)
-  const [addresses, setAddresses] = useState<SavedAddress[]>([])
   const [orders, setOrders] = useState<OrderSummary[]>([])
   const [savedItems, setSavedItems] = useState<SavedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
-  const [draft, setDraft] = useState<AddressDraft | null>(null)
   const [bagCount, setBagCount] = useState<number | undefined>(undefined)
   const [period, setPeriod] = useState<Period>("3m")
   const [customFrom, setCustomFrom] = useState("")
@@ -61,17 +55,19 @@ export default function AccountPage() {
   // Keyed on length so removing the last item on a page steps back rather than
   // leaving an empty list behind.
   const orderPages = usePagination(orders, ORDERS_PER_PAGE, `orders-${orders.length}`)
-  const savedPages = usePagination(savedItems, SAVED_PER_PAGE, `saved-${savedItems.length}`)
+  // Only what is on the shelf is shown. Out-of-stock items stay saved and
+  // reappear here on their own once the lounge restocks them.
+  const stockedItems = savedItems.filter((item) => item.inStock)
+  const hiddenCount = savedItems.length - stockedItems.length
+  const savedPages = usePagination(stockedItems, SAVED_PER_PAGE, `saved-${stockedItems.length}`)
 
   useEffect(() => {
     Promise.all([
       fetch("/api/profile").then((r) => r.ok ? r.json() : null),
-      fetch("/api/profile/addresses").then((r) => r.ok ? r.json() : null),
       fetch("/api/wishlist").then((r) => r.ok ? r.json() : null),
     ])
-      .then(([p, a, w]) => {
+      .then(([p, w]) => {
         if (p?.profile) setProfile(p.profile)
-        if (a?.addresses) setAddresses(a.addresses)
         if (w?.items) setSavedItems(w.items)
         if (!p?.profile) setError("We could not load your profile. Try reloading the page.")
       })
@@ -148,41 +144,6 @@ export default function AccountPage() {
     } finally { setBusy(false) }
   }
 
-  async function saveAddress(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!draft) return
-    setBusy(true)
-    try {
-      const editing = Boolean(draft.id)
-      const response = await fetch(editing ? `/api/profile/addresses/${draft.id}` : "/api/profile/addresses", {
-        method: editing ? "PATCH" : "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(draft),
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Could not save that address")
-      const list = await (await fetch("/api/profile/addresses")).json()
-      setAddresses(list.addresses)
-      setDraft(null)
-      report(editing ? "Address updated." : "Address saved.")
-    } catch (reason) {
-      report("", reason instanceof Error ? reason.message : "Could not save that address")
-    } finally { setBusy(false) }
-  }
-
-  async function removeAddress(id: string) {
-    setBusy(true)
-    try {
-      const response = await fetch(`/api/profile/addresses/${id}`, { method: "DELETE" })
-      if (!response.ok) throw new Error("Could not remove that address")
-      const list = await (await fetch("/api/profile/addresses")).json()
-      setAddresses(list.addresses)
-      report("Address removed.")
-    } catch (reason) {
-      report("", reason instanceof Error ? reason.message : "Could not remove that address")
-    } finally { setBusy(false) }
-  }
-
   async function unsave(productId: string) {
     setSavedItems((current) => current.filter((item) => item.id !== productId))
     await fetch("/api/wishlist", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ productId }) }).catch(() => {})
@@ -229,8 +190,7 @@ export default function AccountPage() {
           {TABS.map((entry) => (
             <button key={entry.id} id={`tab-${entry.id}`} role="tab" aria-selected={tab === entry.id} aria-controls={`panel-${entry.id}`} className="sf-tab" onClick={() => { setTab(entry.id); report("") }}>
               {entry.label}
-              {entry.id === "addresses" && addresses.length > 0 && <small>{addresses.length}</small>}
-              {entry.id === "saved" && savedItems.length > 0 && <small>{savedItems.length}</small>}
+              {entry.id === "saved" && stockedItems.length > 0 && <small>{stockedItems.length}</small>}
             </button>
           ))}
         </div>
@@ -260,44 +220,6 @@ export default function AccountPage() {
           </>}
         </section>}
 
-        {tab === "addresses" && <section role="tabpanel" id="panel-addresses" aria-labelledby="tab-addresses">
-          <p className="sf-note">Where your exchange requests go. Separate from the residential address on your membership, so you can send a request anywhere.</p>
-          {addresses.length > 0 ? <div className="sf-cards">
-            {addresses.map((address) => <article className="sf-card" key={address.id}>
-              <div className="sf-card-head"><strong>{address.label || address.recipient}</strong>{address.isDefault && <span className="sf-badge sf-badge--blue">Default</span>}</div>
-              <p>{address.recipient} · {address.phone}<br />{address.line1}{address.line2 ? <>, {address.line2}</> : null}<br />{[address.suburb, address.city, address.postalCode].filter(Boolean).join(", ")}</p>
-              {address.notes && <p className="sf-hint" style={{ margin: 0 }}>{address.notes}</p>}
-              <div className="sf-actions">
-                <button type="button" className="sf-chip" onClick={() => setDraft({ ...EMPTY_ADDRESS, ...address, label: address.label ?? "", line2: address.line2 ?? "", suburb: address.suburb ?? "", city: address.city ?? "", postalCode: address.postalCode ?? "", notes: address.notes ?? "" })}>Edit</button>
-                <button type="button" className="sf-chip sf-chip--danger" disabled={busy} onClick={() => removeAddress(address.id)}>Remove</button>
-              </div>
-            </article>)}
-          </div> : !draft && <div className="sf-empty" style={{ marginBottom: 16 }}><strong>No addresses yet.</strong>Save one and your bag fills it in for you.</div>}
-
-          {draft ? <form className="sf-panel" onSubmit={saveAddress}>
-            <div className="sf-panel-head"><h3>{draft.id ? "Edit address" : "New address"}</h3></div>
-            <div className="sf-row2">
-              <div className="sf-field"><label htmlFor="a-label">Label</label><input id="a-label" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="Home, work…" maxLength={40} /></div>
-              <div className="sf-field"><label htmlFor="a-recipient">Recipient</label><input id="a-recipient" autoComplete="name" value={draft.recipient} onChange={(e) => setDraft({ ...draft, recipient: e.target.value })} required minLength={2} maxLength={120} /></div>
-            </div>
-            <div className="sf-row2">
-              <div className="sf-field"><label htmlFor="a-phone">Contact number</label><input id="a-phone" type="tel" autoComplete="tel" value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} required minLength={7} maxLength={30} /></div>
-              <div className="sf-field"><label htmlFor="a-postal">Postal code</label><input id="a-postal" autoComplete="postal-code" value={draft.postalCode} onChange={(e) => setDraft({ ...draft, postalCode: e.target.value })} maxLength={20} /></div>
-            </div>
-            <div className="sf-field"><label htmlFor="a-line1">Street address</label><input id="a-line1" autoComplete="address-line1" value={draft.line1} onChange={(e) => setDraft({ ...draft, line1: e.target.value })} required minLength={3} maxLength={200} /></div>
-            <div className="sf-row2">
-              <div className="sf-field"><label htmlFor="a-suburb">Suburb</label><input id="a-suburb" value={draft.suburb} onChange={(e) => setDraft({ ...draft, suburb: e.target.value })} maxLength={120} /></div>
-              <div className="sf-field"><label htmlFor="a-city">City</label><input id="a-city" autoComplete="address-level2" value={draft.city} onChange={(e) => setDraft({ ...draft, city: e.target.value })} maxLength={120} /></div>
-            </div>
-            <div className="sf-field"><label htmlFor="a-notes">Delivery notes <small>— optional</small></label><input id="a-notes" value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} placeholder="Gate code, landmark…" maxLength={300} /></div>
-            <label className="sf-check"><input type="checkbox" checked={draft.isDefault} onChange={(e) => setDraft({ ...draft, isDefault: e.target.checked })} /><span>Use this address by default for exchange requests.</span></label>
-            <div className="sf-actions">
-              <button className="sf-cta" disabled={busy}>{busy ? "Saving…" : "Save address"}</button>
-              <button type="button" className="sf-ghost" onClick={() => setDraft(null)}>Cancel</button>
-            </div>
-          </form> : <button type="button" className="sf-cta" onClick={() => setDraft({ ...EMPTY_ADDRESS })}>+ Add an address</button>}
-        </section>}
-
         {tab === "orders" && <section role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
           <div className="sf-periods" role="group" aria-label="Show exchanges from">
             {PERIODS.map((entry) => <button key={entry.id} type="button" className="sf-chip" aria-pressed={period === entry.id} onClick={() => { setPeriod(entry.id); setOrdersError(""); if (entry.id === "custom") { setOrders([]); if (!customTo) setCustomTo(saToday()) } }}>{entry.label}</button>)}
@@ -325,8 +247,9 @@ export default function AccountPage() {
         </section>}
 
         {tab === "saved" && <section role="tabpanel" id="panel-saved" aria-labelledby="tab-saved">
-          {savedItems.length === 0
-            ? <div className="sf-empty"><strong>Nothing saved yet.</strong>Tap the heart on anything in the <Link href="/menu" style={{ color: "var(--sf-blue)" }}>full menu</Link> to keep it here.</div>
+          {hiddenCount > 0 && <p className="sf-note">{hiddenCount} saved {hiddenCount === 1 ? "item is" : "items are"} out of stock right now and hidden. {hiddenCount === 1 ? "It comes" : "They come"} back here as soon as the lounge restocks.</p>}
+          {stockedItems.length === 0
+            ? hiddenCount > 0 ? null : <div className="sf-empty"><strong>Nothing saved yet.</strong>Tap the heart on anything in the <Link href="/menu" style={{ color: "var(--sf-blue)" }}>full menu</Link> to keep it here.</div>
             : <><div className="sf-products">
               {savedPages.visible.map((item) => {
                 const image = imageFor(item)
@@ -335,15 +258,15 @@ export default function AccountPage() {
                   <div className="sf-product-meta">
                     <small>{shelfLabel(item)}</small>
                     <h3>{item.name}</h3>
-                    <span className="sf-price">{item.inStock ? credits(item.price) : <span className="sf-badge sf-badge--bad"><i />Out of stock</span>}</span>
+                    <span className="sf-price">{credits(item.price)}</span>
                     <div className="sf-actions">
-                      {item.inStock && <button type="button" className="sf-chip" disabled={busy} onClick={() => moveToBag(item)}>Add to bag</button>}
+                      <button type="button" className="sf-chip" disabled={busy} onClick={() => moveToBag(item)}>Add to bag</button>
                       <button type="button" className="sf-chip sf-chip--danger" onClick={() => unsave(item.id)}>Remove</button>
                     </div>
                   </div>
                 </article>
               })}
-            </div><Pagination page={savedPages.page} pageCount={savedPages.pageCount} total={savedItems.length} perPage={SAVED_PER_PAGE} label="Saved items" onChange={savedPages.setPage} /></>}
+            </div><Pagination page={savedPages.page} pageCount={savedPages.pageCount} total={stockedItems.length} perPage={SAVED_PER_PAGE} label="Saved items" onChange={savedPages.setPage} /></>}
         </section>}
       </div>
 

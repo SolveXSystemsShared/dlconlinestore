@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { normalizeMemberId } from "@/lib/format"
 import { getMemberAccess } from "@/lib/member-access"
 import { lookupMember } from "@/lib/members"
-import { getFulfillmentStoreId } from "@/lib/store-settings"
+import { collectionRecord, getCollectionPoint, getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, createOnlineOrder, fetchQuote } from "@/lib/cdash"
 import { resolveOrderLines } from "@/lib/order-lines"
 import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptance, staleTermsMessage } from "@/lib/acceptance"
@@ -12,7 +12,6 @@ import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptanc
 const input = z.object({
   memberId: z.string().min(4).max(40),
   phone: z.string().min(7).max(30),
-  deliveryAddress: z.string().min(3).max(500),
   customerNotes: z.string().max(1000).optional().default(""),
   dlcCreditsRequested: z.number().min(0).max(100000).optional().default(0),
   items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().positive().max(100) })).min(1).max(50),
@@ -122,7 +121,11 @@ export async function POST(request: NextRequest) {
     const member = await lookupMember(memberId)
     if (!member.found || member.verdict !== "active") return NextResponse.json({ error: "Active DLC member not found" }, { status: 404 })
 
-    const storeId = await getFulfillmentStoreId()
+    const [storeId, collectionPoint] = await Promise.all([getFulfillmentStoreId(), getCollectionPoint()])
+    // Online requests are collection only: the member books their own Uber to
+    // the store. The note leads with that so staff in CDASH never go looking
+    // for a delivery address.
+    const collection = collectionRecord(collectionPoint)
     const resolved = await resolveOrderLines(body.items, storeId)
     if ("error" in resolved) return NextResponse.json({ error: resolved.error }, { status: resolved.status })
     const { lines } = resolved
@@ -153,17 +156,19 @@ export async function POST(request: NextRequest) {
     const exchange = await createOnlineOrder({
       memberId: member.memberId,
       products: lines.map((line) => ({ type: line.productType, name: line.strainName, quantity: line.quantity, grade: line.grade })),
-      paymentNotes: body.customerNotes || undefined,
+      paymentNotes: [collection, body.customerNotes].filter(Boolean).join(" · "),
     })
 
-    // Our row is the delivery record from here on. The money figures are kept
+    // Our row is the collection record from here on. The money figures are kept
     // for the confirmation screen and marked for what they are — a quote at our
     // catalogue prices — while exchange_id points at the record that is real.
     const { data: order, error: orderError } = await supabase.from("online_orders").insert({
       member_id: member.memberId,
       member_name: member.name,
       customer_phone: body.phone,
-      delivery_address: body.deliveryAddress,
+      // The column predates collection-only and is NOT NULL; it now says where
+      // the member collects.
+      delivery_address: collection,
       customer_notes: body.customerNotes,
       fulfillment_store_id: storeId,
       exchange_id: exchange.id,
@@ -178,11 +183,11 @@ export async function POST(request: NextRequest) {
 
     if (orderError || !order) {
       // The CDASH order exists and is the record that matters, so this is a
-      // broken delivery record, not a lost sale. Name the exchange in the log:
+      // broken collection record, not a lost sale. Name the exchange in the log:
       // staff can still settle it from their pending queue, and someone has to
-      // be able to find the address it was going to.
-      console.error("Delivery record could not be written for CDASH exchange", exchange.id, orderError)
-      return NextResponse.json({ error: "Your exchange request reached DLC but its delivery details could not be saved. Please contact the team before sending another request." }, { status: 500 })
+      // be able to match it to the member when they arrive.
+      console.error("Collection record could not be written for CDASH exchange", exchange.id, orderError)
+      return NextResponse.json({ error: "Your exchange request reached DLC but its collection details could not be saved. Please contact the team before sending another request." }, { status: 500 })
     }
 
     const { error: lineError } = await supabase.from("online_order_items").insert(lines.map((line) => ({
@@ -195,10 +200,10 @@ export async function POST(request: NextRequest) {
       unit_price: line.unitPrice,
       line_total: line.lineTotal,
     })))
-    // The manifest is a convenience for the delivery screen; CDASH holds the
+    // The manifest is a convenience for the collection screen; CDASH holds the
     // authoritative line items on the exchange. Losing it must not fail an
     // order that CDASH has already accepted.
-    if (lineError) console.error("Delivery manifest could not be written for order", order.id, lineError)
+    if (lineError) console.error("Collection manifest could not be written for order", order.id, lineError)
 
     return NextResponse.json({
       order: {

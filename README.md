@@ -23,6 +23,12 @@ the same API routes as the React pages:
   else under MORE by product type.
 
 Checkout, account, registration and order pages remain React pages in `app/`.
+
+Online exchange requests are **collection only**. Members book their own Uber to
+the fulfilment store; checkout and the confirmation page show that store's name,
+address and phone from CDASH `stores` (`getCollectionPoint` in
+`lib/store-settings.ts`), with an "Open in Uber" link. There is no delivery
+address — `online_orders.delivery_address` records the collection point instead.
 `/menu` is the older single-list store with filters and saved items.
 
 ## Legal pages and acceptance records

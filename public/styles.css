@@ -2915,6 +2915,9 @@ html.education-open,html.search-open{overflow:hidden}
 .shop-hero .strains-kicker{margin-bottom:8px;color:var(--dlc-sky-deep)}
 .shop-title{margin:0;font-size:clamp(34px,4.6vw,64px);line-height:.95;letter-spacing:-.05em;color:#11131a}
 .shop-sub{margin:10px 0 0;max-width:620px;font-size:14px;line-height:1.6;color:#636872}
+.shop-instock{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin:14px 0 0;max-width:620px;font-size:12px;line-height:1.5;color:#636872}
+.shop-instock i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:#1f9d55;box-shadow:0 0 0 3px rgba(31,157,85,.16);align-self:center}
+.shop-instock strong{font-size:9px;font-weight:950;letter-spacing:1.3px;color:#1f7a45}
 .shop-count{margin:0;display:flex;align-items:baseline;gap:8px;font-size:9px;font-weight:950;letter-spacing:1.3px;color:#6e737d}
 .shop-count strong{font-size:26px;letter-spacing:-.04em;color:#11131a}
 .shop-count__sep{opacity:.4}

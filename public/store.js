@@ -62,9 +62,49 @@
     [/balance/, 'assets/webp/wellness/natural-balance.webp'],
   ];
 
-  /** A real product photo when CDASH has one, else the closest DLC artwork, else null. */
+  // Pack shots for individual products, keyed by the CDASH-synced product slug.
+  // The file is named after the slug: assets/webp/products/<slug>.webp.
+  // Keep in step with PRODUCT_ART in lib/storefront.ts.
+  const PRODUCT_ART = new Set([
+    'accessories-raw-drawstring-bag-black-raw',
+    'accessories-raw-drawstring-bag-tan-raw',
+    'accessories-raw-tray-key-chain-raw',
+    'accessories-raw-wooden-pokers-raw',
+    'edibles-astroman-raspberry-gummy',
+    'edibles-blaze-blocks',
+    'edibles-caramel',
+    'edibles-chocolate-chip-cookies',
+    'edibles-fruity-pastilles',
+    'edibles-heart-stopper-gummies',
+    'edibles-lifted-rainbow-stripz',
+    'edibles-lifted-wacky-worms',
+    'edibles-loaded-leaf-gummies',
+    'edibles-mango-lollipop',
+    'edibles-nougat-jane-s',
+    'edibles-red-vine-stripz',
+    'edibles-share-square-gummies',
+    'edibles-stoned-pineapple-stoned-edibles',
+    'edibles-tangerine-gummies-gobbles',
+    'edibles-tropical-sour-cubes',
+    'rolling-papers-black-classic-kingsize-3-cones-raw',
+    'rolling-papers-black-raw-classic-1-1-4-size-6-cones-raw',
+    'rolling-papers-black-raw-classic-connoisseur-king-size-slim-tips-raw',
+    'rolling-papers-culture-paper-culture',
+    'rolling-papers-mary-jane-cones-mary-jane',
+    'rolling-papers-ocb-platinum-slim-ocb',
+    'rolling-papers-raw-classic-connoisseur-1-1-4-tips-raw',
+    'rolling-papers-raw-ethereal-raw',
+    'wellness-cbd-colorado-snow-cannabinoid-nutrition',
+    'wellness-cbd-ecs-7-5-cannabinoid-nutrition',
+    'wellness-cbd-ecs-900-cannabinoid-nutrition',
+    'wellness-cbd-happy-pet-cannabinoid-nutrition',
+    'wellness-cbd-pain-relax-cannabinoid-nutrition',
+  ]);
+
+  /** A real product photo when CDASH has one, else our pack shot, else the closest DLC artwork, else null. */
   function imageFor(product) {
     if (product.imageUrl) return product.imageUrl;
+    if (PRODUCT_ART.has(product.slug)) return `assets/webp/products/${product.slug}.webp`;
     const { category, tier } = classify(product);
     const key = slugify(product.name);
     if (category === 'flower') return `assets/webp/flower/${tier}.webp`;

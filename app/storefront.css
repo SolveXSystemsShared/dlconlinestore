@@ -153,6 +153,10 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 .sf-member small { display: block; font-size: 8px; font-weight: 950; letter-spacing: 1.3px; color: var(--sf-muted); margin-bottom: 6px; }
 .sf-member strong { font-size: 16px; letter-spacing: -.02em; }
 .sf-member .sf-badge { flex: 0 0 auto; }
+.sf-collect { flex-wrap: wrap; }
+.sf-collect strong { display: block; }
+.sf-collect .sf-collect-phone { margin: 6px 0 0; font-size: 11px; letter-spacing: 0; }
+.sf-collect .sf-actions { margin-top: 0; }
 .sf-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; font-size: 8px; font-weight: 950; letter-spacing: 1px; text-transform: uppercase; background: #fff; border: 1px solid var(--sf-line); color: var(--sf-muted); white-space: nowrap; }
 .sf-badge i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .sf-badge--good { color: var(--sf-good); border-color: #cfe3ca; background: #f3faf1; }

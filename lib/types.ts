@@ -19,19 +19,8 @@ export type CatalogProduct = {
 
 export type CartLine = CatalogProduct & { quantity: number }
 
-export type SavedAddress = {
-  id: string
-  label: string | null
-  recipient: string
-  phone: string
-  line1: string
-  line2: string | null
-  suburb: string | null
-  city: string | null
-  postalCode: string | null
-  notes: string | null
-  isDefault: boolean
-}
+/** The store online exchange requests are collected from (CDASH `stores`). */
+export type CollectionPoint = { name: string; address: string | null; phone: string | null }
 
 /**
  * The member's own details.

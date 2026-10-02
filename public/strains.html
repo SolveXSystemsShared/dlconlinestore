@@ -306,6 +306,7 @@
       <div class="strains-kicker" id="categoryLabel">FLOWER</div>
       <h1 class="shop-title" id="pageTitle">Flower</h1>
       <p class="shop-sub" id="pageDescription">Live stock from the DLC lounge.</p>
+      <p class="shop-instock"><i aria-hidden="true"></i><strong>IN STOCK ONLY</strong><span>The shop only shows what is on the shelf right now. Sold-out products are hidden until the lounge restocks them.</span></p>
     </div>
     <p class="shop-count" aria-live="polite"><strong id="overviewCount">—</strong> <span id="overviewCountLabel">ITEMS</span><span class="shop-count__sep">·</span><span id="overviewPrice">—</span></p>
   </section>
@@ -581,7 +582,7 @@
     window.DLCLoadingLines?.rotate(grid.querySelector('.store-loading-line'), 'shelf');
   }
   paintSkeleton();
-  note.textContent = 'LIVE FROM THE DLC LOUNGE — CREDITS AND STOCK UPDATE AS THE SHELF CHANGES. POTENCY: CONFIRM IN STORE.';
+  note.textContent = 'LIVE FROM THE DLC LOUNGE — ONLY IN-STOCK PRODUCTS ARE SHOWN, AND THE SHELF UPDATES AS STOCK CHANGES. POTENCY: CONFIRM IN STORE.';
 
   S.catalog().then(products => {
     const inCategory = isAll ? products : products.filter(p => S.classify(p).category === category);
@@ -681,7 +682,7 @@
       } else {
         const stocked = shelves.filter(s => s.count);
         const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
-        if (isAll) paintState('The shelf is empty right now', 'Stock changes through the day — please check back soon.');
+        if (isAll) paintState('The shelf is empty right now', 'The shop only shows what is in stock, and stock changes through the day — please check back soon.');
         else paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
         if (featured) featured.hidden = true;
       }

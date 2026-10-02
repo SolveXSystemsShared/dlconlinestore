@@ -110,7 +110,7 @@
         </details>
         <details>
           <summary>AVAILABILITY <span>+</span></summary>
-          <p>Availability can change. The displayed credits reflect the current DLC menu for this tier; live stock can be connected when the catalogue is ready.</p>
+          <p>The shop only lists products that are in stock at the lounge right now, and hides anything that sells out. Stock moves through the day, so the team confirms it when you send your exchange request.</p>
         </details>
       </div>
     </div>
@@ -259,9 +259,9 @@
     const kind = category === 'prerolls' ? 'preroll' : category === 'flower' ? 'flower' : category === 'wellness' ? 'wellness product' : product.productType.toLowerCase();
     const copy = product.description || `${product.name} — ${category === 'flower' || category === 'prerolls' ? `${tierLabel.toLowerCase()} ${kind}` : kind}${product.brand ? ` from ${product.brand}` : ''}, live from the DLC lounge shelf at ${displayPrice}.`;
     setText('productCopy', copy);
-    setText('detailsCopy', product.description || `${product.name} is listed in CDASH as ${product.productType}${product.grade ? ` · ${product.grade}` : ''}. ${image && !product.imageUrl ? 'The image shown is DLC collection artwork, not a photograph of this exact product.' : ''}`.trim());
+    setText('detailsCopy', product.description || `${product.name} is listed in CDASH as ${product.productType}${product.grade ? ` · ${product.grade}` : ''}. ${image && !product.imageUrl && !image.includes('/products/') ? 'The image shown is DLC collection artwork, not a photograph of this exact product.' : ''}`.trim());
     const availability = document.querySelectorAll('#productAccordions details p')[2];
-    if (availability) availability.textContent = 'Stock is live from the DLC lounge. Adding to your bag does not hold stock — it is confirmed when you send your exchange request, and the team confirms the final credits at hand-over.';
+    if (availability) availability.textContent = 'Stock is live from the DLC lounge, and the shop only lists what is in stock right now. Adding to your bag does not hold stock — it is confirmed when you send your exchange request, and the team confirms the final credits at hand-over.';
 
     const art = image
       ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" decoding="async">`
