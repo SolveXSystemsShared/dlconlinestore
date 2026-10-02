@@ -66,7 +66,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               ? <p className="sf-hint">The items for this request are held by the DLC team.</p>
               : lines.map((line, index) => <div className="sf-sumrow" key={index}><span>{line.strain_name}<br /><small style={{ color: "var(--sf-muted)" }}>{[line.product_type, line.grade].filter(Boolean).join(" · ")}</small></span><strong>× {Number(line.quantity)}</strong></div>)}
             <p className="sf-fineprint">The team confirms the credits for this exchange with you and settles it at hand-over when you collect. Settling in cash carries a slightly larger member discount than settling by card.</p>
-            <div className="sf-actions" style={{ marginTop: 16 }}><a className="sf-cta" href="/index.html#experience">Continue browsing</a><a className="sf-ghost" href="/account">View my exchanges</a></div>
+            <div className="sf-actions" style={{ marginTop: 16 }}><a className="sf-cta" href="/index.html?home=1">Continue browsing</a><a className="sf-ghost" href="/account">View my exchanges</a></div>
           </aside>
         </div>
       </main>
