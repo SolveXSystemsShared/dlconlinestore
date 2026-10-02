@@ -3110,7 +3110,7 @@ html.lounge-row-visible{--float-lift:78px}
 }
 
 /* Product page on phones: image → name & credits → add to cart → details */
-@media(max-width:900px){
+@media(max-width:768px){
   .product-detail-grid{grid-template-columns:minmax(0,1fr)!important;gap:10px!important;padding-top:12px!important}
   .product-stage{max-width:min(420px,100%)}
   .product-stage-art{width:70%!important}
@@ -3352,3 +3352,20 @@ html.lounge-row-visible{--float-lift:78px}
   .search-close span{display:inline}
 }
 @media(prefers-reduced-motion:reduce){.search-overlay,.search-shell{transition:none}}
+
+/* ── Product page: product on the left stays in view, details on the right ──
+   Two columns from tablet width up; phones stack (block above, ≤768px).
+   The shell clips sideways only — overflow:hidden would disable sticky. */
+.product-detail-shell{overflow:visible;overflow-x:clip}
+@media(min-width:769px){
+  .product-detail-grid{grid-template-columns:minmax(0,1fr) minmax(320px,.92fr)!important;gap:clamp(28px,5vw,96px)!important;align-items:start}
+  .product-media-column{position:sticky;top:100px;align-self:start}
+  .product-detail-info{position:static!important}
+  /* Short enough that the whole product (and its thumbnails) fits on screen while it sticks. */
+  .product-stage{height:clamp(360px,calc(100dvh - 250px),720px)!important;min-height:0!important;max-width:none}
+}
+@media(min-width:769px) and (max-width:900px){
+  .product-media-column{top:88px}
+  .product-thumbnails{display:none}
+  .product-stage{height:clamp(340px,calc(100dvh - 140px),620px)!important}
+}
