@@ -419,10 +419,10 @@
   // Keyed by the card label slug; names match the CDASH wellness products.
   const wellnessVisuals = {
     'ecs-3.5': 'assets/webp/wellness/ec-3-5.webp',
-    'ecs-7.5': 'assets/webp/wellness/ec-7-5.webp',
+    'ecs-7.5': 'assets/webp/products/wellness-cbd-ecs-7-5-cannabinoid-nutrition.webp',
     'ecs-30': 'assets/webp/wellness/ec-30.webp',
-    'pain-relax': 'assets/webp/wellness/pain-relax.webp',
-    'happy-pet': 'assets/webp/wellness/happy-pet.webp'
+    'pain-relax': 'assets/webp/products/wellness-cbd-pain-relax-cannabinoid-nutrition.webp',
+    'happy-pet': 'assets/webp/products/wellness-cbd-happy-pet-cannabinoid-nutrition.webp'
   };
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

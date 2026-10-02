@@ -1847,6 +1847,7 @@ h1,h2,h3{
 
 /* MORE shelves with a real pack shot: the photo stands on its own, no placeholder. */
 .product-card.photo-card .pack{
+  /* Sized like the flower cards' pack (below), so a photo gets the same room. */
   background:none;
   border:none;
   border-radius:0;
@@ -1868,6 +1869,9 @@ h1,h2,h3{
 }
 .product-card.photo-card .product-meta strong{display:block;white-space:normal;line-height:1.08}
 .product-card.photo-card .product-action{opacity:.76}
+.product-card.photo-card .pack{width:135px;height:170px}
+@media (max-width:900px){.product-card.photo-card .pack{width:82px;height:108px}}
+@media (max-width:480px){.product-card.photo-card .pack{width:74px;height:98px}}
 
 /* Gentle atmospheric motion instead of noticeable bobbing. */
 .product-dock.five-up::before,
