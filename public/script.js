@@ -495,6 +495,8 @@
       card.classList.toggle('flower-card', isFlower || isWellness);
       card.classList.toggle('preroll-card', isPrerolls);
       card.classList.toggle('wellness-card', isWellness);
+      // A real pack shot on a MORE shelf: no glass placeholder behind it.
+      card.classList.toggle('photo-card', !isFlower && !isPrerolls && !isWellness && Boolean(item[3]));
       if (isWellness) {
         const src = wellnessVisuals[tierSlug];
         pack.innerHTML = src ? `<img class="pack-figure" src="${src}" alt="${item[1]} wellness product" width="520" height="780" decoding="async">` : '<span>DLC</span>';
