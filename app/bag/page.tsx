@@ -187,7 +187,7 @@ function CheckoutForm() {
     <div className="sf">
       <StoreHeader bagCount={itemCount} current="bag" />
       <main className="sf-main" id="main-content">
-        <nav className="sf-crumbs" aria-label="Breadcrumb"><a href="/index.html#experience">LOUNGE</a><span>/</span><strong>BAG &amp; REVIEW</strong></nav>
+        <nav className="sf-crumbs" aria-label="Breadcrumb"><a href="/index.html?home=1">LOUNGE</a><span>/</span><strong>BAG &amp; REVIEW</strong></nav>
         <section className="sf-hero">
           <div>
             <p className="sf-kicker">DLC MEMBERS / REVIEW &amp; REQUEST</p>

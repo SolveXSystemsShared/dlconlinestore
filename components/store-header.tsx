@@ -37,7 +37,7 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
 
   const count = bagCount ?? fetched ?? 0
   const links = <>
-    <a href="/index.html#experience">LOUNGE</a>
+    <a href="/index.html?home=1">LOUNGE</a>
     <a href="/strains.html?category=flower">FLOWER</a>
     <a href="/strains.html?category=prerolls">PREROLLS</a>
     <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>

@@ -292,13 +292,13 @@
     <img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/>
   </a>
   <nav class="nav-links" aria-label="Primary navigation">
-    <a href="index.html#experience" data-analytics="lounge_nav_click">LOUNGE</a><a href="strains.html">SHOP ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+    <a href="index.html?home=1" data-analytics="lounge_nav_click">LOUNGE</a><a href="strains.html">SHOP ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
   </nav>
   <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
 </header>
 <main class="strains-shell" id="main-content">
   <nav class="strains-breadcrumbs breadcrumbs" aria-label="Breadcrumb">
-    <a href="index.html#experience" id="backLink">← LOUNGE</a><span class="sep">/</span><a href="strains.html?category=flower" id="crumbCategory">FLOWER</a><span class="sep">/</span><span class="current" id="crumbTier">…</span>
+    <a href="index.html?home=1" id="backLink">← LOUNGE</a><span class="sep">/</span><a href="strains.html?category=flower" id="crumbCategory">FLOWER</a><span class="sep">/</span><span class="current" id="crumbTier">…</span>
   </nav>
 
   <section class="shop-hero">
@@ -406,11 +406,6 @@
   window.addEventListener('pageshow', () => {
     document.documentElement.classList.remove('product-leaving');
     document.querySelectorAll('.strain-card.is-product-source').forEach(card => card.classList.remove('is-product-source'));
-  });
-
-  document.getElementById('backLink').addEventListener('click', () => {
-    sessionStorage.setItem('dlcLoungeState', JSON.stringify({ category: category === 'more' || isAll ? 'flower' : category, scrollY: 0, savedAt: Date.now() }));
-    sessionStorage.setItem('dlcReturnToLounge', '1');
   });
 
   const collectionHref = (dest) => dest === 'all' ? 'strains.html' : dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest, sharedTier);

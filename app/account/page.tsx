@@ -171,7 +171,7 @@ export default function AccountPage() {
   return <div className="sf">
     <StoreHeader bagCount={bagCount} current="account" />
     <main className="sf-main" id="main-content">
-      <nav className="sf-crumbs" aria-label="Breadcrumb"><a href="/index.html#experience">LOUNGE</a><span>/</span><strong>ACCOUNT</strong></nav>
+      <nav className="sf-crumbs" aria-label="Breadcrumb"><a href="/index.html?home=1">LOUNGE</a><span>/</span><strong>ACCOUNT</strong></nav>
       <section className="sf-hero">
         <div>
           <p className="sf-kicker">DLC MEMBER{profile?.source === "staff" ? ` · STAFF · ${profile.role ?? ""}` : ""}</p>

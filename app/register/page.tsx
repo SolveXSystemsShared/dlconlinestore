@@ -86,7 +86,7 @@ export default function RegisterPage() {
   return <div className="sf">
     <StoreHeader />
     <main className="sf-main" id="main-content">
-      <nav className="sf-crumbs" aria-label="Breadcrumb"><a href="/index.html#experience">LOUNGE</a><span>/</span><strong>BECOME A MEMBER</strong></nav>
+      <nav className="sf-crumbs" aria-label="Breadcrumb"><a href="/index.html?home=1">LOUNGE</a><span>/</span><strong>BECOME A MEMBER</strong></nav>
       <section className="sf-hero">
         <div>
           <p className="sf-kicker">DLC MEMBERSHIP · 18+ ONLY</p>
