@@ -12,8 +12,8 @@
  * request. A request carrying an older version is refused with a prompt to
  * review the new terms.
  */
-export const TERMS_VERSION = "2026-09-29"
-export const PRIVACY_VERSION = "2026-09-29"
+export const TERMS_VERSION = "2026-10-05"
+export const PRIVACY_VERSION = "2026-10-05"
 
 export type AcceptanceContext = "registration" | "exchange_request"
 
@@ -23,4 +23,4 @@ export const REGISTRATION_STATEMENT =
 
 /** Shown next to the bag checkbox and stored verbatim on acceptance. */
 export const EXCHANGE_REQUEST_STATEMENT =
-  "I have reviewed my bag and accept the Terms & Conditions. I understand this is a request that the DLC team confirms and settles with me at hand-over."
+  "I have reviewed my bag and accept the Terms & Conditions. I understand I settle this exchange by card now, and that if the DLC team cannot complete it the full settlement is returned to my card."

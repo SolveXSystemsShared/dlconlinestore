@@ -72,9 +72,42 @@ values
 The service-role key is server-only. It must never be used in client components or
 exposed as a `NEXT_PUBLIC_*` variable.
 
-## WhatsApp and payments
+## Card settlement (Paystack)
+
+Every online exchange request is settled by card through Paystack before the
+team prepares it. The store never decides what is owed and never marks anything
+settled itself — CDASH does both. The flow (`lib/settlement.ts`):
+
+1. **Review & request** creates the CDASH exchange PENDING, as before, then asks
+   CDASH what it owes on card (`POST /api/store/exchanges/:id/settle`
+   `{action:"quote"}` — binding, unlike the bag preview) and opens a Paystack
+   checkout for exactly that. The member goes straight to Paystack.
+2. Paystack returns the member to `/exchange/:id?reference=…` and also calls
+   `/api/webhooks/paystack`. Either one settles; both are safe together.
+3. The store verifies the payment with Paystack and asks CDASH to settle.
+   CDASH verifies it with Paystack again, deducts the stock and awards points.
+4. If CDASH refuses for good (stock gone, order already resolved, amount moved)
+   the payment is returned to the card automatically. An outage is retried, not
+   refunded.
+
+Every checkout is a row in `online_payment_attempts`. **A row in `paid` or
+`refunding` for more than a few minutes is money taken with no outcome** — look
+at `last_error` and resolve it by hand:
+
+```sql
+select reference, order_id, status, amount_cents, last_error, updated_at
+from online_payment_attempts where status in ('paid', 'refunding') order by updated_at;
+```
+
+Setup: apply `20261005120000_paystack_settlement.sql`; set `PAYSTACK_SECRET_KEY`
+here **and** in CDASH; deploy the CDASH `/api/store/exchanges/:id/settle` route;
+set the Paystack webhook URL. Test with Paystack test keys and card
+4084 0840 8408 4081.
+
+DLC Credits are not spendable online: CDASH settles online exchanges at the card
+rate with no redemption. Members spend credits in the lounge.
+
+## WhatsApp
 
 WhatsApp should send customers to this checkout first. A Meta WhatsApp Cloud API
 webhook can later create the same `online_orders` records using `channel = 'whatsapp'`.
-Payment-provider webhooks should verify the provider signature and then call
-`/api/webhooks/payment`; the database finalization function is idempotent.

@@ -23,7 +23,7 @@ from pathlib import Path
 
 PUBLIC = Path(__file__).resolve().parent.parent / "public"
 SITE = "https://dlconlinestore-8qpm.vercel.app"
-UPDATED = "29 September 2026"
+UPDATED = "5 October 2026"
 
 # Versions come from lib/legal.ts — the same values the server records when a
 # member accepts — so the page and the evidence can never disagree.
@@ -173,6 +173,7 @@ PRIVACY = [
 <ul>
 <li>our membership and exchange system (CDASH) and its database host;</li>
 <li>our website hosting provider;</li>
+<li>our card settlement provider (Paystack), which receives your email address, your exchange number and the credits being settled, and collects your card details directly — DLC never sees your card number;</li>
 <li>any messaging service we use to notify staff of new registrations or requests;</li>
 <li>professional advisers such as auditors and attorneys, under a duty of confidentiality.</li>
 </ul>
@@ -252,12 +253,12 @@ TERMS = [
 
     ("requests", "5. How exchange requests work", """
 <ol>
-<li><strong>Review.</strong> Before you send a request you can see everything in your bag, change quantities, remove products, correct your details and see the credits for settling in cash and by card (ECTA section 43(2)). You can leave at any point without sending anything.</li>
-<li><strong>Request.</strong> Sending an exchange request asks DLC to prepare the products for you. It is not yet a completed exchange. We may decline a request — for example if stock has run out, your membership is not active, or the law requires it — and we will tell you if we do.</li>
-<li><strong>Confirmation.</strong> The DLC team confirms your request and the final credits with you, usually by message to the number you gave.</li>
-<li><strong>Hand-over and settlement.</strong> Nothing is settled online. The exchange is completed and settled with you in person at hand-over, in cash or by card. Your member discount depends on how you settle, which is why your bag shows both figures. DLC Credits may be applied within the programme’s limits shown in your bag, and points are earned on the amount actually settled.</li>
+<li><strong>Review.</strong> Before you send a request you can see everything in your bag, change quantities, remove products, correct your details and see the credits to settle by card (ECTA section 43(2)). You can leave at any point without sending anything.</li>
+<li><strong>Settlement.</strong> Every online exchange request is settled by card when you send it, on the secure page of our card settlement provider, Paystack. Your card details go to Paystack and are never seen or stored by DLC. Online exchanges are settled at your member card discount; DLC Credits and the cash discount apply in the lounge only. Points are earned on the amount actually settled.</li>
+<li><strong>Request.</strong> Once settled, your request goes to the DLC team to prepare. We may decline a request — for example if stock has run out, your membership is not active, or the law requires it. If we do, we tell you and return the full settlement to your card.</li>
+<li><strong>Hand-over.</strong> The team messages you on the number you gave when your request is ready to collect. Nothing is settled at hand-over.</li>
 </ol>
-<p>You may cancel a request at no cost at any time before hand-over by contacting us.</p>"""),
+<p>You may cancel a request at no cost at any time before the team has prepared it by contacting us, and we will return the full settlement to your card. Returns to a card can take a few working days to show, depending on your bank.</p>"""),
 
     ("handover", "6. Hand-over, delivery and collection", """
 <ul>

@@ -7,13 +7,16 @@ import { lookupMember } from "@/lib/members"
 import { collectionRecord, getCollectionPoint, getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, createOnlineOrder, fetchQuote } from "@/lib/cdash"
 import { resolveOrderLines } from "@/lib/order-lines"
+import { PaystackError } from "@/lib/paystack"
+import { SettlementError, settlementReturnUrl, startSettlement } from "@/lib/settlement"
 import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptance, staleTermsMessage } from "@/lib/acceptance"
 
 const input = z.object({
   memberId: z.string().min(4).max(40),
   phone: z.string().min(7).max(30),
+  // Paystack sends its card receipt here; it is not stored by the store.
+  email: z.string().email().max(200),
   customerNotes: z.string().max(1000).optional().default(""),
-  dlcCreditsRequested: z.number().min(0).max(100000).optional().default(0),
   items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().positive().max(100) })).min(1).max(50),
   ...acceptanceInput,
 })
@@ -91,14 +94,15 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Places an order.
+ * Places an order and opens its card settlement.
  *
- * The store no longer prices, charges or moves stock. It asks CDASH what the
+ * The store does not price, settle or move stock. It asks CDASH what the
  * basket costs, creates the order in CDASH — where it lands PENDING, with no
  * stock moved and nothing earned, because §7 step 4 earns on "the net amount
- * actually paid" and an unsettled order has no such amount — and then keeps its
- * own row as the DELIVERY record, pointing at the CDASH exchange that owns the
- * money.
+ * actually paid" and an unsettled order has no such amount — keeps its own row
+ * as the COLLECTION record, and then opens a Paystack checkout for the amount
+ * CDASH says the exchange owes on card. CDASH settles it once the payment is
+ * confirmed (lib/settlement.ts).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -142,7 +146,9 @@ export async function POST(request: NextRequest) {
     // runs, so the figure the shopper sees is the figure they will be asked for.
     const quote = await fetchQuote({
       memberId: member.memberId,
-      dlcCreditsRequested: body.dlcCreditsRequested,
+      // DLC Credits are not spendable on an online settlement — CDASH settles
+      // these at the card rate with no redemption — so none are quoted.
+      dlcCreditsRequested: 0,
       lines: lines.map((line) => ({ type: line.productType, grade: line.grade, quantity: line.quantity, value: line.lineTotal })),
     })
 
@@ -205,12 +211,20 @@ export async function POST(request: NextRequest) {
     // order that CDASH has already accepted.
     if (lineError) console.error("Collection manifest could not be written for order", order.id, lineError)
 
+    // Every request is settled by card before the team prepares it. If the
+    // checkout cannot be opened now, the request still exists and its page
+    // offers settlement again — nothing is lost by failing here.
+    let settlement: { authorizationUrl: string; amountDue: number } | null = null
+    try {
+      settlement = await startSettlement({ ...order, exchange_id: String(exchange.id), member_id: member.memberId }, { email: body.email, callbackUrl: settlementReturnUrl(request.url, order.id) })
+    } catch (error) {
+      if (!(error instanceof SettlementError || error instanceof PaystackError || error instanceof CdashError)) throw error
+      console.error("Settlement could not be opened for order", order.id, error.message)
+    }
+
     return NextResponse.json({
-      order: {
-        ...order,
-        exchangeId: exchange.id,
-        quote: { card: quote.card, cash: quote.cash, tier: quote.tier, credits: quote.credits, authoritative: quote.authoritative },
-      },
+      order: { ...order, exchangeId: exchange.id },
+      settlement,
     }, { status: 201 })
   } catch (error) {
     if (error instanceof AcceptanceNotRecorded) {
