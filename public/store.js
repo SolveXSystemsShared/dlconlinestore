@@ -113,9 +113,12 @@
     'wellness-cbd-pain-relax-cannabinoid-nutrition',
   ]);
 
-  /** A real product photo when CDASH has one, else our pack shot, else the closest DLC artwork, else null. */
-  function imageFor(product) {
-    if (product.imageUrl) return product.imageUrl;
+  // Bumped when artwork was swapped while browsers still kept images for a
+  // week, so those stored copies are skipped. Keep in step with ART_VERSION in
+  // lib/storefront.ts and script.js.
+  const ART_VERSION = '2026-10-05';
+
+  function artFor(product) {
     if (PRODUCT_ART.has(product.slug)) return `assets/webp/products/${product.slug}.webp`;
     if (/moonstick/.test(fold(product.productType)) && /indoor/.test(fold(product.grade))) return 'assets/webp/moonsticks/indoor.webp';
     const { category, tier } = classify(product);
@@ -124,6 +127,13 @@
     if (category === 'prerolls') return PREROLL_ART[key] || `assets/webp/preroll-tiers/${tier}.webp`;
     if (category === 'wellness') return WELLNESS_ART.find(([pattern]) => pattern.test(key))?.[1] || null;
     return null;
+  }
+
+  /** A real product photo when CDASH has one, else our pack shot, else the closest DLC artwork, else null. */
+  function imageFor(product) {
+    if (product.imageUrl) return product.imageUrl;
+    const art = artFor(product);
+    return art ? `${art}?v=${ART_VERSION}` : null;
   }
 
   // DLC amounts are credits, never currency. Keep in step with credits() in lib/format.ts.

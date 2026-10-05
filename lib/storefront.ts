@@ -104,8 +104,12 @@ const PRODUCT_ART = new Set([
   "wellness-cbd-pain-relax-cannabinoid-nutrition",
 ])
 
-export function imageFor(product: Placeable & Pick<CatalogProduct, "name" | "imageUrl">): string | null {
-  if (product.imageUrl) return product.imageUrl
+// Bumped when artwork was swapped while browsers still kept images for a
+// week, so those stored copies are skipped. Keep in step with ART_VERSION in
+// public/store.js and public/script.js.
+const ART_VERSION = "2026-10-05"
+
+function artFor(product: Placeable & Pick<CatalogProduct, "name">): string | null {
   if (product.slug && PRODUCT_ART.has(product.slug)) return `/assets/webp/products/${product.slug}.webp`
   if (/moonstick/.test(fold(product.productType)) && /indoor/.test(fold(product.grade))) return "/assets/webp/moonsticks/indoor.webp"
   const { category, tier } = classify(product)
@@ -114,6 +118,12 @@ export function imageFor(product: Placeable & Pick<CatalogProduct, "name" | "ima
   if (category === "prerolls") return PREROLL_ART[key] ?? `/assets/webp/preroll-tiers/${tier}.webp`
   if (category === "wellness") return WELLNESS_ART.find(([pattern]) => pattern.test(key))?.[1] ?? null
   return null
+}
+
+export function imageFor(product: Placeable & Pick<CatalogProduct, "name" | "imageUrl">): string | null {
+  if (product.imageUrl) return product.imageUrl
+  const art = artFor(product)
+  return art ? `${art}?v=${ART_VERSION}` : null
 }
 
 export function productUrl(product: Placeable & Pick<CatalogProduct, "id">) {
