@@ -11,10 +11,10 @@ const nextConfig = {
       { source: "/order/:id", destination: "/exchange/:id", permanent: true },
     ]
   },
-  // Slow connections: artwork and the lounge video — nearly all of the bytes —
-  // are downloaded once and kept for a week. The storefront's scripts and
-  // styles are revalidated on every load (a tiny 304 when unchanged) so a
-  // deploy never pairs new pages with old scripts.
+  // Slow connections: the lounge video — most of the bytes — is downloaded
+  // once and kept for a week. Artwork, scripts and styles are revalidated on
+  // every load (a tiny 304 when unchanged) so a deploy never shows old
+  // pictures or pairs new pages with old scripts.
   async headers() {
     // Content-Security-Policy only in production: the dev server needs eval and
     // a websocket for hot reload. The storefront pages use inline scripts, so
@@ -48,7 +48,10 @@ const nextConfig = {
       { source: "/:path*", headers: security },
       { source: "/api/:path*", headers: noStore },
       { source: "/exchange/:path*", headers: noStore },
-      { source: "/assets/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+      // Artwork is swapped in place under the same file name, so the browser
+      // checks for a newer copy on every load (a tiny 304 when unchanged).
+      { source: "/assets/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }] },
+      { source: "/assets/:file(.*\\.mp4)", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
       { source: "/:file((?!api/|_next/).*\\.(?:js|css))", headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }] },
     ]
   },
