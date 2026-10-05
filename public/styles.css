@@ -3369,3 +3369,43 @@ html.lounge-row-visible{--float-lift:78px}
   .product-thumbnails{display:none}
   .product-stage{height:clamp(340px,calc(100dvh - 140px),620px)!important}
 }
+
+/* Landing tier names sit on the product page's cloud (assets/cloud-back.webp)
+   instead of a white pill. The box keeps the artwork's 7:3 shape so the cloud
+   is never stretched; long names wrap onto two lines inside it. */
+.product-card.flower-card .product-meta,
+.product-card.preroll-card .product-meta{
+  width:clamp(132px,12.5vw,178px)!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:7/3;
+  margin:2px auto 0!important;
+  padding:12% 13% 3%!important;
+  display:grid!important;
+  place-items:center!important;
+  background:url("assets/cloud-back.webp") center/100% 100% no-repeat!important;
+  border:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  filter:drop-shadow(0 10px 16px rgba(8,24,80,.28));
+  white-space:normal!important;
+}
+.product-card.flower-card .product-meta strong,
+.product-card.preroll-card .product-meta strong{
+  color:#1f5fe0!important;
+  font-weight:700!important;
+  font-size:clamp(12px,1.05vw,15px)!important;
+  line-height:1.05!important;
+  letter-spacing:-.01em!important;
+  text-align:center!important;
+  white-space:normal!important;
+  text-wrap:balance;
+}
+@media (max-width:900px){
+  .product-card.flower-card .product-meta,
+  .product-card.preroll-card .product-meta{width:min(27vw,118px)!important;margin-top:2px!important}
+  .product-card.flower-card .product-meta strong,
+  .product-card.preroll-card .product-meta strong{font-size:clamp(8px,2.4vw,11px)!important}
+}
