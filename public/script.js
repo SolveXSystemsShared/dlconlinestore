@@ -246,8 +246,9 @@
   }
 
   // Scroll-driven category sequence inside the lounge. The video keeps its original
-  // perceived scrub distance; the additional page height is used for Flower →
-  // Prerolls → Wellness before the sticky lounge releases into the next content.
+  // perceived scrub distance; the additional page height walks the category row
+  // left to right (Flower → Prerolls → … → Wellness) before the sticky lounge
+  // releases into the next content.
   let scrollDrivenCategory = null;
   // The three the lounge scroll moves through; every other CDASH category is
   // filled from the live catalogue and shown on demand.
