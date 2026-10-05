@@ -532,8 +532,8 @@
         : `<div class="strain-pack dlc-cloud-stage placeholder"><span>DLC</span></div>`;
       const low = product.availableQuantity <= 3;
       // Until the catalogue says which tier has stock, speak about the category.
-    const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
-    const shelf = isAll ? (S.TIERS.find(t => t.slug === place.tier)?.label || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
+      const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
+      const shelf = isAll ? (S.TIERS.find(t => t.slug === place.tier)?.label || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
       const cardLabel = isAll ? CATEGORY_LABEL[place.category] : categoryName.toUpperCase();
       card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${cardLabel}${shelf && shelf !== cardLabel ? ` / ${escapeHtml(shelf)}` : ''}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
@@ -590,7 +590,9 @@
         tierName = S.TIERS.find(t => t.slug === tier).label;
         history.replaceState(null, '', S.collectionUrl(category, tier));
       }
-    } else if (category === 'more' && !tierPending) {
+    } else if (category === 'more') {
+      // One shelf per product type with stock; none are empty, so the page
+      // never offers a blank shelf. No shelf in the URL yet: open the first.
       const byType = new Map();
       inCategory.forEach(p => {
         const slug = S.classify(p).tier;
@@ -599,7 +601,10 @@
         byType.set(slug, entry);
       });
       shelves = [...byType.values()].sort((a, b) => a.label.localeCompare(b.label));
-      if (!shelves.some(s => s.slug === tier)) tier = shelves[0]?.slug || '';
+      if (!shelves.some(s => s.slug === tier)) {
+        tier = shelves[0]?.slug || '';
+        if (tier) history.replaceState(null, '', S.collectionUrl(category, tier));
+      }
       tierName = shelves.find(s => s.slug === tier)?.label || 'Products';
     }
     if (shelves.length) paintShelves(shelves);
