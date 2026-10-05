@@ -3383,6 +3383,9 @@ html.lounge-row-visible{--float-lift:78px}
   padding:12% 13% 3%!important;
   display:grid!important;
   place-items:center!important;
+  /* Always shown, like the Flower names: no hover needed in any category. */
+  opacity:1!important;
+  transform:none!important;
   background:url("assets/cloud-back.webp") center/100% 100% no-repeat!important;
   border:none!important;
   border-radius:0!important;
