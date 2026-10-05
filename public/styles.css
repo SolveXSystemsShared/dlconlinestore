@@ -3370,11 +3370,11 @@ html.lounge-row-visible{--float-lift:78px}
   .product-stage{height:clamp(340px,calc(100dvh - 140px),620px)!important}
 }
 
-/* Landing tier names sit on the product page's cloud (assets/cloud-back.webp)
-   instead of a white pill. The box keeps the artwork's 7:3 shape so the cloud
-   is never stretched; long names wrap onto two lines inside it. */
-.product-card.flower-card .product-meta,
-.product-card.preroll-card .product-meta{
+/* Every landing card's name sits on the product page's cloud
+   (assets/cloud-back.webp) instead of a pill or dark label: Flower, Prerolls,
+   Wellness and every other category alike. The box keeps the artwork's 7:3
+   shape so the cloud is never stretched; long names wrap onto two lines. */
+.product-dock .product-card .product-meta{
   width:clamp(132px,12.5vw,178px)!important;
   height:auto!important;
   min-height:0!important;
@@ -3392,8 +3392,14 @@ html.lounge-row-visible{--float-lift:78px}
   filter:drop-shadow(0 10px 16px rgba(8,24,80,.28));
   white-space:normal!important;
 }
-.product-card.flower-card .product-meta strong,
-.product-card.preroll-card .product-meta strong{
+.product-dock .product-card .product-type,
+.product-dock .product-card .product-action{display:none!important}
+.product-dock .product-card .product-meta strong{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  min-height:0!important;
   color:#1f5fe0!important;
   font-weight:700!important;
   font-size:clamp(12px,1.05vw,15px)!important;
@@ -3404,8 +3410,15 @@ html.lounge-row-visible{--float-lift:78px}
   text-wrap:balance;
 }
 @media (max-width:900px){
-  .product-card.flower-card .product-meta,
-  .product-card.preroll-card .product-meta{width:min(27vw,118px)!important;margin-top:2px!important}
-  .product-card.flower-card .product-meta strong,
-  .product-card.preroll-card .product-meta strong{font-size:clamp(8px,2.4vw,11px)!important}
+  .product-dock .product-card .product-meta{width:min(27vw,118px)!important;margin-top:2px!important}
+  .product-dock .product-card .product-meta strong{font-size:clamp(8px,2.4vw,11px)!important}
+}
+/* Phones: the three-card rows (categories with a few products) overlapped
+   their cards; with every name now on a cloud, space them evenly instead. */
+@media (max-width:640px){
+  .product-dock.three-up .product-card{width:31%!important}
+  .product-dock.three-up .card-a{left:1%!important;right:auto!important}
+  .product-dock.three-up .card-b{left:34.5%!important;right:auto!important}
+  .product-dock.three-up .card-c{left:auto!important;right:1%!important}
+  .product-dock.three-up .product-card .product-meta{width:100%!important}
 }
