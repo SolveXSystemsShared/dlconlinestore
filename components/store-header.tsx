@@ -42,6 +42,8 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
     <a href="/strains.html?category=prerolls">PREROLLS</a>
     <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>
     <a href="/strains.html?category=more">MORE</a>
+    <a href="/packages.html">PACKAGES</a>
+    <a href="/specials.html">SPECIALS</a>
     <a href="/account" aria-current={current === "account" ? "page" : undefined}>ACCOUNT</a>
   </>
 

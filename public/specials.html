@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#41a8fc"/>
+<title>In-Store Specials | Down Low Cannabis</title>
+<meta name="description" content="Specials running at the DLC lounge right now, and what is available in store."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://dlconlinestore-8qpm.vercel.app/specials.html"/>
+<link rel="stylesheet" href="styles.css"/>
+<script src="cookies.js"></script>
+<script src="loading-lines.js"></script>
+<script src="age-gate.js"></script>
+<script src="store.js"></script>
+<script src="page-loader.js" data-context="page"></script>
+<link rel="icon" href="assets/dlc-logo.svg" type="image/svg+xml"/>
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png"/>
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+</head>
+<body class="legal-body lounge-info-page">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="nav">
+  <a class="brand" href="index.html?home=1" aria-label="Down Low Cannabis home"><img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/></a>
+  <nav class="nav-links" aria-label="Primary navigation"><a href="index.html?home=1">LOUNGE</a><a href="strains.html">SHOP ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="packages.html">PACKAGES</a><a href="specials.html" aria-current="page">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a></nav>
+  <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
+</header>
+
+<main id="main-content" class="lounge-info">
+  <section class="li-hero">
+    <div class="li-hero__text">
+      <p class="li-kicker">AT THE LOUNGE · MIDRAND</p>
+      <h1>In-store<br/>specials.</h1>
+      <p class="li-lead">What’s running at the counter right now. Specials are rung up in the lounge, so they can’t be added to your bag online — just ask the team on your visit.</p>
+      <p class="li-free"><i aria-hidden="true"></i><strong>IN STORE ONLY</strong>&nbsp;· live from the lounge, updated as the team changes them.</p>
+    </div>
+    <figure class="li-hero__art" aria-hidden="true"><img src="assets/dlc-mascot.png" alt="" width="605" height="863" decoding="async"/></figure>
+  </section>
+
+  <section class="li-section" aria-labelledby="bundleTitle" id="bundleSection">
+    <div class="li-section__head"><p class="li-kicker">MADE TO PAIR</p><h2 id="bundleTitle">Bundles</h2><p>A few favourites together, for one set amount of credits.</p></div>
+    <div class="li-cards li-cards--three" id="bundles" aria-busy="true"><p class="li-loading store-loading-line" role="status"></p></div>
+  </section>
+
+  <section class="li-section" aria-labelledby="offTitle" id="offSection" hidden>
+    <div class="li-section__head"><p class="li-kicker">CREDITS OFF</p><h2 id="offTitle">Specials on the shelf</h2><p>Credits off selected products when you exchange them at the counter.</p></div>
+    <div class="li-cards li-cards--three" id="singles"></div>
+  </section>
+
+  <section class="li-section li-split" aria-labelledby="alsoTitle">
+    <div class="li-section__head"><p class="li-kicker">ALSO IN STORE</p><h2 id="alsoTitle">In the lounge</h2><p>Settled at the counter, on the day.</p></div>
+    <ul class="li-chips" id="extras"></ul>
+  </section>
+
+  <section class="li-cta">
+    <h2>Make it a membership.</h2>
+    <p>Members take credits off every exchange, earn points and get PlayStation time — on top of the specials.</p>
+    <div class="li-cta__actions"><a class="li-btn li-btn--solid" href="packages.html">SEE LOUNGE PACKAGES</a><a class="li-btn" href="strains.html">BROWSE THE SHELF</a></div>
+    <p class="li-note">Specials run while stock lasts and can change without notice. What the counter shows on the day is what applies.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__brand"><img src="assets/dlc-logo.svg" alt="" width="52" height="52" loading="lazy"/><span>DOWN LOW CANNABIS</span></div>
+  <nav aria-label="Legal"><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <p>18+ · Halfway House, Midrand</p>
+</footer>
+<script>
+(() => {
+  const S = window.DLCStore;
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  window.DLCLoadingLines?.rotate(document.querySelector('.li-loading'), 'lounge');
+
+  // "Pre-rolls / Outdoor / any strain" → "Outdoor preroll"; a named product keeps its name.
+  function lineText(l) {
+    const type = l.productType.replace(/^pre-?rolls?$/i, 'preroll').replace(/s$/i, '').toLowerCase();
+    if (l.name) return `${esc(l.name)} <small>${esc(l.productType.toLowerCase())}</small>`;
+    return `${l.grade ? `${esc(l.grade)} ` : 'Any '}${esc(type)}${l.grade ? ' <small>any strain</small>' : ''}`;
+  }
+
+  function card(sp) {
+    const amount = sp.credits != null
+      ? `<p class="li-card__credits"><strong>${S.price(sp.credits)}</strong></p>`
+      : sp.percentOff != null ? `<p class="li-card__credits"><strong>${sp.percentOff}% off</strong></p>` : '';
+    const tags = [sp.kind === 'bundle' ? 'BUNDLE' : 'SPECIAL', sp.cashOnly ? 'SETTLE IN CASH' : null].filter(Boolean)
+      .map((t, i) => `<span class="li-tag${i ? ' li-tag--cash' : ''}">${t}</span>`).join('');
+    // The team's own description says what a bundle is ("1 Stoned Gummy in
+    // Jar"); the item list alone can mislead, because a bundle may list every
+    // flavour on offer rather than everything you get. So: description first;
+    // named items of one type become "pick a flavour"; otherwise the items.
+    const sameType = sp.lines.length > 1 && sp.lines.every(l => l.name && l.productType === sp.lines[0].productType && l.quantity === 1);
+    let body = '';
+    if (sp.kind === 'bundle' && sp.description) {
+      body = `<p class="li-card__desc">${esc(sp.description)}</p>`;
+      if (sameType) body += `<p class="li-card__flavours"><span>CHOOSE FROM</span>${sp.lines.map(l => `<em>${esc(l.name)}</em>`).join('')}</p>`;
+    } else if (sameType) {
+      body = `<p class="li-card__flavours"><span>CHOOSE FROM</span>${sp.lines.map(l => `<em>${esc(l.name)}</em>`).join('')}</p>`;
+    } else if (sp.lines.length) {
+      body = `<ul class="li-perks li-perks--items">${sp.lines.map(l => `<li><b>${l.quantity}×</b> ${lineText(l)}</li>`).join('')}</ul>`;
+    }
+    if (sp.cashOnly) body += `<p class="li-card__note">${sp.percentOff != null ? `${sp.percentOff}% off` : 'This special'} applies when the exchange is settled in cash. Settled by card, the usual credits apply.</p>`;
+    return `<article class="li-card"><div class="li-tags">${tags}</div><h3>${esc(sp.name)}</h3>${amount}${body}</article>`;
+  }
+
+  S.api('/api/specials').then(({ specials }) => {
+    const bundles = specials.filter(s => s.kind === 'bundle');
+    const singles = specials.filter(s => s.kind !== 'bundle');
+    const bundlesEl = document.getElementById('bundles');
+    bundlesEl.removeAttribute('aria-busy');
+    // Sections with nothing in them are hidden, never left blank.
+    if (bundles.length) bundlesEl.innerHTML = bundles.map(card).join('');
+    else if (singles.length) document.getElementById('bundleSection').hidden = true;
+    else bundlesEl.innerHTML = '<p class="li-empty">No specials are running right now. New ones land at the counter often — check back soon.</p>';
+    if (singles.length) {
+      document.getElementById('singles').innerHTML = singles.map(card).join('');
+      document.getElementById('offSection').hidden = false;
+    }
+  }).catch(() => {
+    const el = document.getElementById('bundles');
+    el.removeAttribute('aria-busy');
+    el.innerHTML = '<p class="li-error">The specials could not be loaded just now. <a href="specials.html">Try again</a>, or ask the team at the lounge.</p>';
+  });
+
+  S.api('/api/lounge').then(info => {
+    const items = [];
+    const day = info.packages.find(p => p.kind === 'day_pass');
+    if (day) items.push([`${day.name} — lounge access`, S.price(day.credits)]);
+    if (info.freeAccess.enabled) items.push([`Lounge access with an exchange over ${S.price(info.freeAccess.minSpend)}`, 'FREE']);
+    info.playstation.extraTime.forEach(t => items.push([`PlayStation · ${t.label}`, S.price(t.credits)]));
+    document.getElementById('extras').innerHTML = items.map(([label, value]) => `<li><span>${esc(label)}</span><strong>${esc(value)}</strong></li>`).join('')
+      + '<li><a href="packages.html"><span>Monthly memberships &amp; squads</span><strong>SEE ALL →</strong></a></li>';
+  }).catch(() => {
+    document.getElementById('extras').innerHTML = '<li><a href="packages.html"><span>Lounge packages</span><strong>SEE ALL →</strong></a></li>';
+  });
+})();
+</script>
+<script defer src="common.js"></script>
+<script defer src="education.js"></script>
+</body>
+</html>

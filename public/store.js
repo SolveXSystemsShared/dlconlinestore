@@ -342,6 +342,6 @@
 
   window.DLCStore = {
     TIERS, classify, tierForGrade, imageFor, price, productUrl, collectionUrl, slugify,
-    catalog, cart, setQuantity, addToCart, inCart, slowConnection,
+    catalog, cart, setQuantity, addToCart, inCart, slowConnection, api,
   };
 })();
