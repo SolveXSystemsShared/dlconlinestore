@@ -48,7 +48,7 @@
     greenhouse: { src: 'assets/webp/preroll-tiers/greenhouse.webp', alt: 'DLC Greenhouse preroll' },
     'executive-greenhouse': { src: 'assets/webp/preroll-tiers/executive-greenhouse.webp', alt: 'DLC Executive Greenhouse preroll' },
     indoor: { src: 'assets/webp/preroll-tiers/indoor.webp', alt: 'DLC Indoor preroll' },
-    hydro: { src: 'assets/webp/preroll-tiers/hydro.webp', alt: 'DLC Hydro preroll' }
+    hydro: { src: 'assets/webp/preroll-tiers/hydro.webp?v=2026-10-05', alt: 'DLC Hydro preroll' }
   };
 
   function saveLoungeState(category){
