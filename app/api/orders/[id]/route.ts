@@ -26,6 +26,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const { data: order } = await supabase.from("online_orders").select("id").eq("id", id).eq("member_id", access.memberId).maybeSingle()
   if (!order) return NextResponse.json({ error: "Exchange request not found" }, { status: 404 })
   const { error } = await supabase.rpc("cancel_online_order", { p_order_id: id, p_reason: "Cancelled by customer" })
-  if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+  if (error) {
+    console.error("Exchange request cancel failed", id, error)
+    return NextResponse.json({ error: "This exchange request can no longer be cancelled. Ask the team at the lounge if you need help." }, { status: 409 })
+  }
   return NextResponse.json({ ok: true, status: "cancelled" })
 }

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { AGE_COOKIE, createMemberAccessToken, getMemberAccess, MEMBER_COOKIE } from "@/lib/member-access"
+import { AGE_COOKIE, createMemberAccessToken, getMemberAccess, MEMBER_COOKIE, MEMBER_SESSION_SECONDS } from "@/lib/member-access"
 import { notifyStaff } from "@/lib/notify-staff"
 import { isPreviewMode } from "@/lib/preview"
 import { validateSaId } from "@/lib/sa-id"
+import { clientKey, lockedFor, recordFailure } from "@/lib/rate-limit"
 import {
   ageInYears,
   MEMBER_ID_COLUMN,
@@ -48,6 +49,14 @@ export async function POST(request: NextRequest) {
     // The 18+ confirmation still gates registration, exactly as it gates the store.
     const access = await getMemberAccess()
     if (!access.ageConfirmed) return NextResponse.json({ error: "Age confirmation is required first" }, { status: 403 })
+
+    // Every attempt counts, not just failures: the duplicate checks below say
+    // whether a phone, email or ID is already a member, so unlimited tries
+    // would let a script test details against the member list.
+    const client = `register:${clientKey(request)}`
+    const wait = lockedFor(client)
+    if (wait) return NextResponse.json({ error: `Too many registration attempts. Please try again in ${wait} minute${wait === 1 ? "" : "s"}, or ask the team at the lounge.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
+    recordFailure(client)
 
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) {
@@ -196,7 +205,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     )
     if (memberNumber) {
-      response.cookies.set({ name: MEMBER_COOKIE, value: createMemberAccessToken(memberNumber), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 7, path: "/" })
+      response.cookies.set({ name: MEMBER_COOKIE, value: createMemberAccessToken(memberNumber), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: MEMBER_SESSION_SECONDS, path: "/" })
       response.cookies.set({ name: AGE_COOKIE, value: "1", httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" })
     }
     return response

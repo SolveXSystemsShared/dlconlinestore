@@ -218,7 +218,10 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof CdashError) {
       console.error("CDASH refused the order", error.status, error.message)
-      return NextResponse.json({ error: error.message }, { status: error.status >= 500 ? 502 : error.status })
+      // A refusal (4xx) is CDASH telling the member why, so it is passed on; a
+      // CDASH fault (5xx) may carry internals, so the member gets a plain line.
+      if (error.status >= 500) return NextResponse.json({ error: "Could not send your exchange request just now. Please try again shortly." }, { status: 502 })
+      return NextResponse.json({ error: error.message }, { status: error.status })
     }
     console.error("Order creation error", error)
     return NextResponse.json({ error: "Could not send your exchange request" }, { status: 500 })

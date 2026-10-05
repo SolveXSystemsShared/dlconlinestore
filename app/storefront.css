@@ -454,3 +454,13 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 }
 @media (prefers-reduced-motion: reduce) { .sf .sf-icon-btn, .sf .sf-icon-swap { transition: none; } }
 @media (max-width: 480px) { .sf .sf-age { display: none; } }
+
+/* 404 and error pages: the gate's sky, mascot and card, as a page rather than
+   an overlay on top of one. */
+.sfgate--error { position: relative; min-height: 100vh; min-height: 100dvh; z-index: 0; }
+.sfgate--error .sfgate__logo { margin-bottom: 26px; }
+.sfgate--error a.sfgate__btn { text-decoration: none; }
+.sfgate--error .sfgate__eyebrow { overflow-wrap: anywhere; }
+/* Phones: the bubble's width cap above was undone by the later
+   `max-width: 260px`, so it ran off the left edge (gate and error pages). */
+@media (max-width: 820px) { .sfgate__bubble { max-width: min(170px, 40vw); } }

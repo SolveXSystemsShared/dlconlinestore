@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Don't advertise the framework (X-Powered-By: Next.js) to scanners.
+  poweredByHeader: false,
   // The storefront (lounge, collections, product pages) is the static site in
   // public/. It talks to the same /api routes as the React pages, so `/` just
   // serves its lounge; checkout, account and registration stay in app/.
@@ -32,6 +34,9 @@ const nextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
+      "manifest-src 'self'",
+      "worker-src 'self'",
+      "upgrade-insecure-requests",
     ].join("; ")
     const security = [
       { key: "X-Content-Type-Options", value: "nosniff" },
@@ -39,6 +44,11 @@ const nextConfig = {
       { key: "X-Frame-Options", value: "DENY" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
       { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+      // No other site can open this one in a shared window, embed its files,
+      // or load it into a Flash/PDF cross-domain policy.
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+      { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
       ...(process.env.NODE_ENV === "production" ? [{ key: "Content-Security-Policy", value: csp }] : []),
     ]
     // Member data must never be stored by the browser's back button, a shared
