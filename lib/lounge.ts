@@ -45,6 +45,8 @@ export type LoungeInfo = {
     basketCapPercent: number
     visitBonus: { visits: number; points: number }
     referralPoints: number
+    /** Smallest exchange that counts as the friend's first one; 0 means any. */
+    referralMinExchange: number
   }
 }
 
@@ -68,6 +70,7 @@ const DEFAULT_INFO: Omit<LoungeInfo, "playstation"> & { playstation: Omit<Lounge
     basketCapPercent: 20,
     visitBonus: { visits: 5, points: 100 },
     referralPoints: 200,
+    referralMinExchange: 0,
   },
 }
 
@@ -154,6 +157,7 @@ export async function getLoungeInfo(): Promise<LoungeInfo> {
         points: Math.max(0, Math.round(num(c.visitBonus?.points, d.rewards.visitBonus.points))),
       },
       referralPoints: Math.max(0, Math.round(num(c.referral?.points, d.rewards.referralPoints))),
+      referralMinExchange: Math.max(0, num(c.referral?.qualifyingExchangeMinValue, d.rewards.referralMinExchange)),
     },
   }
   cache = { at: Date.now(), value }

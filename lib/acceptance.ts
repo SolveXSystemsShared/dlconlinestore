@@ -74,5 +74,5 @@ export async function linkAcceptance(id: string, links: { memberId?: string; onl
   if (links.exchangeId) update.exchange_id = links.exchangeId
   if (!Object.keys(update).length) return
   const { error } = await getSupabaseAdmin().from("online_legal_acceptances").update(update).eq("id", id)
-  if (error) console.error("Legal acceptance could not be linked — link by hand", id, update, error)
+  if (error) console.error("Legal acceptance could not be linked, link by hand", id, update, error)
 }

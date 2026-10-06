@@ -51,6 +51,8 @@ export default function AccountPage() {
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [ordersError, setOrdersError] = useState("")
   const [signingOut, setSigningOut] = useState(false)
+  const [referralCode, setReferralCode] = useState("")
+  const [codeCopied, setCodeCopied] = useState(false)
 
   // Keyed on length so removing the last item on a page steps back rather than
   // leaving an empty list behind.
@@ -60,6 +62,15 @@ export default function AccountPage() {
   const stockedItems = savedItems.filter((item) => item.inStock)
   const hiddenCount = savedItems.length - stockedItems.length
   const savedPages = usePagination(stockedItems, SAVED_PER_PAGE, `saved-${stockedItems.length}`)
+
+  // Staff accounts have no referral code, so nothing is shown for them.
+  useEffect(() => {
+    fetch("/api/referral").then((r) => r.ok ? r.json() : null).then((data) => { if (data?.code) setReferralCode(data.code) }).catch(() => {})
+  }, [])
+
+  async function copyReferralCode() {
+    try { await navigator.clipboard.writeText(referralCode); setCodeCopied(true); window.setTimeout(() => setCodeCopied(false), 2200) } catch { setCodeCopied(false) }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -179,7 +190,7 @@ export default function AccountPage() {
           <p className="sf-sub">Your membership details, where exchange requests go, your exchange history and what you have saved for later.</p>
         </div>
         <div className="sf-hero-stats">
-          <div className="sf-stat"><span>Member ID</span><strong>{profile?.memberId ?? "—"}</strong></div>
+          <div className="sf-stat"><span>Member ID</span><strong>{profile?.memberId ?? "…"}</strong></div>
           {profile?.memberSince && <div className="sf-stat"><span>Member since</span><strong>{new Date(profile.memberSince).getFullYear()}</strong></div>}
           <button type="button" className="sf-ghost sf-signout" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
         </div>
@@ -199,7 +210,7 @@ export default function AccountPage() {
         {error && <p className="sf-error" role="alert">{error}</p>}
 
         {tab === "profile" && <section className="sf-panel" role="tabpanel" id="panel-profile" aria-labelledby="tab-profile">
-          <div className="sf-panel-head"><h2>My details</h2>{profile?.editable && <span className="sf-badge sf-badge--good"><i />Synced with CDASH</span>}</div>
+          <div className="sf-panel-head"><h2>My details</h2>{profile?.editable && <span className="sf-badge sf-badge--good"><i />Saved to your membership</span>}</div>
           {profile?.editable ? <form onSubmit={saveProfile}>
             <div className="sf-details">
               <div className="sf-stat"><span>Name</span><strong style={{ fontSize: 16 }}>{profile.name}</strong></div>
@@ -212,12 +223,22 @@ export default function AccountPage() {
             </div>
             <div className="sf-field"><label htmlFor="residentialAddress">Residential address</label><textarea id="residentialAddress" name="residentialAddress" defaultValue={profile.residentialAddress ?? ""} required minLength={6} maxLength={500} /></div>
             <label className="sf-check"><input type="checkbox" name="marketingOptIn" defaultChecked={profile.marketingOptIn === true} /><span>Keep me posted on DLC drops, specials and member news.</span></label>
-            <p className="sf-hint">Your name, ID number and date of birth are on the membership application you signed, so the team updates those — ask any staff member. Everything else saves straight to CDASH.</p>
+            <p className="sf-hint">Your name, ID number and date of birth are on the membership application you signed, so the team updates those. Ask any staff member. Everything else saves to your membership record straight away.</p>
             <button className="sf-cta" disabled={busy}>{busy ? "Saving…" : "Save details"}</button>
           </form> : <>
-            <p className="sf-note">You are signed in on your CDASH staff record, so your details are managed with the team rather than here.</p>
-            <div className="sf-details"><div className="sf-stat"><span>Member ID</span><strong style={{ fontSize: 16 }}>{profile?.memberId}</strong></div><div className="sf-stat"><span>Role</span><strong style={{ fontSize: 16 }}>{profile?.role ?? "—"}</strong></div></div>
+            <p className="sf-note">You are signed in with a staff account, so your details are managed with the team rather than here.</p>
+            <div className="sf-details"><div className="sf-stat"><span>Member ID</span><strong style={{ fontSize: 16 }}>{profile?.memberId}</strong></div><div className="sf-stat"><span>Role</span><strong style={{ fontSize: 16 }}>{profile?.role ?? "Staff"}</strong></div></div>
           </>}
+        </section>}
+
+        {tab === "profile" && referralCode && <section className="sf-panel" aria-labelledby="referralHead">
+          <div className="sf-panel-head"><h2 id="referralHead">Refer a friend</h2></div>
+          <p className="sf-hint">Share your code. When a friend registers with it and completes their first exchange, you earn points.</p>
+          <div className="sf-refcode">
+            <strong aria-label={`Your referral code is ${referralCode}`}>{referralCode}</strong>
+            <button type="button" className="sf-ghost" onClick={copyReferralCode}>{codeCopied ? "Copied" : "Copy code"}</button>
+            <a className="sf-ghost" href="/referrals.html">How referrals work</a>
+          </div>
         </section>}
 
         {tab === "orders" && <section role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
@@ -272,7 +293,7 @@ export default function AccountPage() {
 
       <section className="sf-band" aria-label="Keep browsing">
         <div><span>DOWN LOW CANNABIS</span><h2>Keep it<br />down low.</h2></div>
-        <div><p>Back to the shelf — flower and prerolls by cultivation tier, the wellness range, and everything else.</p>
+        <div><p>Back to the shelf: flower and prerolls by cultivation tier, the wellness range and everything else.</p>
           <div className="sf-actions"><a href="/strains.html?category=flower">FLOWER</a><a href="/strains.html?category=prerolls">PREROLLS</a><a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a></div></div>
       </section>
     </main>

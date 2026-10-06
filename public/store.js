@@ -139,7 +139,8 @@
   }
 
   // DLC amounts are credits, never currency. Keep in step with credits() in lib/format.ts.
-  const price = value => `C ${Number(value || 0).toFixed(2)}`;
+  // A no-break space, so "C 79.99" never splits across two lines.
+  const price = value => `C\u00a0${Number(value || 0).toFixed(2)}`;
 
   function productUrl(product) {
     const { category, tier } = classify(product);

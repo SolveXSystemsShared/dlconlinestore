@@ -11,6 +11,8 @@ const nextConfig = {
     return [
       { source: "/checkout", destination: "/bag", permanent: true },
       { source: "/order/:id", destination: "/exchange/:id", permanent: true },
+      // The old full-menu page is no longer linked; the shelf pages replace it.
+      { source: "/menu", destination: "/strains.html", permanent: false },
     ]
   },
   // Slow connections: the lounge video — most of the bytes — is downloaded

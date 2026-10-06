@@ -30,15 +30,15 @@
   const shelf = (href, label) => ({ href, label });
 
   const FORMATS = {
-    flower: ['FLOWER', 'Dried cannabis flower, available loose by the gram. At DLC it is graded by how it was cultivated — see the tier guide.', shelf('strains.html?category=flower', 'Browse flower')],
+    flower: ['FLOWER', 'Dried cannabis flower, available loose by the gram. At DLC it is graded by how it was cultivated. See the tier guide.', shelf('strains.html?category=flower', 'Browse flower')],
     prerolls: ['PREROLLS', 'Cannabis flower already ground and rolled, ready to use. Graded by the same cultivation tiers as flower.', shelf('strains.html?category=prerolls', 'Browse prerolls')],
-    moonsticks: ['MOONSTICKS', 'A preroll boosted with concentrate — typically flower infused or coated with extract. Noticeably stronger than a standard preroll, so treat one as more than one.', shelf('strains.html?category=more&tier=moonsticks', 'Browse moonsticks')],
+    moonsticks: ['MOONSTICKS', 'A preroll boosted with concentrate, usually flower infused or coated with extract. Noticeably stronger than a standard preroll, so treat one as more than one.', shelf('strains.html?category=more&tier=moonsticks', 'Browse moonsticks')],
     shooters: ['SHOOTERS', 'A smaller-format DLC roll, listed by cultivation tier like flower. Ask the team for the current size.', shelf('strains.html?category=more&tier=shooters', 'Browse shooters')],
-    edibles: ['EDIBLES', 'Cannabis in food — gummies, chocolates, baked goods. Eaten cannabis is processed by the liver, so it takes longer to arrive and lasts longer than smoking.', shelf('strains.html?category=more&tier=edibles', 'Browse edibles')],
+    edibles: ['EDIBLES', 'Cannabis in food: gummies, chocolates, baked goods. Eaten cannabis is processed by the liver, so it takes longer to arrive and lasts longer than smoking.', shelf('strains.html?category=more&tier=edibles', 'Browse edibles')],
     vapes: ['VAPES', 'Cartridges of cannabis oil heated by a battery rather than burned. Carts need a compatible battery, found under accessories.', shelf('strains.html?category=more&tier=vapes', 'Browse vapes')],
-    concentrates: ['CONCENTRATES', 'Extracts that keep the cannabinoids and terpenes and leave most of the plant behind. Much stronger per gram than flower — see the concentrates glossary.', shelf('strains.html?category=more&tier=concentrates', 'Browse concentrates')],
+    concentrates: ['CONCENTRATES', 'Extracts that keep the cannabinoids and terpenes and leave most of the plant behind. Much stronger per gram than flower. See the concentrates glossary.', shelf('strains.html?category=more&tier=concentrates', 'Browse concentrates')],
     'dab-hits': ['DAB HITS', 'A single serving of concentrate, prepared for you in the lounge rather than taken home in bulk.', shelf('strains.html?category=more&tier=dab-hits', 'See dab hits')],
-    wellness: ['WELLNESS', 'Non-smoking cannabinoid formats — capsules, oils and balms — with a measured amount per serving printed on the product.', shelf('strains.html?category=wellness&tier=wellness', 'Browse wellness')],
+    wellness: ['WELLNESS', 'Non-smoking cannabinoid formats such as capsules, oils and balms, with a measured amount per serving printed on the product.', shelf('strains.html?category=wellness&tier=wellness', 'Browse wellness')],
     drinks: ['DRINKS', 'Soft drinks, energy drinks and water for the lounge.', shelf('strains.html?category=more&tier=drinks', 'See drinks')],
     'rolling-papers': ['PAPERS & ACCESSORIES', 'Rolling papers, trays, grinders, lighters and vape batteries.', shelf('strains.html?category=more&tier=accessories', 'See accessories')],
   };
@@ -49,7 +49,7 @@
     greenhouse: 'Grown under glass: natural light with more control over conditions than open outdoor growing.',
     'executive-greenhouse': 'DLC’s premium greenhouse selection, graded to DLC’s own internal standard.',
     indoor: 'Grown fully indoors, with light, temperature and humidity closely controlled.',
-    hydro: 'Grown hydroponically — roots fed through a water-based nutrient system instead of soil. The top of the DLC tier range.',
+    hydro: 'Grown hydroponically, with roots fed through a water-based nutrient system instead of soil. The top of the DLC tier range.',
   };
   const TIER_ORDER = ['outdoor', 'greenhouse', 'executive-greenhouse', 'indoor', 'hydro'];
   const TIER_NAMES = { outdoor: 'Outdoor', greenhouse: 'Greenhouse', 'executive-greenhouse': 'Executive Greenhouse', indoor: 'Indoor', hydro: 'Hydro' };
@@ -60,9 +60,9 @@
     crumble: ['CRUMBLE', 'Dry and crumbly, somewhere between wax and powder.'],
     honeycomb: ['HONEYCOMB', 'A porous, sponge-like wax with a honeycomb pattern.'],
     diamonds: ['DIAMONDS', 'Crystals of near-pure THCA, often presented in terpene-rich “sauce”. Among the strongest formats.'],
-    'live-rosin': ['LIVE ROSIN', 'Pressed from fresh-frozen plants using only heat and pressure — no solvents. Prized for flavour.'],
+    'live-rosin': ['LIVE ROSIN', 'Pressed from fresh-frozen plants using only heat and pressure, with no solvents. Prized for flavour.'],
     'live-resin': ['LIVE RESIN', 'Extracted from fresh-frozen plants, keeping more of the original aroma than dried-plant extracts.'],
-    'thc-shot': ['THC SHOT', 'A measured liquid serving. Absorbed like an edible — allow time before judging the effect.'],
+    'thc-shot': ['THC SHOT', 'A measured liquid serving. Absorbed like an edible, so allow time before judging the effect.'],
   };
 
   const topics = {
@@ -73,22 +73,22 @@
       items: [
         ['THC', 'The cannabinoid behind the “high”. A bigger number is not automatically a better experience.'],
         ['CBD', 'A cannabinoid that does not produce the intoxicating effect of THC. Common in the wellness range.'],
-        ['TERPENES', 'Aromatic compounds that give each strain its smell and flavour — citrus, pine, earth, fuel.'],
+        ['TERPENES', 'Aromatic compounds that give each strain its smell and flavour, like citrus, pine, earth or fuel.'],
         ['STRAIN', 'A named variety of the plant, like Gorilla Glue or Blue Dream. Names describe genetics, not potency.'],
         ['TIER', 'How DLC flower and prerolls were cultivated: Outdoor, Greenhouse, Executive Greenhouse, Indoor or Hydro.', shelf('#decoder-tiers', 'Open the tier guide')],
-        ['FORMAT', 'The form it comes in — flower, preroll, edible, vape, concentrate, wellness.', shelf('#decoder-formats', 'See every format')],
+        ['FORMAT', 'The form it comes in: flower, preroll, edible, vape, concentrate or wellness.', shelf('#decoder-formats', 'See every format')],
       ],
     },
     formats: {
       tab: 'Formats',
       title: 'EVERY FORMAT ON THE SHELF',
-      copy: 'Same plant, very different experiences. Choose the format that matches what you actually want.',
+      copy: 'Same plant, different experiences. Pick the format that fits what you want.',
       items: ['flower', 'prerolls', 'moonsticks', 'shooters', 'edibles', 'vapes', 'concentrates', 'dab-hits', 'wellness', 'drinks', 'rolling-papers'].map(key => FORMATS[key]),
     },
     tiers: {
       tab: 'Tiers',
       title: 'UNDERSTANDING DLC TIERS',
-      copy: 'Tiers describe how flower was grown, from Outdoor up to Hydro. They say a lot about care and consistency — not the exact potency of one product.',
+      copy: 'Tiers describe how flower was grown, from Outdoor up to Hydro. They say a lot about care and consistency, but not the exact potency of one product.',
       ladder: true,
       items: [],
     },
@@ -101,7 +101,7 @@
     'strain-types': {
       tab: 'Strain types',
       title: 'INDICA, SATIVA & HYBRID',
-      copy: 'These are traditional ways of grouping cannabis plants. They are a helpful starting point, not a promise of how a product will feel — that varies a lot from person to person.',
+      copy: 'These are traditional ways of grouping cannabis plants. They are a helpful starting point, not a promise of how a product will feel. That varies a lot from person to person.',
       items: [
         ['INDICA', 'Traditionally shorter, bushier plants. Often described by members as more body-focused and suited to winding down.', shelf('strains.html?category=flower&type=indica', 'Browse indica')],
         ['SATIVA', 'Traditionally taller plants with narrower leaves. Often described as more uplifting or head-focused.', shelf('strains.html?category=flower&type=sativa', 'Browse sativa')],
@@ -116,20 +116,20 @@
       items: [
         ['THC', 'Associated with the intoxicating effects of cannabis. Individual response varies a lot.'],
         ['CBD', 'Not intoxicating in the way THC is. Often paired with THC or used on its own in wellness products.'],
-        ['% VS MG', 'Flower lists a percentage of the dried weight. Edibles and wellness list milligrams per serving — easier to measure.'],
+        ['% VS MG', 'Flower lists a percentage of the dried weight. Edibles and wellness list milligrams per serving, which is easier to measure.'],
         ['WHY NUMBERS AREN’T EVERYTHING', 'Terpenes, format, tolerance and setting all shape the experience. The highest number is not the “best”.'],
       ],
     },
     buying: {
       tab: 'Exchanges',
       title: 'HOW EXCHANGES AT DLC WORK',
-      copy: 'The online store is for registered DLC members. Here is the whole flow, start to finish.',
+      copy: 'The online store is for registered DLC members. Here is how an exchange works, start to finish.',
       items: [
         ['YOUR MEMBER ID', 'The DLC-1234-56 number from the lounge. It is how DLC knows you, your bag and your exchanges.', shelf('/account', 'Your account')],
         ['YOUR BAG', 'Saved to your Member ID, so it follows you across devices. Credits and stock are live from the lounge.', shelf('/bag', 'Open your bag')],
         ['NOTHING SETTLED ONLINE', 'Sending an exchange request passes it to the DLC team. They confirm the credits and settle the exchange with you at hand-over.'],
         ['CASH OR CARD', 'Your member discount depends on how you settle, so your bag shows both totals. Settling in cash comes out a little lower.'],
-        ['DLC CREDITS', 'If you have credits, you can put them toward an exchange — up to a share of the bag, shown when you review it.'],
+        ['DLC CREDITS', 'If you have credits, you can put them toward an exchange, up to a share of the bag shown when you review it.'],
         ['POINTS', 'Earned on what you actually settle, once the exchange is complete.'],
       ],
     },
@@ -142,7 +142,7 @@
         ['EDIBLES TAKE TIME', 'Effects can take 30 minutes to 2 hours to arrive and last several hours. Wait before having more.'],
         ['STRONGER FORMATS', 'Moonsticks, dab hits and concentrates hit harder than flower. Pace yourself accordingly.'],
         ['DON’T MIX & DRIVE', 'Avoid combining with alcohol, and never drive or operate machinery under the influence.'],
-        ['STORE IT SAFELY', 'Keep products sealed and out of reach of children and pets — edibles especially look like ordinary sweets.'],
+        ['STORE IT SAFELY', 'Keep products sealed and out of reach of children and pets. Edibles especially can look like ordinary sweets.'],
       ],
     },
   };
@@ -181,7 +181,7 @@
       if (conc) items.push(conc);
       if (/moonstick|dab|concentrate/.test(S.slugify(p.productType))) items.push(topics.care.items[2]);
       if (/edible/.test(S.slugify(p.productType)) || S.slugify(p.grade) === 'thc-shot') items.push(topics.care.items[1]);
-      items.push(['POTENCY', 'Tested THC and CBD figures for this exact product are available from the team in store.']);
+      items.push(['POTENCY', 'The team in store has the tested THC and CBD figures for this exact product.']);
       return { title: `WHAT IS ${p.name.toUpperCase()}?`, copy: `${p.name} is listed as ${p.productType}${p.grade ? ` · ${p.grade}` : ''}. Here is what that means.`, items };
     }
     if (onCollection && category === 'more' && tier) {
@@ -207,7 +207,7 @@
   sheet.innerHTML = `<section class="education-sheet decoder" role="dialog" aria-modal="true" aria-labelledby="educationTitle">
     <div class="decoder__head">
       <div class="education-sheet__top"><div><div class="education-sheet__eyebrow">DLC DECODER</div><h2 id="educationTitle">CANNABIS 101</h2></div><button class="education-close" type="button" aria-label="Close the DLC Decoder">×</button></div>
-      <label class="decoder__search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Look up a term — e.g. hydro, badder, edibles" aria-label="Search the DLC Decoder" autocomplete="off"></label>
+      <label class="decoder__search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Look up a term, like hydro, badder or edibles" aria-label="Search the DLC Decoder" autocomplete="off"></label>
       <div class="decoder__tabs" role="tablist" aria-label="Decoder topics">${TAB_ORDER.map(key => `<button type="button" role="tab" data-topic="${key}" aria-selected="false">${topics[key].tab}</button>`).join('')}</div>
     </div>
     <div class="decoder__body" id="decoderBody">
@@ -310,7 +310,7 @@
     tabs.forEach(tab => tab.setAttribute('aria-selected', 'false'));
     listEl.innerHTML = matches.length
       ? matches.map(([item, meta]) => itemHtml(item, meta)).join('')
-      : `<div class="decoder__empty"><strong>Nothing for that yet.</strong><p>Try a broader word like “flower”, “edibles” or “tier” — or ask the DLC team in the lounge.</p></div>`;
+      : `<div class="decoder__empty"><strong>Nothing for that yet.</strong><p>Try a broader word like “flower”, “edibles” or “tier”, or ask the DLC team in the lounge.</p></div>`;
   }
   searchEl.addEventListener('input', () => renderSearchResults(searchEl.value));
 
@@ -378,10 +378,10 @@
       if (!enabled) collectionHint.hidden = true;
       else {
         const ctext = category === 'wellness'
-          ? 'Guidance is on: Wellness contains non-smoking cannabinoid-focused formats. Open any product for its specific format and measured serving information.'
+          ? 'Guidance is on: Wellness covers non-smoking formats. Open any product for its format and measured serving.'
           : category === 'more'
-          ? 'Guidance is on: this shelf holds every other format — edibles, vapes, concentrates and more. Open the DLC Decoder’s Formats tab for what each one is.'
-          : `Guidance is on: you are browsing ${categoryLabel} in the ${tierLabel || 'selected'} cultivation tier. Tap “What do these tiers mean?” whenever you want the cultivation terms explained.`;
+          ? 'Guidance is on: this shelf holds every other format, from edibles to vapes. Open the Formats tab in the DLC Decoder to see what each one is.'
+          : `Guidance is on: you are browsing ${categoryLabel} in the ${tierLabel || 'selected'} tier. Tap “What do these tiers mean?” for the cultivation terms.`;
         collectionHint.innerHTML = `<strong>GUIDANCE MODE</strong> ${ctext}`;
         collectionHint.hidden = false;
       }
@@ -389,12 +389,12 @@
     if (!hint) return;
     if (!enabled) { hint.hidden = true; return; }
     const text = category === 'wellness'
-      ? 'Guidance is on: this is a wellness-format product. Use the measured serving information on this page and open the DLC Decoder whenever a term is unfamiliar.'
+      ? 'Guidance is on: this is a wellness product. The measured serving is on this page, and the DLC Decoder explains any unfamiliar term.'
       : category === 'prerolls'
-      ? `Guidance is on: this is a preroll from the ${tierLabel || 'selected'} tier. The cultivation tier and product format are separate pieces of information.`
+      ? `Guidance is on: this is a preroll from the ${tierLabel || 'selected'} tier. The tier says how it was grown. The format says what it is.`
       : category === 'more'
-      ? 'Guidance is on: tap “What is this?” for a plain-language explanation of this exact format.'
-      : `Guidance is on: this is flower from the ${tierLabel || 'selected'} tier. Cultivation tier does not by itself tell you the exact potency or experience.`;
+      ? 'Guidance is on: tap “What is this?” for a plain explanation of this format.'
+      : `Guidance is on: this is flower from the ${tierLabel || 'selected'} tier. The tier says how it was grown, not exactly how strong it is.`;
     hint.innerHTML = `<strong>NEW TO THIS?</strong> ${text}`;
     hint.hidden = false;
   };
@@ -510,7 +510,7 @@
 
     if (!terms.length) {
       results.innerHTML = `<p class="search-label">Browse</p><div class="search-chips">${COLLECTIONS.map(c => `<a class="search-chip" href="${esc(c.href)}">${esc(c.name)}</a>`).join('')}</div>
-        <p class="search-tip">${products.length ? `Search ${products.length} products on the shelf right now — by name, type or brand.` : 'Search by product name, type or brand.'}</p>`;
+        <p class="search-tip">${products.length ? `Search ${products.length} products on the shelf right now by name, type or brand.` : 'Search by product name, type or brand.'}</p>`;
       return;
     }
 
@@ -528,7 +528,7 @@
     let html = '';
     if (foundCollections.length) html += `<p class="search-label">Collections</p>${foundCollections.map(c => row(c, 'collection')).join('')}`;
     if (foundProducts.length) html += `<p class="search-label">Products</p>${foundProducts.map(p => row(p, 'product')).join('')}`;
-    if (!html) html = `<div class="search-empty"><strong>Nothing on the shelf matches “${esc(raw)}”.</strong><span>The shop only lists what is in stock — try another name, or browse a collection.</span></div>`;
+    if (!html) html = `<div class="search-empty"><strong>Nothing on the shelf matches “${esc(raw)}”.</strong><span>Only products in stock are listed. Try another name, or browse a collection.</span></div>`;
     html += `<button type="button" class="search-decoder" data-search-decoder>Not a product? Ask the DLC Decoder what “${esc(raw)}” means <span aria-hidden="true">→</span></button>`;
     results.innerHTML = html;
   }

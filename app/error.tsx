@@ -12,7 +12,7 @@ export default function PageError({ error, reset }: { error: Error & { digest?: 
   useEffect(() => { console.error(error) }, [error])
   return <ErrorScreen
     code={error.digest ? `SOMETHING WENT WRONG · REF ${error.digest}` : "SOMETHING WENT WRONG"}
-    bubble="Oops — that didn’t load right."
+    bubble="Oops, that didn’t load right."
     title={<>Bit of a<br />haze.</>}
     copy="This page hit a problem on our side. Nothing in your bag or exchanges has changed. Try again, or head back to the lounge."
   >

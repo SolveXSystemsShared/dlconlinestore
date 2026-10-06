@@ -36,7 +36,7 @@
   </a>
   <nav aria-label="Primary navigation" class="nav-links">
     <a data-analytics="lounge_nav_click" href="index.html?home=1">LOUNGE</a>
-    <a href="strains.html">SHOP ALL</a><a href="strains.html?category=flower">FLOWER</a><a href="strains.html?category=prerolls">PREROLLS</a><a href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+    <a href="strains.html">BROWSE ALL</a><a href="strains.html?category=flower">FLOWER</a><a href="strains.html?category=prerolls">PREROLLS</a><a href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
   </nav>
   <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button aria-label="Open menu" class="menu-btn" id="menuBtn" type="button">MENU</button></div>
 </header>
@@ -67,7 +67,7 @@
       </div>
       <h1 class="product-detail-title" id="productTitle">Loading…</h1>
       <div class="product-format-row"><span id="productFormat">Flower</span><span aria-hidden="true">·</span><span id="productSize">Gram</span></div>
-      <div class="product-price" id="productPrice">—</div>
+      <div class="product-price" id="productPrice">…</div>
       <div class="product-purchase-panel">
         <div class="product-quantity-wrap">
           <span class="field-label">QUANTITY</span>
@@ -78,7 +78,7 @@
           </div>
         </div>
         <div class="product-purchase-actions">
-          <button class="product-primary-cta" type="button" disabled aria-disabled="true">ADD TO CART <span>LOADING</span></button>
+          <button class="product-primary-cta" type="button" disabled aria-disabled="true">ADD TO BAG <span>LOADING</span></button>
           <button class="product-secondary-cta" id="backToCollection" type="button">BACK TO COLLECTION</button>
         </div>
       </div>
@@ -95,22 +95,22 @@
       <dl class="product-fact-list">
         <div><dt>CATEGORY</dt><dd id="factCategory">Flower</dd></div>
         <div><dt>TIER</dt><dd id="factTier">Outdoor</dd></div>
-        <div><dt>CREDITS</dt><dd id="factPrice">—</dd></div>
-        <div id="factStrainTypeRow" hidden><dt>STRAIN TYPE</dt><dd id="factStrainType">—</dd></div><div id="factMgRow" hidden><dt>MEASURED</dt><dd id="factMg">—</dd></div><div><dt>POTENCY</dt><dd>Confirm in store</dd></div>
+        <div><dt>CREDITS</dt><dd id="factPrice">…</dd></div>
+        <div id="factStrainTypeRow" hidden><dt>STRAIN TYPE</dt><dd id="factStrainType">…</dd></div><div id="factMgRow" hidden><dt>MEASURED</dt><dd id="factMg">…</dd></div><div><dt>POTENCY</dt><dd>Confirm in store</dd></div>
       </dl>
 
       <div class="product-accordions" id="productAccordions">
         <details open>
           <summary>PRODUCT DETAILS <span>+</span></summary>
-          <p id="detailsCopy">Product-specific information can be connected to the final catalogue without changing this page layout.</p>
+          <p id="detailsCopy">Ask the team in store for more about this product.</p>
         </details>
         <details>
           <summary>COMPOSITION &amp; POTENCY <span>+</span></summary>
-          <p>Strain-specific THC, CBD, terpene and genetics information has not been supplied in this build. Confirm the current product information in store.</p>
+          <p>THC, CBD, terpene and genetics details are not listed online yet. Ask the team in store for the current figures.</p>
         </details>
         <details>
           <summary>AVAILABILITY <span>+</span></summary>
-          <p>The shop only lists products that are in stock at the lounge right now, and hides anything that sells out. Stock moves through the day, so the team confirms it when you send your exchange request.</p>
+          <p>Only products in stock are listed, and anything that sells out is hidden. Stock moves through the day, so the team confirms your items when you send your exchange request.</p>
         </details>
       </div>
     </div>
@@ -144,7 +144,7 @@
 
 <footer class="site-footer product-footer">
   <div class="site-footer__brand"><img alt="" decoding="async" height="52" loading="lazy" src="assets/dlc-logo.svg" width="160"/><span>DOWN LOW CANNABIS</span></div>
-  <nav aria-label="Legal"><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <nav aria-label="Footer"><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html">REFERRALS</a><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
   <p>18+ · Halfway House, Midrand</p>
 </footer>
 
@@ -186,7 +186,7 @@
   function notFound(message) {
     doneLoading();
     setText('productTitle', 'Not on the shelf');
-    setText('productPrice', '—');
+    setText('productPrice', '…');
     setText('productCopy', message);
     setText('crumbProduct', 'UNAVAILABLE');
     lock('UNAVAILABLE');
@@ -210,7 +210,7 @@
       cta.disabled = false;
       cta.removeAttribute('aria-disabled');
       cta.removeAttribute('title');
-      if (!cta.classList.contains('is-added')) cta.innerHTML = `ADD TO CART <span>${S.price(product.price)}</span>`;
+      if (!cta.classList.contains('is-added')) cta.innerHTML = `ADD TO BAG <span>${S.price(product.price)}</span>`;
     }
   }
 
@@ -238,14 +238,14 @@
     const image = S.imageFor(product);
     const displayPrice = S.price(product.price);
 
-    document.title = `DLC — ${product.name}`;
+    document.title = `${product.name} | DLC`;
     setText('productTitle', product.name);
     setText('tierPill', category === 'more' ? (product.grade || product.productType).toUpperCase() : shelf === 'PRODUCTS' ? 'WELLNESS' : shelf);
     setText('productFormat', product.productType);
     setText('productSize', product.grade || product.brand || 'DLC');
     setText('productPrice', displayPrice);
     setText('factCategory', product.productType);
-    setText('factTier', category === 'more' ? (product.grade || '—') : tierLabel);
+    setText('factTier', category === 'more' ? (product.grade || 'Not listed') : tierLabel);
     setText('factPrice', displayPrice);
     setText('crumbCategory', categoryName.toUpperCase());
     document.getElementById('crumbCategory').href = collection;
@@ -257,11 +257,12 @@
     document.getElementById('moreProductsLink').href = collection;
 
     const kind = category === 'prerolls' ? 'preroll' : category === 'flower' ? 'flower' : category === 'wellness' ? 'wellness product' : product.productType.toLowerCase();
-    const copy = product.description || `${product.name} — ${category === 'flower' || category === 'prerolls' ? `${tierLabel.toLowerCase()} ${kind}` : kind}${product.brand ? ` from ${product.brand}` : ''}, live from the DLC lounge shelf at ${displayPrice}.`;
+    const kindPhrase = category === 'flower' || category === 'prerolls' ? `${tierLabel.toLowerCase()} ${kind}` : kind;
+    const copy = product.description || `${product.name}. ${kindPhrase.charAt(0).toUpperCase()}${kindPhrase.slice(1)}${product.brand ? ` from ${product.brand}` : ''}, on the DLC shelf now at ${displayPrice}.`;
     setText('productCopy', copy);
-    setText('detailsCopy', product.description || `${product.name} is listed in CDASH as ${product.productType}${product.grade ? ` · ${product.grade}` : ''}. ${image && !product.imageUrl && !image.includes('/products/') ? 'The image shown is DLC collection artwork, not a photograph of this exact product.' : ''}`.trim());
+    setText('detailsCopy', product.description || `${product.name} is a ${product.productType.toLowerCase()}${product.grade ? ` · ${product.grade}` : ''}. ${image && !product.imageUrl && !image.includes('/products/') ? 'The image shown is DLC collection artwork, not a photograph of this exact product.' : ''}`.trim());
     const availability = document.querySelectorAll('#productAccordions details p')[2];
-    if (availability) availability.textContent = 'Stock is live from the DLC lounge, and the shop only lists what is in stock right now. Adding to your bag does not hold stock — it is confirmed when you send your exchange request, and the team confirms the final credits at hand-over.';
+    if (availability) availability.textContent = 'Only products in stock are listed, and anything that sells out is hidden. Adding to your bag does not hold stock. The team confirms your items when you send your exchange request, and the final credits at hand-over.';
 
     const art = image
       ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" decoding="async">`
@@ -320,9 +321,9 @@
   let stopLines = () => {};
   const doneLoading = () => { window.DLCPageLoader?.done(); stopLines(); detailGrid.classList.remove('is-loading'); detailGrid.removeAttribute('aria-busy'); };
   setText('productTitle', 'Loading…');
-  setText('productPrice', '—');
+  setText('productPrice', '…');
   stopLines = window.DLCLoadingLines?.rotate(document.getElementById('productCopy'), 'product') || stopLines;
-  lock('ADD TO CART', 'LOADING');
+  lock('ADD TO BAG', 'LOADING');
 
   Promise.all([S.catalog(), S.cart().catch(() => [])]).then(([products]) => {
     let product = requestedId ? products.find(p => p.id === requestedId) : null;
@@ -332,7 +333,7 @@
       product = pool.find(p => nameKey(p.name) === wanted) || pool.find(p => nameKey(p.name).startsWith(wanted) || wanted.startsWith(nameKey(p.name)));
     }
     if (!product) {
-      notFound('This product is out of stock or no longer listed. Stock changes through the day — browse the collection for what is on the shelf now.');
+      notFound('This product is out of stock or no longer listed. Stock changes through the day, so browse the collection to see what is on the shelf now.');
       return;
     }
     const place = S.classify(product);

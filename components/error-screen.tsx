@@ -22,13 +22,13 @@ export function ErrorScreen({ code, bubble, title, copy, children }: {
         <span className="sfgate__shadow" />
       </figure>
       <div className="sfgate__card">
-        <a href="/"><img className="sfgate__logo" src="/assets/dlc-logo.svg" alt="Down Low Cannabis — back to the lounge" width={108} height={35} /></a>
+        <a href="/"><img className="sfgate__logo" src="/assets/dlc-logo.svg" alt="Back to the Down Low Cannabis lounge" width={108} height={35} /></a>
         <p className="sfgate__eyebrow">{code}</p>
         <h1 id="sfErrorTitle">{title}</h1>
         <p className="sfgate__copy">{copy}</p>
         <div className="sfgate__actions">
           {children}
-          <a className="sfgate__btn" href="/strains.html">SHOP ALL</a>
+          <a className="sfgate__btn" href="/strains.html">BROWSE ALL</a>
         </div>
         <p className="sfgate__legal">Need a hand? Ask the team at the lounge.</p>
       </div>

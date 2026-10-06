@@ -200,7 +200,7 @@ export default function RegisterPage() {
     <main className="sfreg__wrap" id="main-content">
       <div className="sfreg__card">
         <img className="sfreg__mascot" src="/assets/dlc-mascot.png" alt="" width={605} height={863} decoding="async" />
-        <a href="/"><img className="sfgate__logo" src="/assets/dlc-logo.svg" alt="Down Low Cannabis — back to the lounge" width={108} height={35} /></a>
+        <a href="/"><img className="sfgate__logo" src="/assets/dlc-logo.svg" alt="Back to the Down Low Cannabis lounge" width={108} height={35} /></a>
         <p className="sfgate__eyebrow">DLC MEMBERSHIP · 18+ ONLY</p>
         <h1>Become a<br />member.</h1>
         <p className="sfreg__lead">DLC is a private members&apos; club. It takes about 3 minutes, and your Member ID is issued the moment you submit. You only need to register once.</p>
@@ -228,7 +228,7 @@ export default function RegisterPage() {
                 ? <FieldError id="mobileHint" message={errors.mobileNumber} />
                 : mobile
                   ? <p className="sfreg__hint sfreg__hint--ok" id="mobileHint">✓ Your login PIN will be texted to <strong>{mobile.display}</strong>.</p>
-                  : <p className={`sfreg__hint${mobileTouched && values.mobileNumber ? " sfreg__hint--bad" : ""}`} id="mobileHint">{mobileTouched && values.mobileNumber ? "That doesn’t look like a South African mobile number — use 06, 07 or 08, like 082 123 4567." : "Starts with 06, 07 or 08 (or +27). We text your login PIN here."}</p>}
+                  : <p className={`sfreg__hint${mobileTouched && values.mobileNumber ? " sfreg__hint--bad" : ""}`} id="mobileHint">{mobileTouched && values.mobileNumber ? "That doesn’t look like a South African mobile number. Use 06, 07 or 08, like 082 123 4567." : "Starts with 06, 07 or 08 (or +27). We text your login PIN here."}</p>}
             </div>
             <div className="sfreg__field"><label htmlFor="residentialAddress">Residential address</label>
               <textarea id="residentialAddress" autoComplete="street-address" maxLength={500} placeholder="Street, suburb, city, postal code" value={values.residentialAddress} onChange={(e) => set("residentialAddress", e.target.value)} aria-invalid={invalid("residentialAddress")} aria-describedby={errors.residentialAddress ? "addressError" : undefined} />
@@ -257,6 +257,7 @@ export default function RegisterPage() {
               <div className="sfreg__field"><label htmlFor="referralCode">Referral code</label>
                 <input id="referralCode" autoComplete="off" autoCapitalize="characters" maxLength={40} placeholder="From the member who told you about DLC" value={values.referralCode} onChange={(e) => set("referralCode", e.target.value)} aria-invalid={invalid("referralCode")} aria-describedby={errors.referralCode?.trim() ? "referralError" : undefined} />
                 <FieldError id="referralError" message={errors.referralCode?.trim() ? errors.referralCode : undefined} /></div>
+              <p className="sfreg__hint"><a href="/referrals.html" target="_blank" rel="noopener">How referrals work</a></p>
             </details>
           </section>
 
@@ -306,7 +307,7 @@ export default function RegisterPage() {
         <strong aria-label={`Your Member ID is ${done.memberNumber}`}>{done.memberNumber}</strong>
         <em>{done.memberName}</em>
       </div>
-      <p className="sfreg__shot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13.5" r="3.5" /></svg>Take a screenshot of this card now — you&apos;ll need your Member ID to sign in.</p>
+      <p className="sfreg__shot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13.5" r="3.5" /></svg>Take a screenshot of this card now. You&apos;ll need your Member ID to sign in.</p>
       <ol className="sfreg__steps">
         <li>{done.smsSent ? <>We&apos;ve also texted your Member ID to <strong>{done.smsSentTo}</strong>.</> : <>We couldn&apos;t text your Member ID just now, so keep this screenshot safe.</>}</li>
         <li>Next, enter your Member ID on the sign-in screen.</li>

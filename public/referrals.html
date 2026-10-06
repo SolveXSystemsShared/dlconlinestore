@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#41a8fc"/>
+<title>Refer a Friend | Down Low Cannabis</title>
+<meta name="description" content="How DLC referrals work: share your code, your friend joins, and you earn points after their first exchange."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://dlconlinestore-8qpm.vercel.app/referrals.html"/>
+<link rel="stylesheet" href="styles.css"/>
+<script src="cookies.js"></script>
+<script src="loading-lines.js"></script>
+<script src="age-gate.js"></script>
+<script src="store.js"></script>
+<script src="page-loader.js" data-context="page"></script>
+<link rel="icon" href="assets/dlc-logo.svg" type="image/svg+xml"/>
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png"/>
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+</head>
+<body class="legal-body lounge-info-page">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="nav">
+  <a class="brand" href="index.html?home=1" aria-label="Down Low Cannabis home"><img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/></a>
+  <nav class="nav-links" aria-label="Primary navigation"><a href="index.html?home=1">LOUNGE</a><a href="strains.html">BROWSE ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a></nav>
+  <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
+</header>
+
+<main id="main-content" class="lounge-info">
+  <section class="li-hero">
+    <div class="li-hero__text">
+      <nav class="li-tabs" aria-label="Lounge information"><a href="packages.html">Packages</a><a href="specials.html">Specials</a><a href="referrals.html" aria-current="page">Referrals</a></nav>
+      <p class="li-kicker">MEMBER REWARDS</p>
+      <h1>Refer a<br/>friend.</h1>
+      <p class="li-lead">Know someone who should be at DLC? Give them your code. When they join and complete their first exchange, you earn points.</p>
+      <div class="li-code" id="codeCard" aria-live="polite">
+        <span class="li-code__label">YOUR REFERRAL CODE</span>
+        <strong class="li-code__value" id="codeValue">&nbsp;</strong>
+        <button class="li-code__copy" id="codeCopy" type="button" hidden>COPY CODE</button>
+        <p class="li-code__note" id="codeNote"></p>
+      </div>
+    </div>
+    <figure class="li-hero__art" aria-hidden="true"><img src="assets/dlc-mascot.png" alt="" width="605" height="863" decoding="async"/></figure>
+  </section>
+
+  <section class="li-section" aria-labelledby="howTitle">
+    <div class="li-section__head"><p class="li-kicker">THE SHORT VERSION</p><h2 id="howTitle">How it works</h2></div>
+    <ol class="li-steps">
+      <li><b>1</b><div><h3>Share your code</h3><p>Send it to a friend who is 18 or older and not yet a member.</p></div></li>
+      <li><b>2</b><div><h3>They join</h3><p>On the <a href="/register">registration page</a> they open &ldquo;Have a referral code?&rdquo; and type yours in.</p></div></li>
+      <li><b>3</b><div><h3>You earn</h3><p id="earnCopy">Once their first exchange is complete, points are added to your account.</p></div></li>
+    </ol>
+  </section>
+
+  <section class="li-section li-section--tint" aria-labelledby="worthTitle">
+    <div class="li-section__head"><p class="li-kicker">THE NUMBERS</p><h2 id="worthTitle">What you earn</h2></div>
+    <div class="li-bands" id="worth"></div>
+  </section>
+
+  <section class="li-section" aria-labelledby="rulesTitle">
+    <div class="li-section__head"><p class="li-kicker">THE FINE PRINT</p><h2 id="rulesTitle">Good to know</h2></div>
+    <ul class="li-perks li-perks--rules" id="rules"></ul>
+  </section>
+
+  <section class="li-section li-section--tint" aria-labelledby="faqTitle">
+    <div class="li-section__head"><p class="li-kicker">QUESTIONS</p><h2 id="faqTitle">Answers</h2></div>
+    <div class="li-faq">
+      <details><summary>Where do I find my code?</summary><p>At the top of this page while you are signed in. If it is not showing, ask the team at the lounge.</p></details>
+      <details><summary>My friend is already a member. Can I still refer them?</summary><p>No. Referrals are for new members, and the code is entered when they register.</p></details>
+      <details><summary>How do I know I have been paid?</summary><p>Your points balance goes up after your friend&rsquo;s first exchange is complete. The team can check it for you at the lounge.</p></details>
+    </div>
+  </section>
+
+  <section class="li-cta">
+    <h2>Ready to refer someone?</h2>
+    <p>Send them to the registration page and remind them to use your code.</p>
+    <div class="li-cta__actions"><a class="li-btn li-btn--solid" href="/register">REGISTRATION PAGE</a><a class="li-btn" href="packages.html">SEE LOUNGE PACKAGES</a></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__brand"><img src="assets/dlc-logo.svg" alt="" width="52" height="52" loading="lazy"/><span>DOWN LOW CANNABIS</span></div>
+  <nav aria-label="Footer"><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html" aria-current="page">REFERRALS</a><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <p>18+ · Halfway House, Midrand</p>
+</footer>
+<script>
+(() => {
+  const S = window.DLCStore;
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const list = names => names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] || 'Some packages';
+
+  // Your own code.
+  const value = document.getElementById('codeValue'), copy = document.getElementById('codeCopy'), note = document.getElementById('codeNote');
+  S.api('/api/referral').then(({ code }) => {
+    if (!code) { value.textContent = 'Not showing'; note.textContent = 'Ask the team at the lounge for your referral code.'; return; }
+    value.textContent = code;
+    note.textContent = 'Capitals, spaces and dashes do not matter when your friend types it in.';
+    copy.hidden = false;
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(code); copy.textContent = 'COPIED'; } catch { copy.textContent = 'PRESS AND HOLD TO COPY'; }
+      setTimeout(() => { copy.textContent = 'COPY CODE'; }, 2200);
+    });
+  }).catch(() => { value.textContent = 'Not showing'; note.textContent = 'Your code could not be loaded just now. Try again, or ask the team at the lounge.'; });
+
+  // The numbers, straight from the lounge settings.
+  S.api('/api/lounge').then(info => {
+    const r = info.rewards;
+    const credits = r.referralPoints / r.pointsPerCredit;
+    const earners = info.packages.filter(p => p.earnsReferralRewards).map(p => p.name);
+    document.getElementById('earnCopy').innerHTML = `Once their first exchange is complete, <strong>${r.referralPoints} points</strong> are added to your account. That is <strong>${S.price(credits)}</strong> in DLC Credits.`;
+    document.getElementById('worth').innerHTML = [
+      [`${r.referralPoints}`, 'points for every friend you refer'],
+      [S.price(credits), 'in DLC Credits for each friend'],
+      [`${r.pointsPerCredit} points`, `are worth ${S.price(1)}. Credits can cover up to ${r.basketCapPercent}% of an exchange.`],
+    ].map(([big, small]) => `<div class="li-band"><strong>${esc(big)}</strong><small>${esc(small)}</small></div>`).join('');
+    const rules = [
+      `<strong>One reward per friend.</strong> It is paid once, after their first completed exchange${r.referralMinExchange > 0 ? ` of at least ${S.price(r.referralMinExchange)}` : ''}. Joining on its own does not earn it.`,
+      `<strong>Your package matters.</strong> ${esc(list(earners))} members collect referral rewards. Day Pass, Squads and free lounge access do not.`,
+      '<strong>New members only.</strong> The code goes in when your friend registers, and it cannot be your own.',
+    ];
+    document.getElementById('rules').innerHTML = rules.map(x => `<li>${x}</li>`).join('');
+  }).catch(() => {
+    document.getElementById('worth').innerHTML = '<p class="li-error">The reward details could not be loaded just now. <a href="referrals.html">Try again</a>, or ask the team at the lounge.</p>';
+  });
+})();
+</script>
+<script defer src="common.js"></script>
+<script defer src="education.js"></script>
+</body>
+</html>

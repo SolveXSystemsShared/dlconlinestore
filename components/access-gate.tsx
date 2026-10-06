@@ -133,11 +133,11 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
   // Same look as the storefront's gate (public/age-gate.js): light-blue sky,
   // the 3D mascot feathered into it, the form on a white card.
   const bubble = {
-    checking: "One sec — just checking you in…",
+    checking: "One sec, just checking you in…",
     age: "Howzit! Quick check before we go in.",
-    blocked: "Sorry — this one is for adults only.",
+    blocked: "Sorry, this one is for adults only.",
     member: "Welcome in. Pop your Member ID below.",
-    pin: "Nearly there — check your SMS for the PIN.",
+    pin: "Nearly there. Check your SMS for the PIN.",
     allowed: "",
   }[state]
 

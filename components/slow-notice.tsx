@@ -14,7 +14,7 @@ export function useSlowFlag(active: boolean, afterMs = 4000) {
 }
 
 export function SlowNotice({ show, what }: { show: boolean; what: string }) {
-  return show ? <p className="sf-slow" role="status">Your connection seems slow — {what} is still loading…</p> : null
+  return show ? <p className="sf-slow" role="status">Your connection seems slow. {what} is still loading…</p> : null
 }
 
 // Same three acts and lines as public/loading-lines.js — change both together.
@@ -25,7 +25,7 @@ const OPENERS: Record<string, string[]> = {
 }
 const NETWORK = [
   "Your signal is taking the scenic route…",
-  "Slow connection — we’re still coming, promise.",
+  "Slow connection. We’re still coming, promise.",
   "The network’s moving at lounge pace today.",
 ]
 const CHEEKY = [
