@@ -37,11 +37,15 @@ The store only reads the member's mobile number (`members.mobile_number`, or
    "the net amount actually paid" and an unsettled order has no such amount. We
    send no prices: CDASH resolves them itself.
 3. **Record.** The returned exchange id is stored on our `online_orders` row.
-4. **Settle.** CDASH staff mark the order paid from their pending queue. That is
-   where stock leaves and where points, Buy-10 progress, referral and birthday
-   bonuses land. The store cannot do this and should not try:
-   `POST /api/exchanges/:id/status` requires a staff or manager session, not the
-   store API key.
+4. **Settle.** The member settles by card through Paystack, and the store asks
+   CDASH to settle the exchange: `POST /api/store/exchanges/:id/settle`
+   `{action:"settle", reference}`. CDASH looks the payment up with Paystack
+   itself and settles only if it succeeded, in ZAR, for exactly the card amount
+   due, naming this exchange — so the store API key alone cannot settle an
+   unpaid order. That is where stock leaves and where points, Buy-10 progress,
+   referral and birthday bonuses land, through the same rewards code as staff
+   mark-paid. The store still writes nothing to CDASH tables itself, and
+   `POST /api/exchanges/:id/status` remains staff-only. See `lib/settlement.ts`.
 
 ## Required CDASH setup
 

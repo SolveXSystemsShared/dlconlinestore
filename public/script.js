@@ -498,7 +498,7 @@
       card.classList.toggle('preroll-card', isPrerolls);
       card.classList.toggle('wellness-card', isWellness);
       // A real pack shot on a MORE shelf: no glass placeholder behind it.
-      card.classList.toggle('photo-card', !isFlower && !isPrerolls && !isWellness && Boolean(item[3]));
+      card.classList.toggle('photo-card', !isFlower && !isPrerolls && !isWellness && Boolean(item[3] || item[4]));
       if (isWellness) {
         const src = wellnessVisuals[tierSlug];
         pack.innerHTML = src ? `<img class="pack-figure" src="${src}" alt="${item[1]} wellness product" width="520" height="780" decoding="async">` : '<span>DLC</span>';
@@ -518,8 +518,11 @@
         }
       } else if (item[3]) {
         pack.innerHTML = `<img class="pack-figure" src="${escapeHtml(item[3])}" alt="${escapeHtml(item[1])}" width="520" height="780" decoding="async">`;
+      } else if (item[4]) {
+        // The "All ..." tile stands for the whole shelf, not one brand: cloud only, no icon.
+        pack.innerHTML = '';
       } else {
-        pack.innerHTML = `<span>DLC</span><small class="pack-name">${escapeHtml(item[4] ? item[4].replace(' →', '') : item[1])}</small>`;
+        pack.innerHTML = `<span>DLC</span><small class="pack-name">${escapeHtml(item[1])}</small>`;
       }
 
       if (animate && !reducedMotion && typeof card.animate === 'function') {

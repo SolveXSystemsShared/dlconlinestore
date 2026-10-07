@@ -35,9 +35,12 @@ function config() {
  * generic 500.
  */
 export class CdashError extends Error {
-  constructor(message: string, readonly status: number) {
+  /** CDASH's machine-readable refusal, where it gives one (the settle route does). */
+  readonly code: string | null
+  constructor(message: string, readonly status: number, code?: string | null) {
     super(message)
     this.name = "CdashError"
+    this.code = code ?? null
   }
 }
 
@@ -57,8 +60,8 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     throw new CdashError("CDASH is not reachable", 503)
   }
 
-  const body = await response.json().catch(() => null) as { error?: string } | null
-  if (!response.ok) throw new CdashError(body?.error || `CDASH returned ${response.status}`, response.status)
+  const body = await response.json().catch(() => null) as { error?: string; code?: string } | null
+  if (!response.ok) throw new CdashError(body?.error || `CDASH returned ${response.status}`, response.status, body?.code)
   return body as T
 }
 
@@ -221,5 +224,57 @@ export async function createOnlineOrder(input: {
       })),
       ...(input.paymentNotes ? { paymentNotes: input.paymentNotes } : {}),
     }),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// 4. Online settlement — Paystack
+// ---------------------------------------------------------------------------
+
+/**
+ * What this exchange owes on card — BINDING, unlike `fetchQuote`. CDASH runs the
+ * settlement computation over the exchange it already priced, the same one
+ * `settleExchange` checks the payment against, so the amount Paystack collects
+ * is the amount settlement accepts. No DLC Credits on this path.
+ */
+export type CdashSettleQuote = {
+  id: string
+  tier: { key: string; name: string } | null
+  goodsTotal: number
+  deliveryFee: number
+  amountDue: number
+  memberDiscountPercent: number
+  memberDiscountAmount: number
+  pointsEarned: number
+  rewardsUnavailable: boolean
+}
+
+export async function fetchSettleQuote(exchangeId: string): Promise<CdashSettleQuote> {
+  return call<CdashSettleQuote>(`/api/store/exchanges/${encodeURIComponent(exchangeId)}/settle`, {
+    method: "POST",
+    body: JSON.stringify({ action: "quote" }),
+  })
+}
+
+/**
+ * Settles the exchange from a Paystack payment: CDASH verifies the payment with
+ * Paystack itself, deducts the stock and awards the rewards. Repeating it with
+ * the same reference is a success, not a conflict.
+ *
+ * A refusal carries `code`, which is what decides whether the member's money
+ * goes back: see SETTLEMENT_REFUSALS in lib/settlement.ts.
+ */
+export async function settleExchange(exchangeId: string, reference: string): Promise<{ id: string; paymentStatus: string; idempotent?: boolean }> {
+  return call(`/api/store/exchanges/${encodeURIComponent(exchangeId)}/settle`, {
+    method: "POST",
+    body: JSON.stringify({ action: "settle", reference }),
+  })
+}
+
+/** Closes an unsettled exchange unpaid, so it leaves the team's pending queue. */
+export async function cancelExchange(exchangeId: string): Promise<{ id: string; paymentStatus: string }> {
+  return call(`/api/store/exchanges/${encodeURIComponent(exchangeId)}/settle`, {
+    method: "POST",
+    body: JSON.stringify({ action: "cancel" }),
   })
 }
