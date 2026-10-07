@@ -25,8 +25,8 @@ PUBLIC = Path(__file__).resolve().parent.parent / "public"
 SITE = "https://dlconlinestore-8qpm.vercel.app"
 UPDATED = "5 October 2026"
 
-# Versions come from lib/legal.ts — the same values the server records when a
-# member accepts — so the page and the evidence can never disagree.
+# Versions come from lib/legal.ts, the same values the server records when a
+# member accepts, so the page and the evidence can never disagree.
 _LEGAL_TS = (PUBLIC.parent / "lib" / "legal.ts").read_text(encoding="utf-8")
 VERSIONS = {
     "terms": re.search(r'TERMS_VERSION = "([^"]+)"', _LEGAL_TS).group(1),
@@ -59,7 +59,7 @@ def v(key, label=None):
     value = COMPANY.get(key)
     if value:
         return escape(value)
-    return f'<mark class="legal-todo">[{escape(label or key.replace("_", " "))} — to confirm]</mark>'
+    return f'<mark class="legal-todo">[{escape(label or key.replace("_", " "))}, to confirm]</mark>'
 
 
 def mail(key, label):
@@ -151,19 +151,19 @@ PRIVACY = [
     ("collect", "2. What we collect", """
 <p><strong>When you apply for membership</strong> (online or at the lounge): your full name, email address, mobile number, residential address, date of birth, South African ID number or passport number, your digital signature on the membership application, and whether you want to receive member news.</p>
 <p><strong>While you are a member:</strong> your Member ID; your exchange requests and exchange history (products, quantities, credits, discounts, DLC Credits and points); the contact number, delivery or collection details and notes you give with a request; your saved bag, saved items and saved delivery addresses; and records of your visits and exchanges at the lounge.</p>
-<p><strong>When you accept our terms</strong> — on your membership application and with each exchange request — we record which versions of the Terms &amp; Conditions and this policy you accepted, the statement you agreed to, the date and time, and your IP address and browser type, as evidence of your acceptance.</p>
-<p><strong>Automatically, when you use the website:</strong> technical information our hosting providers need to deliver the site securely — such as IP address, browser and device type, and the time of each request — and the cookies and browser storage described in our <a href="cookies.html">Cookie Policy</a>.</p>
+<p><strong>When you accept our terms</strong> (on your membership application and with each exchange request), we record which versions of the Terms &amp; Conditions and this policy you accepted, the statement you agreed to, the date and time, and your IP address and browser type, as evidence of your acceptance.</p>
+<p><strong>Automatically, when you use the website:</strong> technical information our hosting providers need to deliver the site securely, such as IP address, browser and device type and the time of each request, as well as the cookies and browser storage described in our <a href="cookies.html">Cookie Policy</a>.</p>
 <p><strong>Under-18s.</strong> Membership and this website are strictly for adults aged 18 and over. We confirm age at the door of the website and verify it against your date of birth and identity document. If we learn we hold information about someone under 18, we delete it.</p>
-<p><strong>Sensitive information.</strong> We do not ask for health information. We recognise that a member’s exchange history — for example of wellness products — could reveal something personal, so we treat exchange history as confidential and restrict it to the purposes below.</p>"""),
+<p><strong>Sensitive information.</strong> We do not ask for health information. We recognise that a member’s exchange history, for example of wellness products, could reveal something personal, so we treat exchange history as confidential and restrict it to the purposes below.</p>"""),
 
     ("why", "3. Why we use it", """
 <p>We process personal information only for a specific, lawful purpose (POPIA sections 11 and 13):</p>
 <ul>
-<li><strong>To run your membership</strong> — verifying your age and identity, issuing your Member ID, keeping your membership record, and recognising you at the lounge. <em>Basis: necessary to carry out our membership agreement with you.</em></li>
-<li><strong>To handle exchange requests</strong> — preparing your bag, contacting you about a request, handing it over to you and settling the exchange, applying member discounts, DLC Credits and points. <em>Basis: necessary to carry out our agreement with you.</em></li>
-<li><strong>To meet legal obligations</strong> — age-verification, keeping evidence that you accepted our terms, record-keeping, tax and accounting records, and responding to lawful requests from authorities. <em>Basis: compliance with the law.</em></li>
-<li><strong>To keep DLC safe and working</strong> — securing member accounts, preventing misuse and fraud, fixing faults and improving the service. <em>Basis: our legitimate interests, balanced against yours.</em></li>
-<li><strong>To send member news</strong> — only if you opted in. <em>Basis: your consent.</em></li>
+<li><strong>To run your membership:</strong> verifying your age and identity, issuing your Member ID, keeping your membership record, and recognising you at the lounge. <em>Basis: necessary to carry out our membership agreement with you.</em></li>
+<li><strong>To handle exchange requests:</strong> preparing your bag, contacting you about a request, handing it over to you and settling the exchange, applying member discounts, DLC Credits and points. <em>Basis: necessary to carry out our agreement with you.</em></li>
+<li><strong>To meet legal obligations:</strong> age-verification, keeping evidence that you accepted our terms, record-keeping, tax and accounting records, and responding to lawful requests from authorities. <em>Basis: compliance with the law.</em></li>
+<li><strong>To keep DLC safe and working:</strong> securing member accounts, preventing misuse and fraud, fixing faults and improving the service. <em>Basis: our legitimate interests, balanced against yours.</em></li>
+<li><strong>To send member news:</strong> only if you opted in. <em>Basis: your consent.</em></li>
 </ul>
 <p>We do not use your information for automated decisions that have legal or similarly significant effects on you.</p>"""),
 
@@ -175,7 +175,7 @@ PRIVACY = [
 <ul>
 <li>our membership and exchange system (CDASH) and its database host;</li>
 <li>our website hosting provider;</li>
-<li>our card settlement provider (Paystack), which receives your email address, your exchange number and the credits being settled, and collects your card details directly — DLC never sees your card number;</li>
+<li>our card settlement provider (Paystack), which receives your email address, your exchange number and the credits being settled, and collects your card details directly, and DLC never sees your card number;</li>
 <li>any messaging service we use to notify staff of new registrations or requests;</li>
 <li>professional advisers such as auditors and attorneys, under a duty of confidentiality.</li>
 </ul>
@@ -198,11 +198,11 @@ PRIVACY = [
     ("retention", "8. How long we keep it", f"""
 <p>We keep personal information only as long as we need it for the purposes above or as the law requires (POPIA section 14):</p>
 <ul>
-<li><strong>Membership records</strong> — for as long as you are a member and {v("retention_years", "number of years")} afterwards.</li>
-<li><strong>Exchange and accounting records</strong> — for the periods required by South African tax and company law (generally at least five years).</li>
-<li><strong>Records of your acceptance of our terms</strong> — for as long as the membership or exchange record they relate to is kept.</li>
-<li><strong>Saved bag, saved items and saved addresses</strong> — until you remove them or your membership ends.</li>
-<li><strong>Browser storage</strong> — as set out in the <a href="cookies.html">Cookie Policy</a>.</li>
+<li><strong>Membership records:</strong> for as long as you are a member and {v("retention_years", "number of years")} afterwards.</li>
+<li><strong>Exchange and accounting records:</strong> for the periods required by South African tax and company law (generally at least five years).</li>
+<li><strong>Records of your acceptance of our terms:</strong> for as long as the membership or exchange record they relate to is kept.</li>
+<li><strong>Saved bag, saved items and saved addresses:</strong> until you remove them or your membership ends.</li>
+<li><strong>Browser storage:</strong> as set out in the <a href="cookies.html">Cookie Policy</a>.</li>
 </ul>
 <p>When information is no longer needed we delete or de-identify it.</p>"""),
 
@@ -210,13 +210,13 @@ PRIVACY = [
 <p>Under POPIA you have the right to:</p>
 <ul>
 <li>ask whether we hold personal information about you and request a copy of it;</li>
-<li>ask us to correct or update information that is inaccurate or out of date — many details can be updated directly in <a href="/account">your account</a>;</li>
+<li>ask us to correct or update information that is inaccurate or out of date (many details can be updated directly in <a href="/account">your account</a>);</li>
 <li>ask us to delete information we are no longer entitled to keep;</li>
 <li>object to processing based on our legitimate interests, and object to direct marketing at any time;</li>
 <li>withdraw consent you have given, such as for member news or optional cookies;</li>
 <li>lodge a complaint with the Information Regulator.</li>
 </ul>
-<p>To make a request, contact our Information Officer at {mail("information_officer_email", "Information Officer email")}. We may need to verify your identity first, and we will respond within a reasonable time. Requests for records may also be made under the Promotion of Access to Information Act 2 of 2000 — our PAIA manual is available {f'<a href="{escape(COMPANY["paia_manual_url"])}">here</a>' if COMPANY.get("paia_manual_url") else v("paia_manual_url", "link to PAIA manual, or 'on request'")}.</p>
+<p>To make a request, contact our Information Officer at {mail("information_officer_email", "Information Officer email")}. We may need to verify your identity first, and we will respond within a reasonable time. Requests for records may also be made under the Promotion of Access to Information Act 2 of 2000. Our PAIA manual is available {f'<a href="{escape(COMPANY["paia_manual_url"])}">here</a>' if COMPANY.get("paia_manual_url") else v("paia_manual_url", "link to PAIA manual, or 'on request'")}.</p>
 <p><strong>Information Regulator (South Africa)</strong> · <a href="https://inforegulator.org.za" rel="noopener">inforegulator.org.za</a></p>"""),
 
     ("cookies", "10. Cookies", """
@@ -229,7 +229,7 @@ PRIVACY = [
 # ── Terms & Conditions (CPA, ECTA) ───────────────────────────────────────────
 TERMS = [
     ("about", "1. About DLC and these terms", f"""
-<p>These terms apply to your membership of Down Low Cannabis (“DLC”) and your use of this website and the member area. The website is operated by {v("registered_name", "registered name")}. By entering the member area or sending an exchange request you agree to these terms, so please read them — and our <a href="privacy.html">Privacy Policy</a> — carefully.</p>
+<p>These terms apply to your membership of Down Low Cannabis (“DLC”) and your use of this website and the member area. The website is operated by {v("registered_name", "registered name")}. By entering the member area or sending an exchange request you agree to these terms, so please read them, and our <a href="privacy.html">Privacy Policy</a>, carefully.</p>
 <p>Nothing in these terms limits any right you have under the Consumer Protection Act 68 of 2008 (“CPA”) or the Electronic Communications and Transactions Act 25 of 2002 (“ECTA”) that cannot lawfully be limited. Terms that limit our responsibility are shown in <strong>bold</strong> so you can find them easily.</p>
 <p>The information the ECTA requires us to publish (section 43):</p>
 {contact_card()}"""),
@@ -257,7 +257,7 @@ TERMS = [
 <ol>
 <li><strong>Review.</strong> Before you send a request you can see everything in your bag, change quantities, remove products, correct your details and see the credits to settle by card (ECTA section 43(2)). You can leave at any point without sending anything.</li>
 <li><strong>Settlement.</strong> Every online exchange request is settled by card when you send it, on the secure page of our card settlement provider, Paystack. Your card details go to Paystack and are never seen or stored by DLC. Online exchanges are settled at your member card discount; DLC Credits and the cash discount apply in the lounge only. Points are earned on the amount actually settled.</li>
-<li><strong>Request.</strong> Once settled, your request goes to the DLC team to prepare. We may decline a request — for example if stock has run out, your membership is not active, or the law requires it. If we do, we tell you and return the full settlement to your card.</li>
+<li><strong>Request.</strong> Once settled, your request goes to the DLC team to prepare. We may decline a request, for example if stock has run out, your membership is not active, or the law requires it. If we do, we tell you and return the full settlement to your card.</li>
 <li><strong>Hand-over.</strong> The team messages you on the number you gave when your request is ready to collect. Nothing is settled at hand-over.</li>
 </ol>
 <p>You may cancel a request at no cost at any time before the team has prepared it by contacting us, and we will return the full settlement to your card. Returns to a card can take a few working days to show, depending on your bank.</p>"""),
@@ -269,7 +269,7 @@ TERMS = [
 </ul>"""),
 
     ("returns", "7. Cooling-off, returns and defective products", """
-<p><strong>Cooling-off.</strong> Where an exchange is concluded through this website, you may be entitled under ECTA section 44 to cancel within seven days of receiving the products, without reason or penalty, subject to the exclusions in section 42 — which include goods that by their nature cannot be returned or are likely to deteriorate rapidly. For health and safety reasons, products that have been opened, used or unsealed cannot be taken back unless they are defective.</p>
+<p><strong>Cooling-off.</strong> Where an exchange is concluded through this website, you may be entitled under ECTA section 44 to cancel within seven days of receiving the products, without reason or penalty, subject to the exclusions in section 42, which include goods that by their nature cannot be returned or are likely to deteriorate rapidly. For health and safety reasons, products that have been opened, used or unsealed cannot be taken back unless they are defective.</p>
 <p><strong>Defective products.</strong> Under the CPA (sections 55 and 56) products must be of good quality, safe and as described. If a product is defective you may return it within six months of hand-over, and we will repair or replace it, or reverse the exchange, as the CPA provides.</p>
 <p>To arrange a return, contact us with your exchange number. Returned products must be handed back in person.</p>"""),
 
@@ -288,7 +288,7 @@ TERMS = [
 <p><strong>To the extent the law allows, DLC is not responsible for loss caused by: temporary unavailability of the website; information you gave us that was wrong; your use of products contrary to these terms, the product information or the law; or events beyond our reasonable control.</strong> This does not limit our responsibility for loss caused by our gross negligence, or any liability that cannot lawfully be limited under the CPA.</p>"""),
 
     ("complaints", "11. Complaints", f"""
-<p>If something is not right, please tell us first — {mail("email", "contact email")} or {v("phone", "telephone number")} — and we will try to resolve it within a reasonable time.</p>
+<p>If something is not right, please tell us first at {mail("email", "contact email")} or {v("phone", "telephone number")}, and we will try to resolve it within a reasonable time.</p>
 <p>If you are not satisfied, you may refer a consumer complaint to the Consumer Goods and Services Ombud or the National Consumer Commission, and a privacy complaint to the Information Regulator.</p>"""),
 
     ("general", "12. General", """
@@ -313,7 +313,7 @@ NECESSARY = [
     ("dlc_member_access", "Cookie (HTTP-only, signed)", "Keeps you signed in to the member area with your verified Member ID. Cannot be read by website scripts.", "7 days"),
     ("dlc_consent", "Cookie", "Remembers your cookie choices so we do not ask on every page.", "12 months"),
     ("dlc_age_verified_v1", "Local storage", "Avoids flashing the 18+ screen at a device that has already confirmed. Holds only “yes”.", "Until cleared"),
-    ("dlc_member_verified_v1", "Local storage", "Avoids flashing the Member ID screen at a signed-in device. Holds only “yes” — never your Member ID.", "Until cleared"),
+    ("dlc_member_verified_v1", "Local storage", "Avoids flashing the Member ID screen at a signed-in device. Holds only “yes”, never your Member ID.", "Until cleared"),
     ("dlc_catalog_cache_v1", "Session storage", "A copy of the product list so pages load quickly on a slow connection. Contains no personal information.", "Until you close the tab"),
     ("dlcLoungeState, dlcReturnToLounge, dlcCollectionState, dlcCollectionCrossScroll, dlcTransitionIn", "Session storage", "Returns you to the same place in the lounge or a collection when you go back. No personal information.", "Until you close the tab"),
 ]
