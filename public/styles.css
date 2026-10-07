@@ -3617,8 +3617,13 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
 .li-faq summary:focus-visible{outline:2px solid var(--li-deep);outline-offset:2px;border-radius:8px}
 .li-faq p{margin:0 0 18px;font-size:13px;line-height:1.65;color:#3d5170}
 
-/* "More from" cards: the art box gets one fixed row so the image's percentage
-   max-height has something to resolve against. Without it a tall pack shot
-   (cones, slims) ignores the cap and spills over the card and its neighbours. */
-.related-card-art.dlc-cloud-stage{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
-.related-card-art.dlc-cloud-stage>img{max-width:70%!important;max-height:62%!important;min-height:0;justify-self:center}
+/* Cloud-stage pack shots (More from row, collection grids): the image is laid
+   out against the stage itself, resting on the cloud and capped to the stage's
+   size, so a tall pack (cones, slims, tins) can never spill over the card or
+   its neighbours, whatever the grid or flex rules around it do. */
+.related-card-art.dlc-cloud-stage>img,
+.strain-pack.dlc-cloud-stage>img{
+  position:absolute!important;left:0!important;right:0!important;bottom:13%!important;top:auto!important;
+  margin:0 auto!important;width:auto!important;height:auto!important;
+  max-width:70%!important;max-height:62%!important;min-height:0;object-fit:contain;
+}
