@@ -71,13 +71,15 @@ NAV = (
     '<a href="index.html?home=1">LOUNGE</a><a href="strains.html?category=flower">FLOWER</a>'
     '<a href="strains.html?category=prerolls">PREROLLS</a><a href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a>'
     '<a data-global-collection="more" href="strains.html?category=more">MORE</a>'
+    '<a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a>'
 )
 
 
 def page(slug, title, h1, description, intro, sections, extra_head=""):
     version = f" · Version {VERSIONS[slug]}" if slug in VERSIONS else ""
     legal_links = [("privacy.html", "PRIVACY"), ("terms.html", "TERMS"), ("cookies.html", "COOKIES")]
-    footer_links = "".join(
+    lounge_links = '<a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html">REFERRALS</a>'
+    footer_links = lounge_links + "".join(
         f'<a href="{href}"{" aria-current=\"page\"" if href == f"{slug}.html" else ""}>{label}</a>' for href, label in legal_links
     ) + '<a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a>'
     toc = "".join(f'<li><a href="#{sid}">{escape(head)}</a></li>' for sid, head, _ in sections)
@@ -116,7 +118,7 @@ def page(slug, title, h1, description, intro, sections, extra_head=""):
   <nav class="legal-toc" aria-label="On this page"><p>ON THIS PAGE</p><ol>{toc}</ol></nav>
 {body}
 </div></main>
-<footer class="site-footer"><div class="site-footer__brand"><img src="assets/dlc-logo.svg" alt="" width="52" height="52"><span>DOWN LOW CANNABIS</span></div><nav aria-label="Legal">{footer_links}</nav><p>18+ · Halfway House, Midrand</p></footer>
+<footer class="site-footer"><div class="site-footer__brand"><img src="assets/dlc-logo.svg" alt="" width="52" height="52"><span>DOWN LOW CANNABIS</span></div><nav aria-label="Footer">{footer_links}</nav><p>18+ · Halfway House, Midrand</p></footer>
 <script src="common.js" defer></script>
 </body></html>
 """

@@ -292,7 +292,7 @@
     <img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/>
   </a>
   <nav class="nav-links" aria-label="Primary navigation">
-    <a href="index.html?home=1" data-analytics="lounge_nav_click">LOUNGE</a><a href="strains.html">SHOP ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+    <a href="index.html?home=1" data-analytics="lounge_nav_click">LOUNGE</a><a href="strains.html">BROWSE ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
   </nav>
   <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
 </header>
@@ -305,10 +305,10 @@
     <div class="shop-hero__text">
       <div class="strains-kicker" id="categoryLabel">FLOWER</div>
       <h1 class="shop-title" id="pageTitle">Flower</h1>
-      <p class="shop-sub" id="pageDescription">Live stock from the DLC lounge.</p>
-      <p class="shop-instock"><i aria-hidden="true"></i><strong>IN STOCK ONLY</strong><span>The shop only shows what is on the shelf right now. Sold-out products are hidden until the lounge restocks them.</span></p>
+      <p class="shop-sub" id="pageDescription">What is on the DLC shelf right now.</p>
+      <p class="shop-instock"><i aria-hidden="true"></i><strong>IN STOCK ONLY</strong><span>Sold-out products stay hidden until the lounge restocks them.</span></p>
     </div>
-    <p class="shop-count" aria-live="polite"><strong id="overviewCount">—</strong> <span id="overviewCountLabel">ITEMS</span><span class="shop-count__sep">·</span><span id="overviewPrice">—</span></p>
+    <p class="shop-count" aria-live="polite"><strong id="overviewCount">…</strong> <span id="overviewCountLabel">ITEMS</span><span class="shop-count__sep">·</span><span id="overviewPrice">…</span></p>
   </section>
 
   <div class="shop-filters" id="shopFilters">
@@ -366,7 +366,7 @@
 </main>
 <footer class="site-footer">
   <div class="site-footer__brand"><img alt="" decoding="async" height="52" loading="lazy" src="assets/dlc-logo.svg" width="52"/><span>DOWN LOW CANNABIS</span></div>
-  <nav aria-label="Legal"><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <nav aria-label="Footer"><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html">REFERRALS</a><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
   <p>18+ · Halfway House, Midrand</p>
 </footer>
 <script>
@@ -376,7 +376,7 @@
   // No category is the main shop: everything on the shelf in one place.
   const category = ['flower', 'prerolls', 'wellness', 'more'].includes(params.get('category')) ? params.get('category') : 'all';
   const isAll = category === 'all';
-  // No tier in the URL means "wherever there is stock" — resolved once the catalogue loads.
+  // No tier in the URL means "wherever there is stock", resolved once the catalogue loads.
   let tier = category === 'wellness' ? 'wellness' : (params.get('tier') || '');
   const titleCase = value => value.replaceAll('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -434,15 +434,15 @@
       setText('crumbCategory', 'SHOP');
       document.getElementById('crumbCategory').href = 'strains.html';
       setText('crumbTier', 'ALL PRODUCTS');
-      setText('overviewCount', count == null ? '—' : String(count));
+      setText('overviewCount', count == null ? '…' : String(count));
       setText('overviewCountLabel', count === 1 ? 'ITEM' : 'ITEMS');
       setText('overviewPrice', fromPrice == null ? '' : `FROM ${S.price(fromPrice)}`);
       setText('categoryLabel', 'THE DLC SHELF');
       document.getElementById('pageTitle').textContent = 'All products';
-      setText('pageDescription', 'Everything on the DLC shelf right now. Pick a collection above, or open Filters to narrow it down.');
+      setText('pageDescription', 'Everything on the DLC shelf right now. Pick a collection above or use Filters to narrow it down.');
       document.getElementById('bandTitle').innerHTML = 'MORE FROM<br/>THE LOUNGE';
       setText('bandCopy', 'Prefer a single collection? Jump to flower, prerolls, wellness or more above.');
-      document.title = 'DLC — Shop all products';
+      document.title = 'DLC | Browse all products';
       return;
     }
     // Until the catalogue says which tier has stock, speak about the category.
@@ -452,8 +452,8 @@
     document.getElementById('crumbCategory').href = collectionHref(category);
     setText('crumbTier', shelf);
     setText('overviewCategory', categoryName.toUpperCase());
-    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierPending ? '—' : tierName.toUpperCase());
-    setText('overviewCount', count == null ? '—' : String(count));
+    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierPending ? '…' : tierName.toUpperCase());
+    setText('overviewCount', count == null ? '…' : String(count));
     setText('overviewCountLabel', count === 1 ? 'ITEM' : 'ITEMS');
     setText('overviewPrice', fromPrice == null ? '' : `FROM ${S.price(fromPrice)}`);
     setText('categoryLabel', `${categoryName.toUpperCase()} / ${shelf}`);
@@ -462,26 +462,26 @@
     const titleWord = category === 'wellness' ? 'WELLNESS' : tierPending ? categoryName.toUpperCase() : tierName.toUpperCase();
     const titleTail = tierPending ? 'COLLECTION' : category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
     document.getElementById('pageTitle').textContent = `${titleWord} ${titleTail}`.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
-    document.title = `DLC — ${category === 'wellness' ? 'Wellness Products' : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()}`;
+    document.title = `${category === 'wellness' ? 'Wellness Products' : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()} | DLC`;
 
     // The old overview card is gone; keep the wording logic but write to a detached link.
     const intro = document.querySelector('.intro-actions .primary') || document.createElement('a');
     if (category === 'wellness') {
-      setText('pageDescription', 'The DLC wellness range, live from the lounge shelf. Select a product for its format, measured serving and current credits.');
-      setText('bandCopy', 'Browse the complete DLC wellness range or open any product above to view its full product-detail page.');
+      setText('pageDescription', 'The DLC wellness range. Open a product for its format, measured serving and credits.');
+      setText('bandCopy', 'Open any product above for its full details.');
       intro.textContent = 'WELLNESS COLLECTION';
     } else if (category === 'more' && !tierPending) {
-      setText('pageDescription', `Everything else on the DLC shelf. You are browsing ${tierName.toLowerCase()} — switch shelves below.`);
-      setText('bandCopy', 'Prefer a single list you can filter and search? Open the full menu.');
+      setText('pageDescription', `Browsing ${tierName.toLowerCase()} on the DLC shelf. Use the shelves below to switch.`);
+      setText('bandCopy', 'Want one list you can filter and search? Open the full menu.');
       intro.textContent = 'FULL MENU';
       intro.href = '/menu';
     } else if (tierPending) {
       setText('pageDescription', `Loading the ${categoryName.toLowerCase()} on the DLC shelf right now…`);
-      setText('bandCopy', 'Browse another DLC collection, or open any product above to view its full details.');
+      setText('bandCopy', 'Pick another collection, or open any product above for its details.');
       intro.textContent = `${categoryName.toUpperCase()} COLLECTION`;
     } else {
-      setText('pageDescription', `The ${tierName} ${categoryName.toLowerCase()} on the DLC shelf right now. Select a ${category === 'prerolls' ? 'preroll' : 'strain'} to view its full product information.`);
-      setText('bandCopy', `Browse more ${tierName.toLowerCase()} ${categoryName.toLowerCase()} options, or open any strain above to view the full product-detail page.`);
+      setText('pageDescription', `The ${tierName} ${categoryName.toLowerCase()} on the DLC shelf right now. Open a ${category === 'prerolls' ? 'preroll' : 'strain'} for its full details.`);
+      setText('bandCopy', `Open any ${category === 'prerolls' ? 'preroll' : 'strain'} above for its details, or try another collection.`);
       intro.textContent = `${categoryName.toUpperCase()} COLLECTION`;
     }
     if (category !== 'more') intro.href = collectionHref(category);
@@ -532,8 +532,8 @@
         : `<div class="strain-pack dlc-cloud-stage placeholder"><span>DLC</span></div>`;
       const low = product.availableQuantity <= 3;
       // Until the catalogue says which tier has stock, speak about the category.
-    const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
-    const shelf = isAll ? (S.TIERS.find(t => t.slug === place.tier)?.label || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
+      const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
+      const shelf = isAll ? (S.TIERS.find(t => t.slug === place.tier)?.label || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
       const cardLabel = isAll ? CATEGORY_LABEL[place.category] : categoryName.toUpperCase();
       card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${cardLabel}${shelf && shelf !== cardLabel ? ` / ${escapeHtml(shelf)}` : ''}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
@@ -577,7 +577,7 @@
     window.DLCLoadingLines?.rotate(grid.querySelector('.store-loading-line'), 'shelf');
   }
   paintSkeleton();
-  note.textContent = 'LIVE FROM THE DLC LOUNGE — ONLY IN-STOCK PRODUCTS ARE SHOWN, AND THE SHELF UPDATES AS STOCK CHANGES. POTENCY: CONFIRM IN STORE.';
+  note.textContent = 'STOCK UPDATES LIVE FROM THE LOUNGE. POTENCY: CONFIRM IN STORE.';
 
   S.catalog().then(products => {
     const inCategory = isAll ? products : products.filter(p => S.classify(p).category === category);
@@ -590,7 +590,9 @@
         tierName = S.TIERS.find(t => t.slug === tier).label;
         history.replaceState(null, '', S.collectionUrl(category, tier));
       }
-    } else if (category === 'more' && !tierPending) {
+    } else if (category === 'more') {
+      // One shelf per product type with stock; none are empty, so the page
+      // never offers a blank shelf. No shelf in the URL yet: open the first.
       const byType = new Map();
       inCategory.forEach(p => {
         const slug = S.classify(p).tier;
@@ -599,7 +601,10 @@
         byType.set(slug, entry);
       });
       shelves = [...byType.values()].sort((a, b) => a.label.localeCompare(b.label));
-      if (!shelves.some(s => s.slug === tier)) tier = shelves[0]?.slug || '';
+      if (!shelves.some(s => s.slug === tier)) {
+        tier = shelves[0]?.slug || '';
+        if (tier) history.replaceState(null, '', S.collectionUrl(category, tier));
+      }
       tierName = shelves.find(s => s.slug === tier)?.label || 'Products';
     }
     if (shelves.length) paintShelves(shelves);
@@ -677,7 +682,7 @@
       } else {
         const stocked = shelves.filter(s => s.count);
         const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
-        if (isAll) paintState('The shelf is empty right now', 'The shop only shows what is in stock, and stock changes through the day — please check back soon.');
+        if (isAll) paintState('The shelf is empty right now', 'Stock changes through the day, so check back soon.');
         else paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
         if (featured) featured.hidden = true;
       }

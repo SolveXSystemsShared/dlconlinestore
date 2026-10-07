@@ -75,10 +75,11 @@
     'edibles-blaze-blocks',
     'edibles-buzz-pops-dlc',
     'edibles-caramel',
+    'edibles-chocolate-chip-cookie',
     'edibles-chocolate-chip-cookies',
     'edibles-death-by-chocolate-cups',
-    'edibles-fab-fudge',
     'edibles-fruity-pastilles',
+    'edibles-fudge-bloom-bakery',
     'edibles-gummies-peach-watermelon-lucky-club',
     'edibles-gummy-bear-indica-dlc',
     'edibles-heart-stopper-gummies',
@@ -92,6 +93,7 @@
     'edibles-red-vine-stripz',
     'edibles-share-square-gummies',
     'edibles-stoned-pineapple-stoned-edibles',
+    'edibles-strawberry-donut-jellies',
     'edibles-sugar-coated-gummies',
     'edibles-tangerine-gummies-gobbles',
     'edibles-tropical-sour-cubes',
@@ -137,7 +139,8 @@
   }
 
   // DLC amounts are credits, never currency. Keep in step with credits() in lib/format.ts.
-  const price = value => `C ${Number(value || 0).toFixed(2)}`;
+  // A no-break space, so "C 79.99" never splits across two lines.
+  const price = value => `C\u00a0${Number(value || 0).toFixed(2)}`;
 
   function productUrl(product) {
     const { category, tier } = classify(product);
@@ -340,6 +343,6 @@
 
   window.DLCStore = {
     TIERS, classify, tierForGrade, imageFor, price, productUrl, collectionUrl, slugify,
-    catalog, cart, setQuantity, addToCart, inCart, slowConnection,
+    catalog, cart, setQuantity, addToCart, inCart, slowConnection, api,
   };
 })();

@@ -1,9 +1,10 @@
 /**
  * DLC amounts are credits, never currency — compliance wording, not styling.
- * Keep in step with price() in public/store.js: "C 79.99".
+ * Keep in step with price() in public/store.js: "C 79.99" (no-break space).
  */
 export function credits(value: number) {
-  return `C ${Number(value || 0).toFixed(2)}`
+  // A no-break space, so "C 79.99" never splits across two lines.
+  return `C\u00a0${Number(value || 0).toFixed(2)}`
 }
 
 export function normalizeMemberId(value: string) {

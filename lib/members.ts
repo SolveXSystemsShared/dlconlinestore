@@ -102,13 +102,14 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
 
   const { data: staffRow, error: staffError } = await supabase
     .from(STAFF_TABLE)
-    .select(`${STAFF_ID_COLUMN}, name, role, deleted_at, phone`)
+    .select(`${STAFF_ID_COLUMN}, name, role, deleted_at, phone, store_id, otp_phone, otp_phone_type`)
     .ilike(STAFF_ID_COLUMN, memberId)
     .maybeSingle()
   if (staffError) throw new Error(staffError.message)
   if (!staffRow) return { found: false }
 
   const staff = staffRow as unknown as Record<string, string | null>
+  const mobile = await staffSigninPhone(supabase, staff)
   // `users` has no status column — CDASH closes a staff account by setting
   // deleted_at, so that is the whole test.
   const deleted = Boolean(staff.deleted_at)
@@ -120,6 +121,36 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
     source: "staff",
     role: staff.role,
     status: deleted ? "closed" : "active",
-    mobile: staff.phone,
+    mobile,
   }
+}
+
+/**
+ * Where a staff member's sign-in code goes, by the rules CDASH's own login uses
+ * (CDASH app/api/auth/otp/send), so the same person is texted at the same number
+ * whichever site they sign in to.
+ *
+ * - Directors, managers and auditors choose in CDASH Settings: a personal number
+ *   (`otp_phone`) or a store's phone (`otp_phone` holds the store id). Anything
+ *   missing falls back to their account phone, so a half-set choice never locks
+ *   them out.
+ * - Other staff are texted at their assigned store's phone (CDASH sends nothing
+ *   if there is none; the store falls back to their own phone instead).
+ *
+ * CDASH can also email a director's code instead; the store only sends SMS, so
+ * it uses the same phone they would otherwise get.
+ */
+async function staffSigninPhone(supabase: ReturnType<typeof getSupabaseAdmin>, staff: Record<string, string | null>) {
+  const role = (staff.role || "").toLowerCase()
+  const privileged = role === "director" || role === "manager" || role === "auditor"
+  const storePhone = async (storeId: string | null) => {
+    if (!storeId) return null
+    const { data } = await supabase.from("stores").select("phone").eq("id", storeId).maybeSingle()
+    return (data?.phone as string | null) ?? null
+  }
+  if (!privileged) return (await storePhone(staff.store_id)) || staff.phone
+  let resolved: string | null = null
+  if (staff.otp_phone_type === "store" && staff.otp_phone) resolved = await storePhone(staff.otp_phone)
+  else if (staff.otp_phone_type === "personal" && staff.otp_phone) resolved = staff.otp_phone
+  return resolved || staff.phone
 }

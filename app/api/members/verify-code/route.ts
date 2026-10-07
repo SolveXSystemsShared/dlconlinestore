@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { AGE_COOKIE, createMemberAccessToken, getMemberAccess, MEMBER_COOKIE } from "@/lib/member-access"
+import { AGE_COOKIE, createMemberAccessToken, getMemberAccess, MEMBER_COOKIE, MEMBER_SESSION_SECONDS } from "@/lib/member-access"
 import { lookupMember, memberLookupMessage } from "@/lib/members"
 import { clearFailures, clientKey, lockedFor, recordFailure } from "@/lib/rate-limit"
 import { checkMessage, checkSigninCode } from "@/lib/signin-code"
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     clearFailures(client)
     const response = NextResponse.json({ member: { memberId: member.memberId, name: member.name } })
-    response.cookies.set({ name: MEMBER_COOKIE, value: createMemberAccessToken(member.memberId), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 7, path: "/" })
+    response.cookies.set({ name: MEMBER_COOKIE, value: createMemberAccessToken(member.memberId), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: MEMBER_SESSION_SECONDS, path: "/" })
     response.cookies.set({ name: AGE_COOKIE, value: "1", httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" })
     return response
   } catch (error) {

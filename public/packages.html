@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#41a8fc"/>
+<title>Lounge Packages | Down Low Cannabis</title>
+<meta name="description" content="DLC lounge packages: Day Pass, Cloud, Cloud Plus, Cloud Nine and Squads, and what each one includes."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://dlconlinestore-8qpm.vercel.app/packages.html"/>
+<link rel="stylesheet" href="styles.css"/>
+<script src="cookies.js"></script>
+<script src="loading-lines.js"></script>
+<script src="age-gate.js"></script>
+<script src="store.js"></script>
+<script src="page-loader.js" data-context="page"></script>
+<link rel="icon" href="assets/dlc-logo.svg" type="image/svg+xml"/>
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png"/>
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+</head>
+<body class="legal-body lounge-info-page">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="nav">
+  <a class="brand" href="index.html?home=1" aria-label="Down Low Cannabis home"><img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/></a>
+  <nav class="nav-links" aria-label="Primary navigation"><a href="index.html?home=1">LOUNGE</a><a href="strains.html">BROWSE ALL</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a><a data-global-collection="more" href="strains.html?category=more">MORE</a><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a></nav>
+  <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
+</header>
+
+<main id="main-content" class="lounge-info">
+  <section class="li-hero">
+    <div class="li-hero__text">
+      <nav class="li-tabs" aria-label="Lounge information"><a href="packages.html" aria-current="page">Packages</a><a href="specials.html">Specials</a><a href="referrals.html">Referrals</a></nav>
+      <p class="li-kicker">THE DLC LOUNGE · MIDRAND</p>
+      <h1>Lounge<br/>packages.</h1>
+      <p class="li-lead">Drop in for a day or make the lounge yours every month. Pick a package below and set it up at the counter on your next visit.</p>
+      <p class="li-free" id="freeAccess" hidden></p>
+    </div>
+    <figure class="li-hero__art" aria-hidden="true"><img src="assets/dlc-mascot.png" alt="" width="605" height="863" decoding="async"/></figure>
+  </section>
+
+  <section class="li-section" aria-labelledby="monthlyTitle">
+    <div class="li-section__head"><p class="li-kicker">EVERY MONTH</p><h2 id="monthlyTitle">Memberships</h2><p>One person, a month at a time. The higher the cloud, the more comes off every exchange.</p></div>
+    <div class="li-cards li-cards--three" id="monthly" aria-busy="true"><p class="li-loading store-loading-line" role="status"></p></div>
+  </section>
+
+  <section class="li-section li-section--tint" aria-labelledby="dayTitle">
+    <div class="li-section__head"><p class="li-kicker">JUST TODAY</p><h2 id="dayTitle">Day access</h2></div>
+    <div class="li-cards li-cards--two" id="daily"></div>
+  </section>
+
+  <section class="li-section" aria-labelledby="squadTitle">
+    <div class="li-section__head"><p class="li-kicker">BRING THE CREW</p><h2 id="squadTitle">Squads</h2><p>One pass for a named group. Everyone on it gets the same rates. Settle monthly, or per visit.</p></div>
+    <div class="li-cards li-cards--three" id="squads"></div>
+  </section>
+
+  <section class="li-section li-split li-section--tint" aria-labelledby="psTitle">
+    <div class="li-section__head"><p class="li-kicker">IN THE LOUNGE</p><h2 id="psTitle">PlayStation</h2><p id="psCopy"></p></div>
+    <ul class="li-chips" id="psExtra"></ul>
+  </section>
+
+  <section class="li-section" aria-labelledby="rewardsTitle">
+    <div class="li-section__head"><p class="li-kicker">EARN AS YOU GO</p><h2 id="rewardsTitle">Points &amp; rewards</h2><p id="rewardsCopy"></p></div>
+    <div class="li-bands" id="bands"></div>
+    <ul class="li-perks li-perks--row" id="rewardExtras"></ul>
+  </section>
+
+  <section class="li-cta">
+    <h2>Ready when you are.</h2>
+    <p>Bring your Member ID and the team will take it from there.</p>
+    <div class="li-cta__actions"><a class="li-btn li-btn--solid" href="specials.html">SEE IN-STORE SPECIALS</a><a class="li-btn" href="referrals.html">REFER A FRIEND</a></div>
+    <p class="li-note">Figures come straight from the lounge and can change. The counter shows what applies on the day.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__brand"><img src="assets/dlc-logo.svg" alt="" width="52" height="52" loading="lazy"/><span>DOWN LOW CANNABIS</span></div>
+  <nav aria-label="Footer"><a href="packages.html" aria-current="page">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html">REFERRALS</a><a href="privacy.html">PRIVACY</a><a href="terms.html">TERMS</a><a href="cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+  <p>18+ · Halfway House, Midrand</p>
+</footer>
+<script>
+(() => {
+  const S = window.DLCStore;
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const minutes = m => m === null ? 'Unlimited' : m >= 60 && m % 60 === 0 ? `${m / 60} hr` : `${m} min`;
+  window.DLCLoadingLines?.rotate(document.querySelector('.li-loading'), 'lounge');
+
+  function perks(p, turnCap) {
+    const list = [];
+    if (p.cashPercent || p.cardPercent) list.push(`<strong>${p.cashPercent}% off</strong> exchanges settled in cash · ${p.cardPercent}% by card`);
+    else list.push('Lounge access');
+    if (p.playstationMinutes === null) list.push(`<strong>Unlimited PlayStation</strong> · ${turnCap} min turns when others are waiting`);
+    else if (p.playstationMinutes > 0) list.push(`<strong>${minutes(p.playstationMinutes)} PlayStation</strong> each visit`);
+    else list.push('No PlayStation time');
+    if (p.earnsPoints) list.push('Earn points on every exchange');
+    else if (p.kind === 'squad') list.push('No points or birthday rewards');
+    if (p.birthdayCredits) list.push(`<strong>${S.price(p.birthdayCredits)}</strong> in DLC Credits on your birthday`);
+    if (p.earlyProductAccess === 'full') list.push('First access to new drops');
+    else if (p.earlyProductAccess === 'selected') list.push('Early access to selected drops');
+    if (p.memberEvents) list.push(p.key === 'cloud_nine' ? 'Priority at member events' : 'Invites to member events');
+    if (p.earnsReferralRewards) list.push('Referral rewards');
+    return list;
+  }
+
+  function card(p, turnCap, { featured = false } = {}) {
+    const period = p.billingPeriod === 'monthly' ? '/ month' : '/ visit';
+    const visit = p.perVisitCredits ? `<p class="li-card__alt">or ${S.price(p.perVisitCredits)} / visit</p>` : '';
+    const who = p.squadSize ? `<p class="li-card__who">${p.squadSize} named people</p>` : '';
+    return `<article class="li-card${featured ? ' is-featured' : ''}">
+      ${featured ? '<span class="li-card__flag">MOST INCLUDED</span>' : ''}
+      <h3>${esc(p.name)}</h3>${who}
+      <p class="li-card__credits"><strong>${S.price(p.credits)}</strong> <span>${period}</span></p>${visit}
+      <ul class="li-perks">${perks(p, turnCap).map(x => `<li>${x}</li>`).join('')}</ul>
+    </article>`;
+  }
+
+  S.api('/api/lounge').then(info => {
+    const cap = info.playstation.turnCapMinutes;
+    const monthly = info.packages.filter(p => p.kind === 'individual');
+    const top = monthly.reduce((best, p) => (!best || p.credits > best.credits ? p : best), null);
+    const monthlyEl = document.getElementById('monthly');
+    monthlyEl.removeAttribute('aria-busy');
+    monthlyEl.innerHTML = monthly.map(p => card(p, cap, { featured: p === top })).join('');
+
+    const day = info.packages.filter(p => p.kind === 'day_pass').map(p => card(p, cap));
+    if (info.freeAccess.enabled) {
+      day.push(`<article class="li-card li-card--free"><h3>Free access</h3><p class="li-card__credits"><strong>C 0.00</strong> <span>/ ${info.freeAccess.hours} hours</span></p>
+        <ul class="li-perks"><li>Exchange more than <strong>${S.price(info.freeAccess.minSpend)}</strong> and the lounge is yours for ${info.freeAccess.hours} hours</li><li>Starts from the moment the exchange is settled</li><li>Come and go as you like while it lasts</li></ul></article>`);
+      const free = document.getElementById('freeAccess');
+      free.innerHTML = `<i aria-hidden="true"></i>Exchange more than <strong>${S.price(info.freeAccess.minSpend)}</strong> and get <strong>${info.freeAccess.hours} hours</strong> of free lounge access.`;
+      free.hidden = false;
+    }
+    document.getElementById('daily').innerHTML = day.join('');
+    document.getElementById('squads').innerHTML = info.packages.filter(p => p.kind === 'squad').map(p => card(p, cap)).join('');
+
+    document.getElementById('psCopy').textContent = `${info.playstation.consoleCount === 1 ? 'One console' : `${info.playstation.consoleCount} consoles`} in the lounge. Your package's time is counted per visit, with a ${cap}-minute turn when someone else is waiting. Want more? Add time at the counter.`;
+    document.getElementById('psExtra').innerHTML = info.playstation.extraTime.length
+      ? info.playstation.extraTime.map(t => `<li><span>${esc(t.label)}</span><strong>${S.price(t.credits)}</strong></li>`).join('')
+      : '<li><span>Extra time</span><strong>Ask at the counter</strong></li>';
+
+    const r = info.rewards;
+    const earners = info.packages.filter(p => p.earnsPoints).map(p => p.name);
+    const who = earners.length > 1 ? `${earners.slice(0, -1).join(', ')} and ${earners[earners.length - 1]}` : earners[0] || 'Members';
+    document.getElementById('rewardsCopy').textContent = `${who} members earn points on what they exchange. Every ${r.pointsPerCredit} points is ${S.price(1)} in DLC Credits, and credits can cover up to ${r.basketCapPercent}% of an exchange.`;
+    document.getElementById('bands').innerHTML = r.bands.map(b => `<div class="li-band"><span>${b.to === null ? `${S.price(b.from)}+` : `${S.price(b.from)} – ${S.price(b.to)}`}</span><strong>${b.percent}%</strong><small>back in points</small></div>`).join('');
+    document.getElementById('rewardExtras').innerHTML = [
+      `<li><strong>+${r.visitBonus.points} points</strong> every ${r.visitBonus.visits} visits</li>`,
+      `<li><strong>+${r.referralPoints} points</strong> for each friend you refer</li>`,
+    ].join('');
+  }).catch(() => {
+    const el = document.getElementById('monthly');
+    el.removeAttribute('aria-busy');
+    el.innerHTML = '<p class="li-error">The packages could not be loaded just now. <a href="packages.html">Try again</a>, or ask the team at the lounge.</p>';
+  });
+})();
+</script>
+<script defer src="common.js"></script>
+<script defer src="education.js"></script>
+</body>
+</html>

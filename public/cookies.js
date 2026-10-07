@@ -84,7 +84,7 @@
       ${detailed ? `<div class="dlc-consent__cats">
         <label class="dlc-consent__cat"><div><strong>Strictly necessary</strong><span>18+ confirmation, member sign-in, this consent choice and page navigation. The member area cannot work without these.</span></div><em>ALWAYS ON</em></label>
         <label class="dlc-consent__cat"><div><strong>Preferences</strong><span>Remembers guidance mode, recently viewed products and your last DLC Decoder topic on this device.</span></div><input type="checkbox" data-cat="preferences" ${c.preferences ? 'checked' : ''}></label>
-        <label class="dlc-consent__cat"><div><strong>Analytics</strong><span>Anonymous statistics on how the site is used. Not currently in use — if we enable it, it will only run with this switched on.</span></div><input type="checkbox" data-cat="analytics" ${c.analytics ? 'checked' : ''}></label>
+        <label class="dlc-consent__cat"><div><strong>Analytics</strong><span>Anonymous statistics on how the site is used. Not currently in use. If we turn it on, it will only run with this switched on.</span></div><input type="checkbox" data-cat="analytics" ${c.analytics ? 'checked' : ''}></label>
       </div>` : ''}
       <div class="dlc-consent__actions">
         <button type="button" class="is-primary" data-consent="all">Accept all</button>

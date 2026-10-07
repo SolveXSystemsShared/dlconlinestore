@@ -134,11 +134,11 @@
 
   // What the mascot says on each screen.
   const bubbles = {
-    checking: 'One sec — just checking you in…',
+    checking: 'One sec, just checking you in…',
     age: 'Howzit! Quick check before we go in.',
-    denied: 'Sorry — this one is for adults only.',
+    denied: 'Sorry, this one is for adults only.',
     member: 'Welcome in. Pop your Member ID below.',
-    pin: 'Nearly there — check your SMS for the PIN.',
+    pin: 'Nearly there. Check your SMS for the PIN.',
   };
 
   let stopLines = () => {};

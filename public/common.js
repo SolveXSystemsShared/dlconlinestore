@@ -11,6 +11,25 @@
   const menuButton = document.getElementById('menuBtn');
   const primaryNav = header?.querySelector('.nav-links');
 
+  // Mark the header link for the page you are on (aria-current drives the
+  // "current" style). Done before the mobile menu copies the links, so both
+  // menus agree. Shelf and product pages count as their category.
+  if (primaryNav) {
+    const here = new URL(location.href);
+    const hereFile = here.pathname.split('/').pop() || 'index.html';
+    const hereCategory = here.searchParams.get('category') || '';
+    primaryNav.querySelectorAll('a[href]').forEach(link => {
+      if (link.hasAttribute('data-open-education')) return;
+      const target = new URL(link.getAttribute('href'), location.href);
+      const targetFile = target.pathname.split('/').pop() || 'index.html';
+      const shelfPage = hereFile === 'strains.html' || hereFile === 'product.html';
+      const sameShelf = targetFile === 'strains.html' && shelfPage && (target.searchParams.get('category') || '') === hereCategory;
+      const samePage = targetFile === hereFile && !shelfPage;
+      if (sameShelf || samePage) link.setAttribute('aria-current', 'page');
+      else if (link.getAttribute('aria-current') === 'page') link.removeAttribute('aria-current');
+    });
+  }
+
   if (header && menuButton && primaryNav) {
     let mobileNav = document.getElementById('mobileNav');
     if (!mobileNav) {
@@ -66,6 +85,20 @@
     }, {passive:true});
   }
 
+
+  // Legal pages: the blue hero runs down to the middle of the "on this page"
+  // card, so the card sits across the edge of the band whatever the screen size.
+  const legalPage = document.querySelector('.legal-page');
+  const legalToc = legalPage?.querySelector('.legal-toc');
+  if (legalPage && legalToc) {
+    const sizeHero = () => {
+      const top = legalToc.getBoundingClientRect().top - legalPage.getBoundingClientRect().top;
+      legalPage.style.setProperty('--hero-h', `${Math.round(top + legalToc.offsetHeight / 2)}px`);
+    };
+    sizeHero();
+    window.addEventListener('resize', sizeHero, {passive:true});
+    if (document.fonts?.ready) document.fonts.ready.then(sizeHero);
+  }
 
   const pageViewDetail = {event:'page_view', path:location.pathname};
   window.dispatchEvent(new CustomEvent('dlc:analytics', {detail:pageViewDetail}));

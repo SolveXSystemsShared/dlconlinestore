@@ -50,7 +50,7 @@ export async function PATCH(request: NextRequest) {
     // CDASH staff shopping on a users.member_number have no membership row.
     // Creating one here would invent a membership nobody applied for.
     if (!current) {
-      return NextResponse.json({ error: "Your details are held on your CDASH staff record. Please ask the team to update them." }, { status: 409 })
+      return NextResponse.json({ error: "Your details are held on your staff account. Please ask the team to update them." }, { status: 409 })
     }
     const row = current as unknown as Record<string, string | boolean | null>
 

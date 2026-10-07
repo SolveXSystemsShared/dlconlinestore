@@ -23,7 +23,9 @@ const hashCode = (memberId: string, code: string) =>
   crypto.createHmac("sha256", secret()).update(`signin:${memberId}:${code}`).digest("hex")
 
 // Design preview has no database: PINs live in memory for the dev server's life.
-const previewCodes = new Map<string, string>()
+// Kept on globalThis so every API route shares one store: a dev server may
+// bundle each route with its own copy of this module.
+const previewCodes: Map<string, string> = ((globalThis as { __dlcPreviewCodes?: Map<string, string> }).__dlcPreviewCodes ??= new Map())
 
 const sameHash = (a: string, b: string) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))
 

@@ -42,6 +42,8 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
     <a href="/strains.html?category=prerolls">PREROLLS</a>
     <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>
     <a href="/strains.html?category=more">MORE</a>
+    <a href="/packages.html">PACKAGES</a>
+    <a href="/specials.html">SPECIALS</a>
     <a href="/account" aria-current={current === "account" ? "page" : undefined}>ACCOUNT</a>
   </>
 
@@ -82,7 +84,7 @@ export function StoreFooter() {
   <BackToTop />
   <footer className="sf-footer">
     <div className="sf-footer-brand"><img src="/assets/dlc-logo.svg" alt="" width={52} height={52} /><span>DOWN LOW CANNABIS</span></div>
-    <nav aria-label="Legal"><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="/cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
+    <nav aria-label="Footer"><a href="/packages.html">PACKAGES</a><a href="/specials.html">SPECIALS</a><a href="/referrals.html">REFERRALS</a><a href="/privacy.html">PRIVACY</a><a href="/terms.html">TERMS</a><a href="/cookies.html">COOKIES</a><a href="#cookie-settings" data-cookie-settings>COOKIE SETTINGS</a></nav>
     <p>18+ · Halfway House, Midrand</p>
   </footer>
   </>

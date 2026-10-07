@@ -93,5 +93,5 @@ export async function getCollectionPoint(): Promise<CollectionPoint | null> {
 /** One line for the exchange record, so staff see at a glance how it leaves the store. */
 export function collectionRecord(point: CollectionPoint | null) {
   const where = point ? [point.name, point.address].filter(Boolean).join(", ") : "the fulfilment store"
-  return `Collection at ${where} — member arranges their own Uber`
+  return `Collection at ${where}. Member arranges their own Uber`
 }

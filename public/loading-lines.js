@@ -14,7 +14,7 @@
 (() => {
   const OPENERS = {
     lounge: ['Preparing the lounge…', 'Fluffing the clouds…', 'Dimming the lights, cueing the vibe…'],
-    gate: ['One sec — just checking you in…', 'Finding your name on the list…'],
+    gate: ['One sec, just checking you in…', 'Finding your name on the list…'],
     shelf: ['Stocking the shelf…', 'Counting what’s on the shelf…', 'Lining up the good stuff…'],
     product: ['Fetching the details…', 'Reading the label for you…'],
     bag: ['Unpacking your bag…', 'Working out your credits…'],
@@ -23,7 +23,7 @@
 
   const NETWORK = [
     'Your signal is taking the scenic route…',
-    'Slow connection — we’re still coming, promise.',
+    'Slow connection. We’re still coming, promise.',
     'The network’s moving at lounge pace today.',
   ];
 

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { AGE_COOKIE, createMemberAccessToken, getMemberAccess, MEMBER_COOKIE } from "@/lib/member-access"
+import { AGE_COOKIE, getMemberAccess } from "@/lib/member-access"
 import { notifyStaff } from "@/lib/notify-staff"
 import { isPreviewMode } from "@/lib/preview"
 import { validateSaId } from "@/lib/sa-id"
+import { clientKey, lockedFor, recordFailure } from "@/lib/rate-limit"
+import { parseSaMobile, phoneKey } from "@/lib/phone"
+import { maskMobile, sendSms } from "@/lib/sms"
 import {
   ageInYears,
   MEMBER_ID_COLUMN,
@@ -18,7 +21,11 @@ import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptanc
 const input = z.object({
   fullName: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(160),
-  mobileNumber: z.string().trim().min(7).max(30),
+  // The sign-in PIN is texted to this number, so it must be a real South African
+  // mobile — not just something that looks like a phone number.
+  mobileNumber: z.string().trim().max(30).refine((value) => parseSaMobile(value) !== null, {
+    message: "Enter a valid South African mobile number, like 082 123 4567. Your login PIN is sent to it by SMS.",
+  }),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
   idNumber: z.string().trim().max(40).optional().default(""),
   foreignPassport: z.string().trim().max(40).optional().default(""),
@@ -27,6 +34,8 @@ const input = z.object({
   // Consent is recorded as an explicit true/false, never left NULL — CDASH
   // reads NULL as "never asked" and re-prompts at the exchange counter.
   marketingOptIn: z.boolean().optional().default(false),
+  // Optional: the code of the member who referred this person.
+  referralCode: z.string().trim().max(40).optional().default(""),
   ...acceptanceInput,
 }).refine((value) => value.idNumber.length > 0 || value.foreignPassport.length > 0, {
   message: "An ID number or passport number is required",
@@ -48,6 +57,14 @@ export async function POST(request: NextRequest) {
     // The 18+ confirmation still gates registration, exactly as it gates the store.
     const access = await getMemberAccess()
     if (!access.ageConfirmed) return NextResponse.json({ error: "Age confirmation is required first" }, { status: 403 })
+
+    // Every attempt counts, not just failures: the duplicate checks below say
+    // whether a phone, email or ID is already a member, so unlimited tries
+    // would let a script test details against the member list.
+    const client = `register:${clientKey(request)}`
+    const wait = lockedFor(client)
+    if (wait) return NextResponse.json({ error: `Too many registration attempts. Please try again in ${wait} minute${wait === 1 ? "" : "s"}, or ask the team at the lounge.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
+    recordFailure(client)
 
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) {
@@ -75,8 +92,10 @@ export async function POST(request: NextRequest) {
     // CDASH derives member_id from the last four digits of the mobile number
     // (trigger_members_generate_member_id). Fewer than four digits makes the
     // trigger raise, so catch it here and say something useful.
-    const mobileDigits = body.mobileNumber.replace(/\D/g, "")
-    if (mobileDigits.length < 4) return NextResponse.json({ error: "Enter a valid mobile number" }, { status: 400 })
+    // Saved as +27…, the way CDASH saves it, so the next lookup, SMS and PIN all
+    // see one format. Validated by the schema above, so this cannot be null.
+    const mobile = parseSaMobile(body.mobileNumber)!
+    const mobileDigits = mobile.stored.replace(/\D/g, "")
 
     const signatureDate = new Date().toISOString().slice(0, 10)
     const email = body.email.toLowerCase()
@@ -86,39 +105,45 @@ export async function POST(request: NextRequest) {
       await notifyStaff({
         event: "member.registration.created",
         title: `New online registration: ${body.fullName}`,
-        detail: { memberNumber, email, mobile: body.mobileNumber, source: ONLINE_REGISTRATION_SOURCE },
+        detail: { memberNumber, email, mobile: mobile.stored, source: ONLINE_REGISTRATION_SOURCE },
       })
-      return NextResponse.json({ memberNumber, status: ONLINE_REGISTRATION_STATUS, preview: true }, { status: 201 })
+      return NextResponse.json({ memberNumber, memberName: body.fullName, status: ONLINE_REGISTRATION_STATUS, smsSentTo: maskMobile(mobile.stored), preview: true }, { status: 201 })
     }
 
     const supabase = getSupabaseAdmin()
 
-    // The same duplicate gates CDASH applies. Email is the only one the database
-    // enforces with a unique index; mobile, ID and passport are checked here so
-    // the storefront cannot quietly create a second record for someone who is
-    // already a member.
-    const duplicateChecks: Array<{ column: string; value: string; field: string }> = [
-      { column: "email", value: email, field: "email address" },
-      { column: "mobile_number", value: body.mobileNumber, field: "phone number" },
-    ]
-    if (idNumber) duplicateChecks.push({ column: "id_number", value: idNumber, field: "ID number" })
-    if (body.foreignPassport) duplicateChecks.push({ column: "foreign_passport", value: body.foreignPassport, field: "passport number" })
-
-    for (const check of duplicateChecks) {
-      const { data: existing, error: existingError } = await supabase
-        .from("members")
-        .select(`${MEMBER_ID_COLUMN}, full_name`)
-        .eq(check.column, check.value)
-        .limit(1)
+    // The same duplicate gates CDASH applies, and every clashing field is
+    // reported together so the form can mark them all at once. Email is the
+    // only one the database enforces with a unique index; the rest are checked
+    // here so the storefront cannot quietly create a second record for someone
+    // who is already a member. A mobile is compared by `phoneKey`, because
+    // older members carry both the 082… and +27… forms of the same number.
+    // Like CDASH, only the FIELD is named — never whose record it is.
+    const clashes: Array<{ field: "email" | "mobileNumber" | "idNumber" | "foreignPassport"; message: string }> = []
+    const exact = async (column: string, value: string) => {
+      const { data: existing, error: existingError } = await supabase.from("members").select("id").eq(column, value).limit(1)
       // Fail fast rather than risk creating a duplicate member.
       if (existingError) throw existingError
-      const match = existing?.[0] as unknown as Record<string, string | null> | undefined
-      if (match) {
-        return NextResponse.json(
-          { error: duplicateMessage(check.field) },
-          { status: 409 },
-        )
-      }
+      return Boolean(existing?.length)
+    }
+    if (await exact("email", email)) clashes.push({ field: "email", message: duplicateMessage("email address") })
+    const key = phoneKey(mobile.stored)
+    const { data: sameEnding, error: phoneError } = await supabase.from("members").select("mobile_number").ilike("mobile_number", `%${key.slice(-3)}%`)
+    if (phoneError) throw phoneError
+    if ((sameEnding || []).some((row) => phoneKey(row.mobile_number as string | null) === key)) clashes.push({ field: "mobileNumber", message: duplicateMessage("phone number") })
+    if (idNumber && (await exact("id_number", idNumber))) clashes.push({ field: "idNumber", message: duplicateMessage("ID number") })
+    if (body.foreignPassport && (await exact("foreign_passport", body.foreignPassport))) clashes.push({ field: "foreignPassport", message: duplicateMessage("passport number") })
+    if (clashes.length) return NextResponse.json({ error: clashes[0].message, clashes }, { status: 409 })
+
+    // A referral code must belong to a real member; a mistyped one is caught
+    // now, while the person who gave it is still there, as CDASH does.
+    let referredByCode: string | null = null
+    if (body.referralCode) {
+      const code = body.referralCode.toUpperCase().replace(/[\s-]/g, "")
+      const { data: referrer, error: referrerError } = await supabase.from("members").select("id").eq("referral_code", code).maybeSingle()
+      if (referrerError) throw referrerError
+      if (!referrer) return NextResponse.json({ error: `Referral code "${code}" doesn't match any member. Leave it blank if you're not sure.`, clashes: [{ field: "referralCode", message: "" }] }, { status: 400 })
+      referredByCode = code
     }
 
     // Evidence before the member exists: if the acceptance cannot be written,
@@ -137,7 +162,7 @@ export async function POST(request: NextRequest) {
       .insert({
         full_name: body.fullName,
         email,
-        mobile_number: body.mobileNumber,
+        mobile_number: mobile.stored,
         date_of_birth: body.dateOfBirth,
         id_number: idNumber || null,
         foreign_passport: body.foreignPassport || null,
@@ -150,6 +175,7 @@ export async function POST(request: NextRequest) {
         marketing_opt_in: body.marketingOptIn,
         marketing_opt_in_at: new Date().toISOString(),
         marketing_opt_in_source: ONLINE_MARKETING_SOURCE,
+        referred_by_code: referredByCode,
       })
       .select(`id, full_name, ${MEMBER_ID_COLUMN}`)
       .single()
@@ -173,7 +199,7 @@ export async function POST(request: NextRequest) {
       details: {
         memberId: memberNumber,
         fullName: body.fullName,
-        mobileNumber: body.mobileNumber,
+        mobileNumber: mobile.stored,
         registrationMethod: "online_store",
         registeredBy: ONLINE_REGISTRATION_SOURCE,
         marketingOptIn: body.marketingOptIn,
@@ -185,18 +211,29 @@ export async function POST(request: NextRequest) {
     const notified = await notifyStaff({
       event: "member.registration.created",
       title: `New online registration: ${body.fullName}`,
-      detail: { memberNumber, email, mobile: body.mobileNumber, source: ONLINE_REGISTRATION_SOURCE },
+      detail: { memberNumber, email, mobile: mobile.stored, source: ONLINE_REGISTRATION_SOURCE },
     })
 
-    // Registration is the member check — signing them in here is what makes
-    // "register and shop" one journey instead of sending them back to the gate
-    // to retype the ID they were handed a second ago.
+    // Tell the new member their Member ID by SMS, as CDASH's own form does. It is
+    // also the first proof the number works, which matters because the sign-in
+    // PIN goes to it. A failed send never undoes a registration: the ID is on
+    // screen too.
+    let smsSent = false
+    try {
+      await sendSms(mobile.stored, `Welcome to DLC, ${body.fullName.split(/\s+/)[0]}! Your Member ID is ${memberNumber}. Keep it safe: to sign in on the website, enter it and we will text a login PIN to this number.`)
+      smsSent = true
+    } catch (smsError) {
+      console.error("Welcome SMS failed for", memberNumber, smsError)
+    }
+
+    // Not signed in here: the member comes back to the gate, enters this Member
+    // ID and gets a PIN by SMS. That PIN is what proves the number works and is
+    // theirs, so registration alone never opens the member area.
     const response = NextResponse.json(
-      { memberNumber, memberName: row.full_name ?? body.fullName, status: ONLINE_REGISTRATION_STATUS, staffNotified: notified.delivered },
+      { memberNumber, memberName: row.full_name ?? body.fullName, status: ONLINE_REGISTRATION_STATUS, smsSentTo: maskMobile(mobile.stored), smsSent, staffNotified: notified.delivered },
       { status: 201 },
     )
     if (memberNumber) {
-      response.cookies.set({ name: MEMBER_COOKIE, value: createMemberAccessToken(memberNumber), httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 7, path: "/" })
       response.cookies.set({ name: AGE_COOKIE, value: "1", httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" })
     }
     return response
