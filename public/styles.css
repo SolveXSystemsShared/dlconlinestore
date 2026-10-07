@@ -3627,3 +3627,67 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
   margin:0 auto!important;width:auto!important;height:auto!important;
   max-width:70%!important;max-height:62%!important;min-height:0;object-fit:contain;
 }
+
+/* ── Product page, round two ─────────────────────────────────────────────
+   Picture: a softer rounded frame, the pack shot resting on the cloud, and the
+   three cropped thumbnails replaced by one row of zoom buttons. Desktop: the
+   details column is compact so most of it is on screen beside the picture.
+   Phone: a shorter picture and a pinned Add to bag bar, so the product, its
+   name, price and the button are all on the first screen. */
+.product-zoom[hidden]{display:none!important}
+.product-zoom{display:flex;justify-content:center;gap:6px;margin-top:14px}
+.product-zoom__btn{appearance:none;min-height:36px;padding:0 18px;border:1px solid var(--dlc-sky-line);border-radius:999px;background:#fff;color:var(--dlc-navy);font:inherit;font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
+.product-zoom__btn:hover{background:var(--dlc-sky-soft);color:var(--dlc-sky-deep)}
+.product-zoom__btn:active{background:#d8ecff}
+.product-zoom__btn:focus-visible{outline:2px solid var(--dlc-sky-deep);outline-offset:2px}
+.product-zoom__btn.is-active{background:var(--dlc-sky-deep);border-color:var(--dlc-sky-deep);color:#fff}
+.product-stage{border:0;border-radius:28px;background:radial-gradient(120% 95% at 50% 0%,#fff 0%,#eef7ff 52%,#d9ecff 100%);box-shadow:0 22px 54px rgba(6,33,61,.10)}
+.product-stage.dlc-cloud-stage .product-stage-art{width:74%!important;height:74%!important;bottom:15%!important}
+.product-fact-list>div[hidden]{display:none}
+.product-stage[data-art="padded"] .product-stage-art img{translate:0 17%;scale:1.08;transform-origin:50% 100%}
+@media(min-width:769px){
+  .product-stage{height:clamp(380px,calc(100dvh - 262px),720px)!important}
+  .product-detail-info{padding-top:0!important}
+  .product-tier-row{margin-bottom:14px}
+  .product-detail-title{font-size:clamp(40px,4.4vw,64px);margin-bottom:10px}
+  .product-price{margin:16px 0 14px;font-size:clamp(28px,2.8vw,40px)}
+  .product-purchase-panel{padding:16px 0;gap:12px}
+  .product-detail-copy{margin:16px 0 12px}
+  .education-chip-row{margin:12px 0 8px}
+  .education-chip-row button{min-height:38px}
+  .product-fact-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;border-bottom:0}
+  .product-fact-list>div{grid-template-columns:1fr;gap:4px;padding:11px 0}
+  .product-fact-list dd{text-align:left;font-size:11px}
+  .product-accordions summary{padding:14px 0}
+  .product-accordions p{margin-bottom:16px}
+}
+@media(max-width:768px){
+  body.product-page{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  html:has(body.product-page){--float-lift:76px}
+  .product-detail-grid{padding-top:12px!important;gap:16px!important;padding-bottom:28px!important}
+  .product-stage{height:clamp(220px,36svh,300px)!important;min-height:0!important;border-radius:22px}
+  .product-stage.dlc-cloud-stage .product-stage-art{width:80%!important;height:80%!important;bottom:13%!important}
+  .product-zoom{display:none}
+  .product-tier-row{margin-bottom:10px}
+  .product-detail-title{font-size:clamp(34px,10.5vw,46px)!important;margin-bottom:8px}
+  .product-price{margin:10px 0 0;font-size:clamp(26px,7.5vw,34px)}
+  .product-purchase-panel{position:fixed;left:0;right:0;bottom:0;margin:0!important;z-index:40;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))!important;background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:0;border-top:1px solid var(--dlc-sky-line);box-shadow:0 -12px 30px rgba(6,33,61,.12)}
+  .product-quantity-wrap .field-label{display:none}
+  /* Nothing to choose a quantity for while loading, out of stock or not found. */
+  .product-purchase-panel:has(.product-primary-cta:disabled){grid-template-columns:minmax(0,1fr)}
+  .product-purchase-panel:has(.product-primary-cta:disabled) .product-quantity-wrap{display:none}
+  .product-purchase-actions{display:contents}
+  .product-secondary-cta{display:none}
+  .product-cart-note{grid-column:1/-1;margin:0}
+  .product-detail-copy{margin:12px 0 8px}
+  .education-chip-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:8px 0 4px;padding-bottom:2px}
+  .education-chip-row::-webkit-scrollbar{display:none}
+  .education-chip-row button{flex:0 0 auto;min-height:38px}
+  .product-fact-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;border-bottom:0}
+  .product-fact-list>div{grid-template-columns:1fr;gap:3px;padding:10px 0}
+  .product-fact-list dd{text-align:left;font-size:11px}
+  .product-accordions summary{padding:14px 0;min-height:44px}
+  .product-exchange-band{padding:28px 18px!important}
+  .related-products{padding-top:20px!important;padding-bottom:24px!important}
+  .related-more{margin-top:16px!important}
+}

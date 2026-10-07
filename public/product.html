@@ -53,10 +53,10 @@
         <div class="product-stage-art" id="productVisual"></div>
         <span class="product-stage-index" id="stageIndex">01 / 06</span>
       </div>
-      <div class="product-thumbnails" aria-label="Product image views" id="productThumbs">
-        <button class="product-thumb is-active" data-view="full" type="button" aria-label="Full product view"><span>01</span><div class="thumb-art" id="thumbArt1"></div></button>
-        <button class="product-thumb" data-view="detail" type="button" aria-label="Closer product view"><span>02</span><div class="thumb-art" id="thumbArt2"></div></button>
-        <button class="product-thumb" data-view="macro" type="button" aria-label="Product detail view"><span>03</span><div class="thumb-art" id="thumbArt3"></div></button>
+      <div class="product-zoom" role="group" aria-label="Picture size" id="productThumbs">
+        <button class="product-zoom__btn is-active" data-view="full" type="button" aria-pressed="true">Full</button>
+        <button class="product-zoom__btn" data-view="detail" type="button" aria-pressed="false">Closer</button>
+        <button class="product-zoom__btn" data-view="macro" type="button" aria-pressed="false">Detail</button>
       </div>
     </div>
 
@@ -100,7 +100,7 @@
       </dl>
 
       <div class="product-accordions" id="productAccordions">
-        <details open>
+        <details>
           <summary>PRODUCT DETAILS <span>+</span></summary>
           <p id="detailsCopy">Ask the team in store for more about this product.</p>
         </details>
@@ -268,9 +268,11 @@
       ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" decoding="async">`
       : `<div class="strain-pack placeholder" style="height:100%;display:grid;place-items:center;font-size:64px;font-weight:950;color:#1a6ef0">DLC</div>`;
     document.getElementById('productVisual').innerHTML = art;
-    ['thumbArt1', 'thumbArt2', 'thumbArt3'].forEach(id => {
-      document.getElementById(id).innerHTML = image ? `<img src="${escapeHtml(image)}" alt="" width="180" height="180" loading="eager" decoding="async">` : '';
-    });
+    // Flower and preroll tier artwork has a fifth of empty space above and below
+    // the product, so the stage lowers and enlarges it to sit on the cloud.
+    document.getElementById('productStage').dataset.art = /\/(flower|preroll-tiers|prerolls)\//.test(image || '') ? 'padded' : 'tight';
+    // The zoom buttons only make sense when there is a picture to zoom.
+    document.getElementById('productThumbs').hidden = !image;
 
     const position = siblings.findIndex(p => p.id === product.id);
     setText('stageIndex', `${String(position + 1).padStart(2, '0')} / ${String(siblings.length).padStart(2, '0')}`);
@@ -351,9 +353,12 @@
       row.scrollBy({ left: Number(button.dataset.scrollRelated) * row.clientWidth * 0.85, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     });
   });
-  document.querySelectorAll('.product-thumb').forEach(button => {
+  document.querySelectorAll('.product-zoom__btn').forEach(button => {
     button.addEventListener('click', () => {
-      document.querySelectorAll('.product-thumb').forEach(item => item.classList.toggle('is-active', item === button));
+      document.querySelectorAll('.product-zoom__btn').forEach(item => {
+        item.classList.toggle('is-active', item === button);
+        item.setAttribute('aria-pressed', String(item === button));
+      });
       document.getElementById('productStage').dataset.view = button.dataset.view;
     });
   });
