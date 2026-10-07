@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: memberLookupMessage(member) }, { status: 403 })
     }
     if (!member.mobile || member.mobile.replace(/\D/g, "").length < 9) {
-      return NextResponse.json({ error: "We do not have a mobile number for your membership, so we cannot send your PIN. Please ask the team at the lounge to add it." }, { status: 409 })
+      return NextResponse.json({ error: "We do not have a mobile number for your membership, so we cannot send your PIN. Please ask the team at the lounge to add it, or call the store and we will help you." }, { status: 409 })
     }
 
     const issued = await issueSigninCode(member.memberId, client)
