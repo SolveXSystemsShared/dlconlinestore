@@ -43,9 +43,9 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   const total = Number(order.total) || 0
 
   const hero = awaiting
-    ? { kicker: `EXCHANGE REQUEST · ${when(order.created_at)}`, title: <>Settle to<br />send it.</>, sub: `Thanks, ${order.member_name}. Settle by card to send your request to the DLC team — they start preparing it as soon as it is settled.` }
+    ? { kicker: `EXCHANGE REQUEST · ${when(order.created_at)}`, title: <>Settle to<br />send it.</>, sub: `Thanks, ${order.member_name}. Settle by card to send your request to the DLC team. They start preparing it as soon as it is settled.` }
     : settled
-      ? { kicker: `SETTLED · ${when(order.paid_at || order.created_at)}`, title: <>We have<br />your request.</>, sub: `Thanks, ${order.member_name}. Your exchange is settled and with the DLC team. They will message you when it is ready to collect.` }
+      ? { kicker: `SETTLED · ${when(order.paid_at || order.created_at)}`, title: <>We have<br />your request.</>, sub: `Thanks, ${order.member_name}. Your exchange is settled and with the DLC team.` }
       : { kicker: `EXCHANGE REQUEST · ${exchangeStatus(status).toUpperCase()}`, title: <>Request<br />closed.</>, sub: returned ? "We could not complete this exchange, so your card settlement has been returned to your card. It can take a few working days to show. Please send a new request." : "This exchange request was closed. Send a new request from your bag whenever you are ready." }
 
   return (

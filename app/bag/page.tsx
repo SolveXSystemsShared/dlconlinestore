@@ -162,7 +162,7 @@ function CheckoutForm() {
     {/* One figure: every online exchange is settled by card, so §7 rule 2 gives the card rate. */}
     {quote
       ? <div className="sf-totals"><div className="sf-total" style={{ gridColumn: "1 / -1" }}><span>TO SETTLE BY CARD</span><strong>{credits(quote.card.amountDue)}</strong></div></div>
-      : <div className="sf-totals"><div className="sf-total" style={{ gridColumn: "1 / -1" }}><span>TOTAL</span><strong>{quoteError || !cart.length ? "—" : <span className="sk sk-inline" aria-label="Calculating credits" />}</strong></div></div>}
+      : <div className="sf-totals"><div className="sf-total" style={{ gridColumn: "1 / -1" }}><span>TOTAL</span><strong>{quoteError ? "Unavailable" : !cart.length ? credits(0) : <span className="sk sk-inline" aria-label="Calculating credits" />}</strong></div></div>}
     {quoteError && <p className="sf-error">{quoteError}</p>}
     <SlowNotice show={slowQuote} what="the credits for your bag" />
     {quote && quote.card.pointsEarned > 0 && <p className="sf-note sf-note--ok">Earns around <strong>{quote.card.pointsEarned} points</strong> once the exchange is settled.</p>}
@@ -173,7 +173,7 @@ function CheckoutForm() {
     {!member && cart.length > 0 && <p className="sf-fineprint">Verify your Member ID to request the exchange.</p>}
     <div className="sf-trust">
       <div><b>01</b><span>You settle by card on Paystack&apos;s secure page. Your card details go to Paystack, never to DLC.</span></div>
-      <div><b>02</b><span>The team prepares your request once it is settled. Nothing is settled at hand-over — DLC Credits and the cash discount apply in the lounge.</span></div>
+      <div><b>02</b><span>The team prepares your request once it is settled. Nothing is settled at hand-over. DLC Credits and the cash discount apply in the lounge.</span></div>
     </div>
   </aside>
 
@@ -196,7 +196,7 @@ function CheckoutForm() {
           {!loaded
             ? <><div className="sf-body"><LoadingLine context="bag" /></div><SkeletonPage label="Loading your bag" /></>
             : !cart.length
-              ? <div className="sf-empty"><strong>Your bag is empty.</strong>Add something from the lounge — it will wait here for you.<div className="sf-actions"><a className="sf-cta" href="/strains.html?category=flower">Browse flower</a><a className="sf-ghost" href="/strains.html?category=more">Browse everything</a></div></div>
+              ? <div className="sf-empty"><strong>Your bag is empty.</strong>Add something from the lounge and it will wait here for you.<div className="sf-actions"><a className="sf-cta" href="/strains.html?category=flower">Browse flower</a><a className="sf-ghost" href="/strains.html?category=more">Browse everything</a></div></div>
               : <div className="sf-checkout">
                   <form id="checkoutForm" onSubmit={submitOrder}>
                     <section className="sf-panel" aria-labelledby="bagTitle">
@@ -230,15 +230,15 @@ function CheckoutForm() {
                       {member
                         ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div><span className="sf-badge sf-badge--good"><i />Verified</span></div>
                         : <div className="sf-field"><p className="sf-note">Your member session has ended. Sign in again with your Member ID and the PIN we SMS you.</p><button type="button" className="sf-ghost" onClick={() => window.location.reload()}>Sign in again</button></div>}
-                      <div className="sf-field"><label htmlFor="phone">Mobile number <small>— we message you when it is ready to collect</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
-                      <div className="sf-field"><label htmlFor="email">Email <small>— for your card receipt</small></label><input id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required /></div>
+                      <div className="sf-field"><label htmlFor="phone">Mobile number <small>(we message you when it is ready to collect)</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
+                      <div className="sf-field"><label htmlFor="email">Email <small>(for your card receipt)</small></label><input id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required /></div>
                     </section>
 
                     <section className="sf-panel" aria-labelledby="collectionTitle">
                       <div className="sf-panel-head"><h2 id="collectionTitle">Collection</h2><span className="sf-step">STEP 03</span></div>
-                      <p className="sf-note">Online exchange requests are collection only — we do not deliver. Once the team messages you that your request is ready, book your own Uber to the lounge and collect it there. Bring your ID.</p>
+                      <p className="sf-note">Online exchange requests are collection only. We do not deliver. Once the team messages you that your request is ready, book your own Uber to the lounge and collect it there. Bring your ID.</p>
                       <CollectionPointCard point={collectionPoint} />
-                      <div className="sf-field"><label htmlFor="notes">Notes for the team <small>— optional</small></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Roughly when you plan to collect, or anything the team should know" /></div>
+                      <div className="sf-field"><label htmlFor="notes">Notes for the team <small>(optional)</small></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Roughly when you plan to collect, or anything the team should know" /></div>
                     </section>
                   </form>
                   {summary}

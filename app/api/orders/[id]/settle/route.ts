@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       console.error("Settlement call failed", id, error.status, error.message)
       const message = parsed.data.action === "start"
         ? "We could not open settlement just now. Please try again in a moment."
-        : "Settlement is taking longer than usual. If your card was charged, it will complete on its own — refresh this page in a minute."
+        : "Settlement is taking longer than usual. If your card was charged, it will complete on its own. Refresh this page in a minute."
       return NextResponse.json({ error: message }, { status: 503 })
     }
     console.error("Settlement error", id, error)

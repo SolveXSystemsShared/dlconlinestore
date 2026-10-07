@@ -139,7 +139,7 @@ export async function completeSettlement(reference: string): Promise<SettlementO
     }
     const message = err instanceof Error ? err.message : String(err)
     await supabase.from("online_payment_attempts").update({ last_error: message }).eq("reference", reference)
-    console.error("Paid but not yet settled — will retry", reference, message)
+    console.error("Paid but not yet settled, will retry", reference, message)
     throw err
   }
 
@@ -175,7 +175,7 @@ async function refund(reference: string, orderId: string, exchangeId: string, re
     // Hand the claim back so a retry sends it. Money taken with no outcome is
     // the one state that must never be left quietly.
     await supabase.from("online_payment_attempts").update({ status: "paid", last_error: `Refund failed: ${err instanceof Error ? err.message : err}` }).eq("reference", reference)
-    console.error("REFUND FAILED — member was charged and the exchange was not settled", reference, err)
+    console.error("REFUND FAILED: member was charged and the exchange was not settled", reference, err)
     throw err instanceof PaystackError ? err : new SettlementError("Refund failed", 503)
   }
   await supabase.from("online_payment_attempts").update({ status: "refunded", refunded_at: new Date().toISOString() }).eq("reference", reference)

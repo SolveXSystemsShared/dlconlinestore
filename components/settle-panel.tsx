@@ -71,7 +71,7 @@ export function SettlePanel({ orderId, amountDue, returnedReference }: { orderId
 
   return <div>
     <div className="sf-field">
-      <label htmlFor="settleEmail">Email <small>— for your card receipt</small></label>
+      <label htmlFor="settleEmail">Email <small>(for your card receipt)</small></label>
       <input id="settleEmail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
     </div>
     {message && <p className="sf-error" role="alert">{message}</p>}
