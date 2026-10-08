@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "./supabase-admin"
-import { MEMBER_ID_COLUMN, ONLINE_REGISTRATION_SOURCE } from "./members-schema"
+import { MEMBER_ID_COLUMN, ONLINE_REGISTRATION_SOURCE, STAFF_ID_COLUMN, STAFF_TABLE } from "./members-schema"
 import { lookupMember } from "./members"
 import type { MemberProfile } from "./types"
 import { getFulfillmentStoreId } from "./store-settings"
@@ -16,9 +16,11 @@ export async function getMemberProfile(memberId: string): Promise<MemberProfile 
     role: member.role ?? null,
   }
 
-  // A staff member with no membership row has no details of their own here.
+  // A staff member with no membership row has no email or address here, only the
+  // phone on their staff account, which pre-fills checkout.
   if (member.source === "staff") {
-    return { ...base, editable: false, email: null, mobileNumber: null, residentialAddress: null, dateOfBirth: null, memberSince: null, marketingOptIn: null }
+    const { data: own } = await getSupabaseAdmin().from(STAFF_TABLE).select("phone").ilike(STAFF_ID_COLUMN, member.memberId).maybeSingle()
+    return { ...base, editable: false, email: null, mobileNumber: (own?.phone as string | null) ?? null, residentialAddress: null, dateOfBirth: null, memberSince: null, marketingOptIn: null }
   }
 
   const { data, error } = await getSupabaseAdmin()

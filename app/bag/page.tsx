@@ -228,7 +228,7 @@ function CheckoutForm() {
                     <section className="sf-panel" aria-labelledby="detailsTitle">
                       <div className="sf-panel-head"><h2 id="detailsTitle">Your details</h2><span className="sf-step">STEP 02</span></div>
                       {member
-                        ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div><span className="sf-badge sf-badge--good"><i />Verified</span></div>
+                        ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div></div>
                         : <div className="sf-field"><p className="sf-note">Your member session has ended. Sign in again with your Member ID and the PIN we SMS you.</p><button type="button" className="sf-ghost" onClick={() => window.location.reload()}>Sign in again</button></div>}
                       <div className="sf-field"><label htmlFor="phone">Mobile number <small>(we message you when it is ready to collect)</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
                       <div className="sf-field"><label htmlFor="email">Email <small>(for your card receipt)</small></label><input id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required /></div>
