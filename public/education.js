@@ -621,7 +621,7 @@
       let recent = []; try { recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') || []; } catch (e) {}
       const previous = recent.filter(x => x && x.href !== current.href && x.name !== current.name).slice(0, 4);
       const mount = document.getElementById('recentlyViewed'), track = document.getElementById('recentlyViewedTrack');
-      if (mount && track && previous.length) { track.innerHTML = previous.map(x => `<a class="recent-view-card" href="${esc(x.href)}"><div class="recent-view-card__art"><img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy"></div><span>${esc(x.meta || 'DLC PRODUCT')}</span><strong>${esc(x.name)}</strong></a>`).join(''); mount.hidden = false; }
+      if (mount && track && previous.length) { track.innerHTML = previous.map(x => `<a class="recent-view-card" href="${esc(x.href)}"><div class="recent-view-card__art dlc-cloud-stage"><img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy"></div><span>${esc(x.meta || 'DLC PRODUCT')}</span><strong>${esc(x.name)}</strong></a>`).join(''); mount.hidden = false; }
       if (mayRemember()) try { localStorage.setItem(RECENT_KEY, JSON.stringify([current, ...previous].slice(0, 5))); } catch (e) {}
       return true;
     };

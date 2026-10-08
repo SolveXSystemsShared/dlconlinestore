@@ -3691,3 +3691,11 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
   .related-products{padding-top:20px!important;padding-bottom:24px!important}
   .related-more{margin-top:16px!important}
 }
+
+/* Recently viewed: pack shots sit on the cloud and stay inside their box */
+.recent-view-card{border:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;transition:transform .22s ease}
+.recent-view-card:hover{transform:translateY(-4px)}
+.recent-view-card__art{position:relative;height:200px!important;padding:14px;overflow:hidden!important}
+.recent-view-card__art img{position:absolute!important;inset:12px 12px 22% 12px;width:calc(100% - 24px)!important;height:calc(78% - 12px)!important;max-width:none!important;max-height:none!important;margin:0!important;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 14px 16px rgba(21,31,45,.14))}
+.recent-view-card span{margin-top:10px!important}
+@media(max-width:768px){.recent-view-card__art{height:160px!important}}
