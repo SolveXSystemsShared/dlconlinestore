@@ -3564,7 +3564,9 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
 .shop-count{color:rgba(6,33,61,.78)}
 .shop-count strong{color:var(--dlc-navy)}
 .strains-page .strains-breadcrumbs{border-bottom:0}
-.strains-page .shop-filters{position:relative;margin-top:-48px}
+.strains-page .shop-filters{position:sticky;top:92px;z-index:40;margin-top:-48px;max-height:calc(100dvh - 104px);overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:900px){.strains-page .shop-filters{top:80px;max-height:calc(100dvh - 92px)}}
+@media(max-width:480px){.strains-page .shop-filters{top:72px;max-height:calc(100dvh - 84px)}}
 
 .legal-page{background:linear-gradient(180deg,var(--dlc-sky) 0,#4fb0fd var(--hero-h,380px),#fff var(--hero-h,380px))!important}
 .legal-page h1{color:var(--dlc-navy)}
@@ -3699,3 +3701,8 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
 .recent-view-card__art img{position:absolute!important;inset:12px 12px 22% 12px;width:calc(100% - 24px)!important;height:calc(78% - 12px)!important;max-width:none!important;max-height:none!important;margin:0!important;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 14px 16px rgba(21,31,45,.14))}
 .recent-view-card span{margin-top:10px!important}
 @media(max-width:768px){.recent-view-card__art{height:160px!important}}
+
+/* Shop filters stay under the header while scrolling: clip sideways only, since overflow:hidden would stop position:sticky. */
+.strains-page .strains-shell{overflow:visible!important;overflow-x:clip!important}
+.strains-page .shop-filters{margin-bottom:32px!important}
+@media(max-width:768px){.strains-page .shop-filters{margin-bottom:22px!important}}
