@@ -26,13 +26,13 @@
     {
       id: 'how', label: 'How does an exchange work?',
       words: 'exchange order bag checkout start place request settle pay card process steps',
-      text: ['Add what you want to your bag, then settle by card. Once it is settled, the team prepares it and messages you when it is ready.', 'Collect it at the lounge and bring your ID.'],
+      text: ['Add what you want to your bag, then settle by card. Once it is settled, the team prepares it and we let you know when it is ready.', 'Collect it at the lounge and bring your ID.'],
       links: [['Open my bag', '/bag']],
     },
     {
       id: 'collect', label: 'Where do I collect?',
       words: 'collect collection pickup pick lounge address where deliver delivery uber ready bring id',
-      text: ['Online exchanges are collection only, and we do not deliver. When the team messages you that your exchange is ready, book your own Uber to the lounge and collect it there.', 'Bring your ID.'],
+      text: ['Online exchanges are collection only, and we do not deliver. When we let you know your exchange is ready, book your own Uber to the lounge and collect it there.', 'Bring your ID.'],
       run: 'collectionPoint',
     },
     {
