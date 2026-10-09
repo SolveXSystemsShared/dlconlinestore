@@ -46,22 +46,34 @@
     try { return await (await navigator.serviceWorker.ready).pushManager.getSubscription(); } catch (e) { return null; }
   }
 
-  // 'unsupported' | 'install-first' | 'blocked' | 'on' | 'off'
+  // The server only hands out a key once updates are set up on the host. Until
+  // then the switch stays hidden rather than offering something that cannot work.
+  let keyRequest = null;
+  function publicKey() {
+    keyRequest = keyRequest || fetch('/api/push/key', { cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(body => body && body.publicKey || null)
+      .catch(() => null)
+      .then(key => { if (!key) keyRequest = null; return key; });
+    return keyRequest;
+  }
+
+  // 'unsupported' | 'unavailable' | 'install-first' | 'blocked' | 'on' | 'off'
   async function updatesState() {
     if (isIOS && !isStandalone()) return 'install-first';
     if (!canPush()) return 'unsupported';
     if (Notification.permission === 'denied') return 'blocked';
-    return Notification.permission === 'granted' && await currentSubscription() ? 'on' : 'off';
+    if (Notification.permission === 'granted' && await currentSubscription()) return 'on';
+    return await publicKey() ? 'off' : 'unavailable';
   }
 
   async function turnOnUpdates() {
-    const keyResponse = await fetch('/api/push/key', { cache: 'no-store' });
-    if (!keyResponse.ok) throw new Error('Updates are not switched on yet. Please try again soon.');
-    const { publicKey } = await keyResponse.json();
+    const key = await publicKey();
+    if (!key) throw new Error('We could not turn on updates just now. Please try again later.');
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') throw new Error('Notifications are blocked for this site. Allow them in your browser settings, then try again.');
     const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription() || await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToBytes(publicKey) });
+    const subscription = await registration.pushManager.getSubscription() || await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToBytes(key) });
     const saved = await fetch('/api/push/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ subscription: subscription.toJSON() }) });
     if (!saved.ok) throw new Error('We could not turn on updates just now. Please try again.');
   }
@@ -138,9 +150,10 @@
     actionsEl.innerHTML = '';
     note('');
     const installed = isStandalone();
+    const noUpdates = state === 'unavailable' || state === 'unsupported';
     copyEl.textContent = installed
-      ? 'DLC is on this device. Turn on updates and we will tell you about your exchanges.'
-      : 'Add the store to your home screen for one tap access, and turn on updates so we can tell you about your exchanges.';
+      ? (noUpdates ? 'DLC is on this device.' : 'DLC is on this device. Turn on updates and we will tell you about your exchanges.')
+      : (noUpdates ? 'Add the store to your home screen for one tap access.' : 'Add the store to your home screen for one tap access, and turn on updates so we can tell you about your exchanges.');
     bodyEl.innerHTML = installSteps();
 
     if (state === 'on') bodyEl.insertAdjacentHTML('afterbegin', '<div class="dlc-app__ok">Updates are on for this device.</div>');
@@ -204,7 +217,7 @@
     const state = await updatesState();
     // Already installed and subscribed, or nothing this device can do about either.
     if (state === 'on' || state === 'blocked') return;
-    if (state === 'unsupported' && (isStandalone() || !installEvent)) return;
+    if ((state === 'unsupported' || state === 'unavailable') && (isStandalone() || !installEvent)) return;
     // Do not stack on the consent banner or another dialog; look again shortly.
     const busy = document.querySelector('.dlc-consent, .education-overlay.is-open, .age-gate');
     if (busy) { if (attempt < 6) setTimeout(() => offerOnce(attempt + 1), 4000); return; }
