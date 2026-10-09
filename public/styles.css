@@ -3379,6 +3379,10 @@ html.lounge-row-visible{--float-lift:78px}
   height:auto!important;
   min-height:0!important;
   aspect-ratio:7/3;
+  /* The card is a fixed-height column; without this it squashed the box
+     flatter than the cloud, which keeps its shape, so names reached past
+     the cloud's edges on wider screens. */
+  flex-shrink:0!important;
   margin:2px auto 0!important;
   padding:15% 14% 2%!important;
   display:grid!important;
@@ -3395,6 +3399,8 @@ html.lounge-row-visible{--float-lift:78px}
   filter:drop-shadow(0 6px 10px rgba(8,24,80,.22));
   white-space:normal!important;
 }
+/* Names too long for two lines get a third and a slightly taller cloud. */
+.product-dock .product-card .product-meta.is-long-name{aspect-ratio:7/3.8;padding-top:13%!important}
 .product-dock .product-card .product-type,
 .product-dock .product-card .product-action{display:none!important}
 .product-dock .product-card .product-meta strong{
@@ -3402,6 +3408,12 @@ html.lounge-row-visible{--float-lift:78px}
   -webkit-box-orient:vertical;
   -webkit-line-clamp:2;
   overflow:hidden;
+  /* Safari sizes a centred -webkit-box to its one-line width, so the name ran
+     past both edges of the cloud; pin it to the cloud's text area instead. */
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  justify-self:stretch!important;
   min-height:0!important;
   color:#1f5fe0!important;
   font-weight:700!important;
@@ -3413,8 +3425,8 @@ html.lounge-row-visible{--float-lift:78px}
   text-wrap:balance;
 }
 @media (max-width:900px){
-  .product-dock .product-card .product-meta{width:min(27vw,118px)!important;margin-top:2px!important}
-  .product-dock .product-card .product-meta strong{font-size:clamp(8px,2.4vw,11px)!important}
+  .product-dock .product-card .product-meta{width:min(27vw,150px)!important;margin-top:2px!important}
+  .product-dock .product-card .product-meta strong{font-size:clamp(8px,2.4vw,13px)!important}
 }
 /* Phones: the three-card rows (categories with a few products) overlapped
    their cards; with every name now on a cloud, space them evenly instead. */

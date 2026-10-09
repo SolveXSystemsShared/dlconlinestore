@@ -532,7 +532,40 @@
         ], {duration:430 + i*55, easing:'cubic-bezier(.2,.8,.2,1)'});
       }
     });
+    fitCloudNames();
   }
+
+  // Each name sits on a small cloud of fixed shape. Long names (rolling papers,
+  // cones) step the text down until the whole name fits inside it, on two lines
+  // or, for the very longest, three, rather than running past the cloud's
+  // edges or being cut short.
+  function fitCloudNames(){
+    cards.forEach(card => {
+      const name = card.querySelector('.product-meta strong');
+      if (!name) return;
+      name.style.removeProperty('font-size');
+      name.style.removeProperty('-webkit-line-clamp');
+      card.querySelector('.product-meta').classList.remove('is-long-name');
+      if (card.classList.contains('is-hidden') || !name.clientWidth) return;
+      const base = parseFloat(getComputedStyle(name).fontSize);
+      const smallest = Math.max(7.5, base * 0.65);
+      const overflowing = () => name.scrollHeight > name.clientHeight + 1 || name.scrollWidth > name.clientWidth + 1;
+      for (const lines of [2, 3]) {
+        if (lines === 3) {
+          card.querySelector('.product-meta').classList.add('is-long-name');
+          name.style.setProperty('-webkit-line-clamp', '3');
+        }
+        let size = base;
+        name.style.setProperty('font-size', `${size}px`, 'important');
+        while (overflowing() && size > smallest) {
+          size -= 0.5;
+          name.style.setProperty('font-size', `${size}px`, 'important');
+        }
+        if (!overflowing()) return;
+      }
+    });
+  }
+  if (document.fonts?.ready) document.fonts.ready.then(fitCloudNames).catch(() => {});
 
   cards.forEach((card) => {
     const openCard = () => navigateWithCloud(card);
@@ -644,6 +677,7 @@
       const before = activeVideoProfile;
       applyResponsiveVideoSource(false);
       fitExperienceHeight();
+      fitCloudNames();
       if (before === activeVideoProfile) {
         currentTime = Math.min(currentTime, getScrubEnd());
         targetTime = Math.min(targetTime, getScrubEnd());
