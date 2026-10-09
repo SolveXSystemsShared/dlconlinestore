@@ -227,12 +227,12 @@ function CheckoutForm() {
                       {member
                         ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div></div>
                         : <div className="sf-field"><p className="sf-note">Your member session has ended. Sign in again with your Member ID and the PIN we SMS you.</p><button type="button" className="sf-ghost" onClick={() => window.location.reload()}>Sign in again</button></div>}
-                      <div className="sf-field"><label htmlFor="phone">Mobile number <small>(we message you when it is ready to collect)</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
+                      <div className="sf-field"><label htmlFor="phone">Mobile number <small>(we let you know when it is ready to collect)</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
                     </section>
 
                     <section className="sf-panel" aria-labelledby="collectionTitle">
                       <div className="sf-panel-head"><h2 id="collectionTitle">Collection</h2><span className="sf-step">STEP 03</span></div>
-                      <p className="sf-note">Online exchange requests are collection only. We do not deliver. Once the team messages you that your request is ready, book your own Uber to the lounge and collect it there. Bring your ID.</p>
+                      <p className="sf-note">Online exchange requests are collection only. We do not deliver. Once we let you know your request is ready, book your own Uber to the lounge and collect it there. Bring your ID.</p>
                       <CollectionPointCard point={collectionPoint} />
                       <div className="sf-field"><label htmlFor="notes">Notes for the team <small>(optional)</small></label><textarea id="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Roughly when you plan to collect, or anything the team should know" /></div>
                     </section>
