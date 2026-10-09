@@ -140,11 +140,11 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 /* ── Checkout ───────────────────────────────────────────────────────────── */
 .sf-checkout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); gap: 12px; align-items: start; }
 .sf-lines { display: grid; }
-.sf-line { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--sf-line); }
+.sf-line { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--sf-line); }
 .sf-line:first-child { padding-top: 0; }
 .sf-line:last-child { border-bottom: 0; padding-bottom: 0; }
-.sf-thumb { width: 92px; height: 92px; background: #f7f8f5; display: grid; place-items: center; overflow: hidden; }
-.sf-thumb img { max-width: 76%; max-height: 76%; object-fit: contain; filter: drop-shadow(0 10px 12px rgba(21, 31, 45, .12)); }
+.sf-thumb { position: relative; width: 112px; height: 112px; border-radius: 18px; background: radial-gradient(70% 62% at 50% 58%, #e4f2ff 0%, rgba(228, 242, 255, .55) 55%, rgba(255, 255, 255, 0) 80%); display: grid; place-items: center; overflow: hidden; }
+.sf-thumb img { position: absolute; inset: 10px 10px 14px; width: calc(100% - 20px); height: calc(100% - 24px); object-fit: contain; object-position: center bottom; filter: drop-shadow(0 10px 12px rgba(21, 31, 45, .14)); }
 .sf-thumb span { color: var(--sf-blue); font-size: 22px; font-weight: 950; letter-spacing: -.05em; }
 .sf-line-meta { min-width: 0; }
 .sf-line-meta small { display: block; font-size: 8px; font-weight: 950; letter-spacing: 1.1px; color: #858a92; text-transform: uppercase; margin-bottom: 6px; }
@@ -287,8 +287,8 @@ html:has(.sf), body:has(.sf) { background: #fff; }
   .sf-hero { padding: 2rem 0 1.5rem; }
   .sf-title { font-size: clamp(2.8rem, 12vw, 4.5rem); }
   .sf-row2 { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .sf-line { grid-template-columns: 72px minmax(0, 1fr); }
-  .sf-thumb { width: 72px; height: 72px; }
+  .sf-line { grid-template-columns: 88px minmax(0, 1fr); }
+  .sf-thumb { width: 88px; height: 88px; }
   .sf-line-price { grid-column: 2; text-align: left; }
   .sf-order { grid-template-columns: minmax(0, 1fr) auto; }
   .sf-order .sf-badge { grid-column: 1; justify-self: start; }
