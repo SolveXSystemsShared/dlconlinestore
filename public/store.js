@@ -122,7 +122,7 @@
 
   function artFor(product) {
     if (PRODUCT_ART.has(product.slug)) return `assets/webp/products/${product.slug}.webp`;
-    if (/moonstick/.test(fold(product.productType)) && /indoor/.test(fold(product.grade))) return 'assets/webp/moonsticks/indoor.webp';
+    if (/moonstick/.test(fold(product.productType))) return 'assets/webp/moonsticks/indoor.webp';
     const { category, tier } = classify(product);
     const key = slugify(product.name);
     if (category === 'flower') return `assets/webp/flower/${tier}.webp`;
