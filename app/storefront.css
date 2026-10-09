@@ -202,7 +202,8 @@ html:has(.sf), body:has(.sf) { background: #fff; }
 .sf-trust b { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: var(--sf-tint); color: var(--sf-blue); display: grid; place-items: center; font-size: 9px; }
 
 /* ── Account ────────────────────────────────────────────────────────────── */
-.sf-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 3px; margin-bottom: 20px; }
+/* Room above and below so the hover lift and focus ring are not clipped by the scrolling row. */
+.sf-tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 6px 4px 6px; margin: -6px -4px 17px; }
 .sf-tab { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--sf-line); border-radius: 999px; background: #fff; color: var(--sf-ink); padding: 11px 15px; font-size: 9px; font-weight: 950; letter-spacing: 1.1px; text-transform: uppercase; cursor: pointer; transition: border-color .18s ease, transform .18s ease; }
 .sf-tab:hover { transform: translateY(-2px); border-color: #b8bdc7; }
 .sf-tab[aria-selected="true"] { background: var(--sf-blue); border-color: var(--sf-blue); color: #fff; }

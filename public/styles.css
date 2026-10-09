@@ -3371,7 +3371,7 @@ html.lounge-row-visible{--float-lift:78px}
 }
 
 /* Every landing card's name sits on the product page's cloud
-   (assets/cloud-back.webp) instead of a pill or dark label: Flower, Prerolls,
+   (assets/name-cloud.svg) instead of a pill or dark label: Flower, Prerolls,
    Wellness and every other category alike. The box keeps the artwork's 7:3
    shape so the cloud is never stretched; long names wrap onto two lines. */
 .product-dock .product-card .product-meta{
@@ -3380,19 +3380,19 @@ html.lounge-row-visible{--float-lift:78px}
   min-height:0!important;
   aspect-ratio:7/3;
   margin:2px auto 0!important;
-  padding:12% 13% 3%!important;
+  padding:15% 14% 2%!important;
   display:grid!important;
   place-items:center!important;
   /* Always shown, like the Flower names: no hover needed in any category. */
   opacity:1!important;
   transform:none!important;
-  background:url("assets/cloud-back.webp") center/100% 100% no-repeat!important;
+  background:url("assets/name-cloud.svg") center/100% 100% no-repeat!important;
   border:none!important;
   border-radius:0!important;
   box-shadow:none!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
-  filter:drop-shadow(0 10px 16px rgba(8,24,80,.28));
+  filter:drop-shadow(0 6px 10px rgba(8,24,80,.22));
   white-space:normal!important;
 }
 .product-dock .product-card .product-type,
