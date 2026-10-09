@@ -1,3 +1,4 @@
+import { receiptEmailFor } from "@/lib/receipt-email"
 import { CLOCKED_IN_MESSAGE, isStaffClockedIn } from "@/lib/staff-shift"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
@@ -15,8 +16,6 @@ import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptanc
 const input = z.object({
   memberId: z.string().min(4).max(40),
   phone: z.string().min(7).max(30),
-  // Paystack sends its card receipt here; it is not stored by the store.
-  email: z.string().email().max(200),
   customerNotes: z.string().max(1000).optional().default(""),
   items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().positive().max(100) })).min(1).max(50),
   ...acceptanceInput,
@@ -220,7 +219,7 @@ export async function POST(request: NextRequest) {
     // offers settlement again — nothing is lost by failing here.
     let settlement: { authorizationUrl: string; amountDue: number } | null = null
     try {
-      settlement = await startSettlement({ ...order, exchange_id: String(exchange.id), member_id: member.memberId }, { email: body.email, callbackUrl: settlementReturnUrl(request.url, order.id) })
+      settlement = await startSettlement({ ...order, exchange_id: String(exchange.id), member_id: member.memberId }, { email: await receiptEmailFor(member.memberId), callbackUrl: settlementReturnUrl(request.url, order.id) })
     } catch (error) {
       if (!(error instanceof SettlementError || error instanceof PaystackError || error instanceof CdashError)) throw error
       console.error("Settlement could not be opened for order", order.id, error.message)

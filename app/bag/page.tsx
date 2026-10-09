@@ -20,7 +20,6 @@ function CheckoutForm() {
   const [collectionPoint, setCollectionPoint] = useState<CollectionPoint | null>(null)
   const [member, setMember] = useState<{ memberId: string; name: string } | null>(null)
   const [phone, setPhone] = useState("")
-  const [email, setEmail] = useState("")
   const [notes, setNotes] = useState("")
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
@@ -59,7 +58,6 @@ function CheckoutForm() {
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         if (data?.profile?.mobileNumber) setPhone((current) => current || data.profile.mobileNumber)
-        if (data?.profile?.email) setEmail((current) => current || data.profile.email)
       })
       .catch(() => {})
   }, [])
@@ -133,13 +131,12 @@ function CheckoutForm() {
     if (!member) return setMessage("Verify your DLC Member ID first.")
     if (!cart.length) return setMessage("Add at least one product to your bag first.")
     if (!accepted) return setMessage("Please accept the Terms & Conditions to send your request.")
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setMessage("Enter the email address for your card receipt.")
     setBusy(true)
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ memberId: member.memberId, phone, email, customerNotes: notes, acceptedTerms: accepted, termsVersion: TERMS_VERSION, items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })) }),
+        body: JSON.stringify({ memberId: member.memberId, phone, customerNotes: notes, acceptedTerms: accepted, termsVersion: TERMS_VERSION, items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })) }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not send your exchange request")
@@ -231,7 +228,6 @@ function CheckoutForm() {
                         ? <div className="sf-member"><div><small>DLC MEMBER · {member.memberId}</small><strong>{member.name}</strong></div></div>
                         : <div className="sf-field"><p className="sf-note">Your member session has ended. Sign in again with your Member ID and the PIN we SMS you.</p><button type="button" className="sf-ghost" onClick={() => window.location.reload()}>Sign in again</button></div>}
                       <div className="sf-field"><label htmlFor="phone">Mobile number <small>(we message you when it is ready to collect)</small></label><input id="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="082 000 0000" required /></div>
-                      <div className="sf-field"><label htmlFor="email">Email <small>(for your card receipt)</small></label><input id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required /></div>
                     </section>
 
                     <section className="sf-panel" aria-labelledby="collectionTitle">

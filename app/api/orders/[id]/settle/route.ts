@@ -4,11 +4,12 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
 import { CdashError } from "@/lib/cdash"
 import { PaystackError } from "@/lib/paystack"
+import { receiptEmailFor } from "@/lib/receipt-email"
 import { SettlementError, completeSettlement, settlementReturnUrl, startSettlement } from "@/lib/settlement"
 
 const input = z.discriminatedUnion("action", [
   // Open a (new) Paystack checkout for this request.
-  z.object({ action: z.literal("start"), email: z.string().email().max(200) }),
+  z.object({ action: z.literal("start") }),
   // The member is back from Paystack with this reference.
   z.object({ action: z.literal("confirm"), reference: z.string().min(6).max(100) }),
 ])
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const access = await getMemberAccess()
   if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
   const parsed = input.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) return NextResponse.json({ error: "Please provide a valid email address" }, { status: 400 })
+  if (!parsed.success) return NextResponse.json({ error: "Unsupported settlement request" }, { status: 400 })
 
   const supabase = getSupabaseAdmin()
   const { data: order } = await supabase
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
   try {
     if (parsed.data.action === "start") {
-      const started = await startSettlement(order, { email: parsed.data.email, callbackUrl: settlementReturnUrl(request.url, order.id) })
+      const started = await startSettlement(order, { email: await receiptEmailFor(order.member_id), callbackUrl: settlementReturnUrl(request.url, order.id) })
       return NextResponse.json({ authorizationUrl: started.authorizationUrl, amountDue: started.amountDue })
     }
 

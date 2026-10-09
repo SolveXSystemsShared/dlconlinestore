@@ -14,18 +14,10 @@ import { credits } from "@/lib/format"
  */
 export function SettlePanel({ orderId, amountDue, returnedReference }: { orderId: string; amountDue: number | null; returnedReference: string | null }) {
   const router = useRouter()
-  const [email, setEmail] = useState("")
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(Boolean(returnedReference))
   const [message, setMessage] = useState("")
   const confirmed = useRef(false)
-
-  useEffect(() => {
-    fetch("/api/profile")
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (data?.profile?.email) setEmail((current) => current || data.profile.email) })
-      .catch(() => {})
-  }, [])
 
   useEffect(() => {
     if (!returnedReference || confirmed.current) return
@@ -50,13 +42,12 @@ export function SettlePanel({ orderId, amountDue, returnedReference }: { orderId
 
   async function settle() {
     setMessage("")
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setMessage("Enter the email address for your card receipt.")
     setBusy(true)
     try {
       const response = await fetch(`/api/orders/${orderId}/settle`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "start", email }),
+        body: JSON.stringify({ action: "start" }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "We could not open settlement just now.")
@@ -70,10 +61,6 @@ export function SettlePanel({ orderId, amountDue, returnedReference }: { orderId
   if (confirming) return <p className="sf-note" role="status">Confirming your settlement…</p>
 
   return <div>
-    <div className="sf-field">
-      <label htmlFor="settleEmail">Email <small>(for your card receipt)</small></label>
-      <input id="settleEmail" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
-    </div>
     {message && <p className="sf-error" role="alert">{message}</p>}
     <button type="button" className="sf-cta sf-cta--block" disabled={busy} onClick={settle}>
       {busy ? "Opening secure settlement…" : <>Settle {amountDue ? credits(amountDue) : ""} by card <span>→</span></>}
