@@ -5,6 +5,7 @@ import { getMemberAccess } from "@/lib/member-access"
 import { StoreFooter, StoreHeader } from "@/components/store-header"
 import { CollectionPointCard } from "@/components/collection-point"
 import { SettlePanel } from "@/components/settle-panel"
+import { LiveRefresh } from "@/components/live-refresh"
 import { getCollectionPoint } from "@/lib/store-settings"
 
 export const dynamic = "force-dynamic"
@@ -40,12 +41,23 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   const awaiting = status === "pending_payment"
   const settled = !awaiting && status !== "cancelled" && status !== "expired"
   const returned = status === "cancelled" && String(order.cancellation_reason || "").startsWith("Settlement refused")
+  // The team moves a settled exchange on in CDASH: paid → preparing → ready → completed.
+  const preparing = status === "preparing"
+  const ready = status === "ready"
+  const collected = status === "completed" || status === "out_for_delivery"
+  const stage = collected ? 4 : ready ? 3 : preparing ? 2 : settled ? 1 : 0
   const total = Number(order.total) || 0
 
   const hero = awaiting
     ? { kicker: `EXCHANGE REQUEST · ${when(order.created_at)}`, title: <>Settle to<br />send it.</>, sub: `Thanks, ${order.member_name}. Settle by card to send your request to the DLC team. They start preparing it as soon as it is settled.` }
-    : settled
-      ? { kicker: `SETTLED · ${when(order.paid_at || order.created_at)}`, title: <>We have<br />your request.</>, sub: `Thanks, ${order.member_name}. Your exchange is settled and with the DLC team.` }
+    : collected
+      ? { kicker: "COLLECTED", title: <>All<br />yours.</>, sub: `Thanks, ${order.member_name}. Your exchange has been handed over. Enjoy, and thank you for being a member.` }
+      : ready
+        ? { kicker: "READY TO COLLECT", title: <>Ready to<br />collect.</>, sub: `Your exchange is waiting for you at the lounge. Book your Uber, quote ${order.order_number} and bring your ID.` }
+        : preparing
+          ? { kicker: "BEING PREPARED", title: <>Getting it<br />ready.</>, sub: `The DLC team is preparing your exchange now. We let you know the moment it is ready to collect.` }
+          : settled
+            ? { kicker: `SETTLED · ${when(order.paid_at || order.created_at)}`, title: <>We have<br />your request.</>, sub: `Thanks, ${order.member_name}. Your exchange is settled and with the DLC team. We let you know when they start preparing it.` }
       : { kicker: `EXCHANGE REQUEST · ${exchangeStatus(status).toUpperCase()}`, title: <>Request<br />closed.</>, sub: returned ? "We could not complete this exchange, so your card settlement has been returned to your card. It can take a few working days to show. Please send a new request." : "This exchange request was closed. Send a new request from your bag whenever you are ready." }
 
   return (
@@ -69,20 +81,23 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
             <div className="sf-panel-head"><h2 id="nextTitle">{awaiting ? "Settle by card" : "What happens next"}</h2></div>
             {awaiting && <div style={{ marginBottom: 20 }}><SettlePanel orderId={order.id} amountDue={total > 0 ? total : null} returnedReference={reference || null} /></div>}
             <div className="sf-steps">
-              <div className={settled ? "is-done" : undefined}><b>{settled ? "✓" : "01"}</b><p style={{ margin: 0 }}><strong>Settled by card</strong><span>Settled online through Paystack. Nothing is settled at hand-over.</span></p></div>
-              <div><b>02</b><p style={{ margin: 0 }}><strong>Ready to collect</strong><span>The team prepares your request and messages you on the number you gave when it is ready.</span></p></div>
-              <div><b>03</b><p style={{ margin: 0 }}><strong>Book your Uber</strong><span>Online requests are collection only. Once it is ready, book your own Uber to the lounge.</span></p></div>
-              <div><b>04</b><p style={{ margin: 0 }}><strong>Hand-over</strong><span>Quote exchange {order.order_number} and bring your ID.</span></p></div>
+              {[
+                ["Settled by card", "Settled online through Paystack. Nothing is settled at hand-over."],
+                ["Being prepared", "The DLC team gets your request ready. We let you know when they start."],
+                ["Ready to collect", "We let you know when it is ready. Online requests are collection only, so book your own Uber to the lounge."],
+                ["Hand-over", `Quote exchange ${order.order_number} and bring your ID.`],
+              ].map(([title, detail], index) => <div key={title} className={stage > index ? "is-done" : undefined}><b>{stage > index ? "✓" : `0${index + 1}`}</b><p style={{ margin: 0 }}><strong>{title}</strong><span>{detail}</span></p></div>)}
             </div>
             <div style={{ marginTop: 16 }}><CollectionPointCard point={collectionPoint} /></div>
           </section>
+          {settled && !collected && <LiveRefresh />}
           <aside className="sf-panel" aria-labelledby="itemsTitle">
             <div className="sf-panel-head"><h2 id="itemsTitle">You requested</h2><span className="sf-badge sf-badge--blue"><i />{exchangeStatus(status)}</span></div>
             {lines.length === 0
               ? <p className="sf-hint">The items for this request are held by the DLC team.</p>
               : lines.map((line, index) => <div className="sf-sumrow" key={index}><span>{line.strain_name}<br /><small style={{ color: "var(--sf-muted)" }}>{[line.product_type, line.grade].filter(Boolean).join(" · ")}</small></span><strong>× {Number(line.quantity)}</strong></div>)}
             <p className="sf-fineprint">Online exchanges are settled by card at your member card discount. DLC Credits and the cash discount apply in the lounge.</p>
-            <div className="sf-actions" style={{ marginTop: 16 }}><a className="sf-cta" href="/index.html?home=1">Continue browsing</a><a className="sf-ghost" href="/account">View my exchanges</a></div>
+            <div className="sf-actions" style={{ marginTop: 16 }}><a className="sf-cta" href="/index.html?home=1">Continue browsing</a><a className="sf-ghost" href="/account?tab=exchanges">View my exchanges</a></div>
           </aside>
         </div>
       </main>

@@ -107,6 +107,23 @@ export default function AccountPage() {
     if (tab === "orders" && period !== "custom") loadOrders(period)
   }, [tab, period, loadOrders])
 
+  // ?tab=exchanges (from an exchange page or an update notification) opens the history.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("tab") === "exchanges") setTab("orders")
+  }, [])
+
+  // The team moves exchanges on in CDASH; coming back to the page shows where they are now.
+  useEffect(() => {
+    if (tab !== "orders" || period === "custom") return
+    // Quietly: the list stays on screen and is only swapped when the new one arrives.
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return
+      fetch(`/api/orders?period=${period}`, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((data) => { if (data?.orders) setOrders(data.orders) }).catch(() => {})
+    }
+    document.addEventListener("visibilitychange", refresh)
+    return () => document.removeEventListener("visibilitychange", refresh)
+  }, [tab, period, loadOrders])
+
   function applyCustom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!customFrom || !customTo) return setOrdersError("Choose a start and end date.")
