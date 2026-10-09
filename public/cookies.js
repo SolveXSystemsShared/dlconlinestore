@@ -20,7 +20,7 @@
   const COOKIE = 'dlc_consent';
   const VERSION = 1;
   const MAX_AGE = 60 * 60 * 24 * 365;
-  const PREFERENCE_KEYS = ['dlc_guidance_enabled_v1', 'dlc_recent_products_v1', 'dlc_decoder_topic_v1'];
+  const PREFERENCE_KEYS = ['dlc_guidance_enabled_v1', 'dlc_recent_products_v1', 'dlc_decoder_topic_v1', 'dlc_app_prompt_dismissed_v1'];
 
   function read() {
     const raw = document.cookie.split('; ').find(part => part.startsWith(`${COOKIE}=`));
@@ -83,7 +83,7 @@
       <p>We use strictly necessary cookies to keep the 18+ check and your member session working. With your permission, we would also remember your browsing preferences on this device. We do not use advertising cookies. <a href="/cookies.html">Cookie Policy</a> · <a href="/privacy.html">Privacy Policy</a></p>
       ${detailed ? `<div class="dlc-consent__cats">
         <label class="dlc-consent__cat"><div><strong>Strictly necessary</strong><span>18+ confirmation, member sign-in, this consent choice and page navigation. The member area cannot work without these.</span></div><em>ALWAYS ON</em></label>
-        <label class="dlc-consent__cat"><div><strong>Preferences</strong><span>Remembers guidance mode, recently viewed products and your last DLC Decoder topic on this device.</span></div><input type="checkbox" data-cat="preferences" ${c.preferences ? 'checked' : ''}></label>
+        <label class="dlc-consent__cat"><div><strong>Preferences</strong><span>Remembers guidance mode, recently viewed products, your last DLC Decoder topic and whether you have closed the install prompt on this device.</span></div><input type="checkbox" data-cat="preferences" ${c.preferences ? 'checked' : ''}></label>
         <label class="dlc-consent__cat"><div><strong>Analytics</strong><span>Anonymous statistics on how the site is used. Not currently in use. If we turn it on, it will only run with this switched on.</span></div><input type="checkbox" data-cat="analytics" ${c.analytics ? 'checked' : ''}></label>
       </div>` : ''}
       <div class="dlc-consent__actions">
