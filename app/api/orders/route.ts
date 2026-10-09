@@ -1,3 +1,4 @@
+import { CLOCKED_IN_MESSAGE, isStaffClockedIn } from "@/lib/staff-shift"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
@@ -124,6 +125,9 @@ export async function POST(request: NextRequest) {
     // does at the door.
     const member = await lookupMember(memberId)
     if (!member.found || member.verdict !== "active") return NextResponse.json({ error: "Active DLC member not found" }, { status: 404 })
+
+    // Staff shop online like any member, but not while they are on shift.
+    if (await isStaffClockedIn(member.memberId)) return NextResponse.json({ error: CLOCKED_IN_MESSAGE, code: "staff_clocked_in" }, { status: 403 })
 
     const [storeId, collectionPoint] = await Promise.all([getFulfillmentStoreId(), getCollectionPoint()])
     // Online requests are collection only: the member books their own Uber to
