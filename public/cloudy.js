@@ -5,7 +5,8 @@
  * scrolled to the shelf, then settles into the corner. It answers from a fixed
  * set of approved answers about how the store works (exchanges, collection,
  * credits, rewards, the lounge). It does not take free-form advice, and it does
- * not guess: anything it cannot match points to the team at the lounge.
+ * not guess: anything it cannot match points to the team at the lounge. It is
+ * not AI, and it says so up front, so nobody mistakes a set answer for advice.
  *
  * The DLC Decoder (what tiers and formats mean) is still one tap away, and the
  * ? key still opens it. Where a member is signed in, Cloudy also looks up the
@@ -82,14 +83,14 @@
       run: 'app',
     },
     {
-      id: 'team', label: 'Contact the team',
-      words: 'contact team phone call number help support talk speak human someone staff',
-      text: ['The team at the lounge can help with anything I cannot.'],
+      id: 'team', label: 'Speak to the lounge',
+      words: 'contact team phone call number help support talk speak human person someone staff store real chat',
+      text: ['I only have set answers, so for anything more the team at the lounge is the best place to ask.'],
       run: 'collectionPoint',
     },
   ];
 
-  const FALLBACK = 'I am not sure about that one. The team at the lounge can help, or pick a topic below.';
+  const FALLBACK = 'That one is not on my list, so the team at the lounge is the best place to ask.';
 
   // ── Actions that need the page or the server ──────────────────────────────
   const STATUS_TEXT = {
@@ -110,11 +111,15 @@
         const data = response.ok ? await response.json() : null;
         const point = data && data.collectionPoint;
         if (point && point.name) {
-          add({ text: [`You collect from ${point.name}${point.address ? `, ${point.address}` : ''}.${point.phone ? ` You can reach the team on ${point.phone}.` : ''}`] });
+          const phone = point.phone ? String(point.phone).trim() : '';
+          add({
+            text: [`You collect from ${point.name}${point.address ? `, ${point.address}` : ''}.${phone ? ` You can reach the team on ${phone}.` : ''}`],
+            links: phone ? [['Call the lounge', `tel:${phone.replace(/[^\d+]/g, '')}`]] : [],
+          });
           return;
         }
       } catch (e) {}
-      add({ text: ['Ask the team at the lounge where to collect. Sign in to see the lounge details.'] });
+      add({ text: ['Sign in with your Member ID to see the lounge details and number, or ask the team when you next visit.'] });
     },
     async latestExchange(add) {
       try {
@@ -163,6 +168,8 @@
   .cloudy__msg--me{align-self:flex-end;background:#41a8fc;color:#06213d;font-weight:700;border-bottom-right-radius:4px}
   .cloudy__msg p{margin:0}.cloudy__msg p+p{margin-top:8px}
   .cloudy__msg a{display:inline-block;margin:8px 8px 0 0;color:#1a6ef0;font-weight:800;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+  .cloudy__note{margin:0;padding:8px 16px;background:#eaf4ff;border-bottom:1px solid #d5e8fb;font-size:11.5px;line-height:1.45;color:#3d5170;flex:0 0 auto}
+  .cloudy__note b{color:#06213d}
   .cloudy__chips{padding:10px 12px 4px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #e3eefa;background:#fff;flex:0 0 auto}
   .cloudy__chips::-webkit-scrollbar{display:none}
   .cloudy__chip{flex:0 0 auto;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid #cfe3f7;background:#f1f8ff;color:#06213d;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
@@ -192,7 +199,8 @@
   panel.className = 'cloudy';
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-label', 'Cloudy, the DLC helper');
-  panel.innerHTML = `<div class="cloudy__head"><div class="cloudy__avatar" aria-hidden="true"></div><div><strong>Cloudy</strong><small>DLC MEMBER HELPER</small></div><button class="cloudy__close" type="button" aria-label="Close Cloudy">×</button></div>
+  panel.innerHTML = `<div class="cloudy__head"><div class="cloudy__avatar" aria-hidden="true"></div><div><strong>Cloudy</strong><small>DLC MEMBER HELPER · NOT AI</small></div><button class="cloudy__close" type="button" aria-label="Close Cloudy">×</button></div>
+    <p class="cloudy__note">Cloudy is not AI. It gives set answers only. For anything else, tap <b>Speak to the lounge</b>.</p>
     <div class="cloudy__log" role="log" aria-live="polite"></div>
     <div class="cloudy__chips"></div>
     <form class="cloudy__form"><input type="text" maxlength="200" placeholder="Ask about exchanges, credits, the lounge" aria-label="Ask Cloudy a question" autocomplete="off" enterkeyhint="send"><button type="submit">SEND</button></form>`;
@@ -222,7 +230,8 @@
   const bot = parts => add('bot', parts);
 
   function renderChips() {
-    const list = ANSWERS.filter(a => !a.member || member);
+    // Speak to the lounge leads, so a way to a real person is always in view.
+    const list = ANSWERS.filter(a => !a.member || member).sort((a, b) => (b.id === 'team') - (a.id === 'team'));
     chips.innerHTML = list.map(a => `<button type="button" class="cloudy__chip" data-id="${a.id}">${esc(a.label)}</button>`).join('');
   }
 
@@ -283,7 +292,7 @@
     if (!greeted) {
       greeted = true;
       const name = firstName();
-      bot({ text: [`Howdy${name ? `, ${name}` : ''}! I am Cloudy. I can help with exchanges, collection, credits, rewards and the lounge.`] });
+      bot({ text: [`Howdy${name ? `, ${name}` : ''}! I am Cloudy. I can help with exchanges, collection, credits, rewards and the lounge.`, 'For anything else, tap Speak to the lounge and the team will help.'] });
     }
     renderChips();
     panel.classList.add('is-open');
