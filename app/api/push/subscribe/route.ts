@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 
 // The push services browsers actually use. Whatever sends updates later posts
 // to this address from inside our network, so an arbitrary URL here would let a
@@ -31,8 +31,9 @@ const MAX_DEVICES = 10
  * someone else's exchange updates.
  */
 export async function POST(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   const parsed = z.object({ subscription }).safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: "That device could not be registered" }, { status: 400 })
 
@@ -61,8 +62,9 @@ export async function POST(request: NextRequest) {
 
 /** Turns updates off for this device. */
 export async function DELETE(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   const parsed = z.object({ endpoint: z.string().url().max(1000) }).safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: "That device could not be found" }, { status: 400 })
   const { error } = await getSupabaseAdmin().from("store_push_subscriptions").delete().eq("endpoint", parsed.data.endpoint).eq("member_id", access.memberId)

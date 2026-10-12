@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { normalizeMemberId } from "@/lib/format"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { lookupMember } from "@/lib/members"
 import { collectionRecord, getCollectionPoint, getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, createOnlineOrder, fetchQuote } from "@/lib/cdash"
@@ -41,8 +41,9 @@ const saDayStart = (day: string) => new Date(`${day}T00:00:00+02:00`)
  * No credits, totals, addresses or phone numbers leave the server here.
  */
 export async function GET(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+  const gate = await requireActiveMember()
+  if (!gate.ok) return gate.response
+  const access = gate
 
   const params = Object.fromEntries(new URL(request.url).searchParams)
   const parsed = historyQuery.safeParse(params)
@@ -107,8 +108,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const access = await getMemberAccess()
-    if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+    const gate = await requireActiveMember({ fresh: true })
+    if (!gate.ok) return gate.response
+    const access = gate
     // Each request creates a pending exchange in CDASH and opens a Paystack
     // checkout, so a script must not be able to flood the team's queue.
     const limitKey = `orders:${access.memberId}`

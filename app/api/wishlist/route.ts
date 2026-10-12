@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { getCatalogCached } from "@/lib/catalog"
 import type { CatalogProduct } from "@/lib/types"
 
@@ -52,8 +52,9 @@ async function readWishlist(memberId: string) {
 }
 
 export async function GET() {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember()
+  if (!gate.ok) return gate.response
+  const access = gate
   try {
     return NextResponse.json({ items: await readWishlist(access.memberId) })
   } catch (error) {
@@ -65,8 +66,9 @@ export async function GET() {
 const input = z.object({ productId: z.string().uuid() })
 
 export async function POST(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   try {
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid product" }, { status: 400 })
@@ -83,8 +85,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   try {
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid product" }, { status: 400 })

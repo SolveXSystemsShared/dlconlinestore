@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { MEMBER_ID_COLUMN } from "@/lib/members-schema"
 import { getMemberProfile, logProfileUpdate } from "@/lib/profile"
 import { parseSaMobile, phoneKey } from "@/lib/phone"
 import { sendSms } from "@/lib/sms"
 
 export async function GET() {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember()
+  if (!gate.ok) return gate.response
+  const access = gate
   try {
     const profile = await getMemberProfile(access.memberId)
     if (!profile) return NextResponse.json({ error: "Member not found" }, { status: 404 })
@@ -31,8 +32,9 @@ const patchInput = z.object({
 })
 
 export async function PATCH(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
 
   try {
     const parsed = patchInput.safeParse(await request.json())

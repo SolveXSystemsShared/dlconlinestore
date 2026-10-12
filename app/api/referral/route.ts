@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { isPreviewMode } from "@/lib/preview"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { MEMBER_ID_COLUMN } from "@/lib/members-schema"
@@ -12,8 +12,9 @@ import { MEMBER_ID_COLUMN } from "@/lib/members-schema"
  * row, so they get null and the page says to ask the team.
  */
 export async function GET() {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+  const gate = await requireActiveMember()
+  if (!gate.ok) return gate.response
+  const access = gate
   if (isPreviewMode()) return NextResponse.json({ code: "K7RB4Q" })
   try {
     const { data, error } = await getSupabaseAdmin().from("members").select("referral_code").ilike(MEMBER_ID_COLUMN, access.memberId).maybeSingle()

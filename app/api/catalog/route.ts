@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server"
 import { getCatalogCached } from "@/lib/catalog"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { isPreviewMode, previewCatalog } from "@/lib/preview"
 
 
 export async function GET() {
   try {
-    const access = await getMemberAccess()
-    if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+    const gate = await requireActiveMember()
+    if (!gate.ok) return gate.response
+    const access = gate
     if (isPreviewMode()) return NextResponse.json({ products: previewCatalog() })
     // Always the fulfilment store's shelf. A caller-chosen store id used to be
     // accepted here: it went unescaped into PostgREST or() filters and each new

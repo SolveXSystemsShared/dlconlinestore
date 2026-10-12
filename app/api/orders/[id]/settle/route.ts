@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { lockedFor, recordFailure } from "@/lib/rate-limit"
 import { CdashError } from "@/lib/cdash"
 import { PaystackError } from "@/lib/paystack"
@@ -24,8 +24,9 @@ const input = z.discriminatedUnion("action", [
  */
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   const parsed = input.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: "Unsupported settlement request" }, { status: 400 })
 

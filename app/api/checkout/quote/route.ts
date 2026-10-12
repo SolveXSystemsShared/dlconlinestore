@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, fetchQuote } from "@/lib/cdash"
 import { resolveOrderLines } from "@/lib/order-lines"
@@ -24,8 +24,9 @@ const input = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const access = await getMemberAccess()
-    if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+    const gate = await requireActiveMember({ fresh: true })
+    if (!gate.ok) return gate.response
+    const access = gate
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid bag" }, { status: 400 })
 

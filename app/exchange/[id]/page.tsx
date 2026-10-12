@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { credits, exchangeStatus } from "@/lib/format"
 import { getMemberAccess } from "@/lib/member-access"
+import { activeMemberFor } from "@/lib/member-session"
 import { StoreFooter, StoreHeader } from "@/components/store-header"
 import { CollectionPointCard } from "@/components/collection-point"
 import { SettlePanel } from "@/components/settle-panel"
@@ -23,6 +24,8 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   const [{ id }, { reference }] = await Promise.all([params, searchParams])
   const access = await getMemberAccess()
   if (!access.ageConfirmed || !access.memberId) notFound()
+  // A membership stopped in CDASH sees nothing, even with a cookie that is still signed.
+  if (!(await activeMemberFor(access.memberId, { fresh: true }))) notFound()
   const supabase = getSupabaseAdmin()
   const [{ data: order }, collectionPoint] = await Promise.all([
     supabase

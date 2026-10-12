@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
-import { getMemberAccess } from "@/lib/member-access"
+import { requireActiveMember } from "@/lib/member-session"
 import { getCatalogCached } from "@/lib/catalog"
 import type { CartLine } from "@/lib/types"
 
@@ -47,8 +47,9 @@ async function readCart(memberId: string): Promise<{ lines: CartLine[]; removed:
 }
 
 export async function GET() {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember()
+  if (!gate.ok) return gate.response
+  const access = gate
   try {
     return NextResponse.json(await readCart(access.memberId))
   } catch (error) {
@@ -65,8 +66,9 @@ const input = z.object({
 })
 
 export async function POST(request: NextRequest) {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   try {
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid product and quantity" }, { status: 400 })
@@ -98,8 +100,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE() {
-  const access = await getMemberAccess()
-  if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Member access required" }, { status: 401 })
+  const gate = await requireActiveMember({ fresh: true })
+  if (!gate.ok) return gate.response
+  const access = gate
   const { error } = await getSupabaseAdmin().from("online_cart_items").delete().eq("member_id", access.memberId)
   if (error) {
     console.error("Cart clear error", error)

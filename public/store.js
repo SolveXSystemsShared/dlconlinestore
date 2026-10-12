@@ -223,6 +223,9 @@
         try {
           const response = await fetch(path, { credentials: 'same-origin', ...options, signal: controller.signal });
           const data = await response.json().catch(() => ({}));
+          // A membership stopped in CDASH: the server has already cleared the
+          // cookie, so reloading puts the gate up and it explains why.
+          if (data.code === 'membership_inactive') location.reload();
           if (!response.ok) throw Object.assign(new Error(data.error || 'The store could not be reached'), { status: response.status });
           return data;
         } catch (error) {
