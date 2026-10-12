@@ -3210,6 +3210,9 @@ html.lounge-row-visible{--float-lift:78px}
 .shop-filter-panel .shop-filter-tools{border-top:0!important;padding-top:0!important}
 @media(max-width:768px){
   .shop-filter-bar{flex-direction:column;align-items:stretch}
+  /* Collections: one swipeable row with a soft fade at the edge, not a stack of wrapped lines */
+  .shop-filters .shop-filter-bar .shop-jump{flex-wrap:nowrap!important;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 24px 8px 2px!important;margin:-2px 0 -8px -2px!important;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)!important;mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)!important}
+  .shop-filters .shop-filter-bar .shop-jump a{scroll-snap-align:start}
   .shop-filter-toggle{justify-content:center}
   .shop-filter-toggle span{flex:0 0 auto}
 }

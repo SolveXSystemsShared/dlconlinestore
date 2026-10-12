@@ -409,15 +409,47 @@
   });
 
   const collectionHref = (dest) => dest === 'all' ? 'strains.html' : dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest);
-  document.querySelectorAll('[data-shop]').forEach(link => {
+  // Every other product type sits in the bar as its own collection, in the
+  // lounge row's order, between prerolls and wellness.
+  const MORE_ORDER = ['concentrates', 'shooters', 'moonsticks', 'edibles', 'drinks', 'vapes', 'rolling-papers', 'accessories', 'dab-hits'];
+  const shopJump = document.querySelector('.shop-jump');
+  const bindShopLink = link => {
     const destination = link.dataset.shop;
-    const active = destination === category;
+    const [shopCategory, shopTier] = destination.split(':');
+    const active = shopCategory === category && (!shopTier || shopTier === tier);
     link.classList.toggle('active', active);
     if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
-    link.dataset.analytics = `collection_${destination}_jump_click`;
-    link.href = collectionHref(destination);
+    link.dataset.analytics = `collection_${destination.replace(':', '_')}_jump_click`;
+    link.href = shopTier ? S.collectionUrl(shopCategory, shopTier) : collectionHref(destination);
     if (!active) link.addEventListener('click', saveCrossCategoryScroll);
-  });
+  };
+  // On a phone the bar is one swipeable row; keep the open collection in view.
+  const revealActiveShop = () => {
+    const active = shopJump?.querySelector('a.active');
+    if (!active || shopJump.scrollWidth <= shopJump.clientWidth) return;
+    shopJump.scrollLeft = active.offsetLeft - (shopJump.clientWidth - active.offsetWidth) / 2;
+  };
+  function paintMoreShops(products) {
+    const types = new Map();
+    products.forEach(p => {
+      const place = S.classify(p);
+      if (place.category === 'more' && !types.has(place.tier)) types.set(place.tier, p.productType);
+    });
+    const rank = slug => { const i = MORE_ORDER.indexOf(slug); return i === -1 ? MORE_ORDER.length : i; };
+    const slugs = [...types.keys()].sort((a, b) => rank(a) - rank(b) || types.get(a).localeCompare(types.get(b)));
+    const wellness = shopJump.querySelector('[data-shop="wellness"]');
+    shopJump.querySelectorAll('[data-shop^="more:"]').forEach(link => link.remove());
+    slugs.forEach(slug => {
+      const link = document.createElement('a');
+      link.dataset.shop = `more:${slug}`;
+      link.textContent = types.get(slug).toUpperCase();
+      shopJump.insertBefore(link, wellness);
+      bindShopLink(link);
+    });
+    revealActiveShop();
+  }
+  document.querySelectorAll('[data-shop]').forEach(bindShopLink);
+  revealActiveShop();
   restoreCrossCategoryScroll();
   document.querySelectorAll('[data-global-collection]').forEach(link => {
     const destination = link.dataset.globalCollection;
@@ -439,9 +471,9 @@
       setText('overviewPrice', fromPrice == null ? '' : `FROM ${S.price(fromPrice)}`);
       setText('categoryLabel', 'THE DLC SHELF');
       document.getElementById('pageTitle').textContent = 'All products';
-      setText('pageDescription', 'Everything on the DLC shelf right now. Pick a collection above or use Filters to narrow it down.');
+      setText('pageDescription', 'Everything on the DLC shelf right now. Pick a collection or use Filters to narrow it down.');
       document.getElementById('bandTitle').innerHTML = 'MORE FROM<br/>THE LOUNGE';
-      setText('bandCopy', 'Prefer a single collection? Jump to flower, prerolls, wellness or more above.');
+      setText('bandCopy', 'Prefer a single collection? Pick one from the collections bar.');
       document.title = 'DLC | Browse all products';
       return;
     }
@@ -459,10 +491,10 @@
     document.getElementById('bandTitle').innerHTML = `MORE FROM<br/>${escapeHtml(category === 'wellness' ? 'WELLNESS' : allTiers ? categoryName.toUpperCase() : tierName.toUpperCase())}`;
 
     const titleWord = category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase();
-    const titleTail = category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
+    const titleTail = category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : '';
     document.getElementById('pageTitle').textContent = allTiers
       ? `All ${category === 'more' ? 'other products' : categoryName.toLowerCase()}`
-      : `${titleWord} ${titleTail}`.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+      : `${titleWord} ${titleTail}`.trim().toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
     document.title = `${category === 'wellness' ? 'Wellness Products' : allTiers ? (category === 'more' ? 'Other products' : categoryName) : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()} | DLC`;
 
     // The old overview card is gone; keep the wording logic but write to a detached link.
@@ -472,13 +504,13 @@
       setText('bandCopy', 'Open any product above for its full details.');
       intro.textContent = 'WELLNESS COLLECTION';
     } else if (category === 'more' && !allTiers) {
-      setText('pageDescription', `Browsing ${tierName.toLowerCase()} on the DLC shelf. Use the shelves below to switch.`);
+      setText('pageDescription', `Browsing ${tierName.toLowerCase()} on the DLC shelf. Pick another collection to switch.`);
       setText('bandCopy', 'Want one list you can filter and search? Open the full menu.');
       intro.textContent = 'FULL MENU';
       intro.href = '/menu';
     } else if (allTiers) {
       const noun = category === 'more' ? 'other product' : category === 'prerolls' ? 'preroll' : 'flower strain';
-      setText('pageDescription', `Every ${noun} on the DLC shelf right now. Open Filters to narrow it down by ${category === 'more' ? 'type' : 'tier or strain type'}.`);
+      setText('pageDescription', `Every ${noun} on the DLC shelf right now. ${category === 'more' ? 'Pick a collection to narrow it down.' : 'Open Filters to narrow it down by tier or strain type.'}`);
       setText('bandCopy', 'Pick another collection, or open any product above for its details.');
       intro.textContent = `${categoryName.toUpperCase()} COLLECTION`;
     } else {
@@ -583,6 +615,7 @@
   note.textContent = 'STOCK UPDATES LIVE FROM THE LOUNGE. POTENCY: CONFIRM IN STORE.';
 
   S.catalog().then(products => {
+    paintMoreShops(products);
     const inCategory = isAll ? products : products.filter(p => S.classify(p).category === category);
 
     let shelves = [];
@@ -609,7 +642,7 @@
       }
       tierName = shelves.find(s => s.slug === tier)?.label || 'All';
     }
-    if (shelves.length) paintShelves(shelves);
+    if (shelves.length && category !== 'more') paintShelves(shelves);
 
     const shelfItems = inCategory.filter(p => isAll || category === 'wellness' || !tier || S.classify(p).tier === tier);
     sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: 0, category, tier }));
@@ -665,7 +698,7 @@
     }
     const clearButton = document.getElementById('clearFilters');
     // A chosen tier counts as a filter too; clearing it opens the whole category.
-    const tierFiltered = !isAll && category !== 'wellness' && !!tier;
+    const tierFiltered = (category === 'flower' || category === 'prerolls') && !!tier;
     clearButton.addEventListener('click', () => {
       if (tierFiltered) { location.href = S.collectionUrl(category); return; }
       type = 'all'; sort = 'recommended'; sortSelect.value = sort; remember(); apply();
