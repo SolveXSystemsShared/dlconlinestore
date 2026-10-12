@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { credits } from "@/lib/format"
+import { markSettledForCelebration } from "@/components/settled-celebration"
 
 /**
  * Settling an exchange request by card, on its own page.
@@ -31,6 +32,7 @@ export function SettlePanel({ orderId, amountDue, returnedReference }: { orderId
       .then(({ ok, data }) => {
         if (!ok) return setMessage(data.error || "We could not confirm your settlement yet. Refresh this page in a minute.")
         if (data.outcome === "not_paid") return setMessage("Your card settlement was not completed. You can try again below.")
+        if (data.outcome === "settled") markSettledForCelebration(orderId)
         // Settled or returned: the page itself now says which. Drop the
         // reference so a reload does not confirm a second time.
         router.replace(`/exchange/${orderId}`)

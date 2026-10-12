@@ -83,7 +83,7 @@
   function card(sp) {
     const amount = sp.credits != null
       ? `<p class="li-card__credits"><strong>${S.price(sp.credits)}</strong></p>`
-      : sp.percentOff != null ? `<p class="li-card__credits"><strong>${sp.percentOff}% off</strong></p>` : '';
+      : sp.percentOff != null ? `<p class="li-card__credits"><strong>${esc(sp.percentOff)}% off</strong></p>` : '';
     const tags = [sp.kind === 'bundle' ? 'BUNDLE' : 'SPECIAL', sp.cashOnly ? 'SETTLE IN CASH' : null].filter(Boolean)
       .map((t, i) => `<span class="li-tag${i ? ' li-tag--cash' : ''}">${t}</span>`).join('');
     // The team's own description says what a bundle is ("1 Stoned Gummy in
@@ -98,9 +98,9 @@
     } else if (sameType) {
       body = `<p class="li-card__flavours"><span>CHOOSE FROM</span>${sp.lines.map(l => `<em>${esc(l.name)}</em>`).join('')}</p>`;
     } else if (sp.lines.length) {
-      body = `<ul class="li-perks li-perks--items">${sp.lines.map(l => `<li><b>${l.quantity}×</b> ${lineText(l)}</li>`).join('')}</ul>`;
+      body = `<ul class="li-perks li-perks--items">${sp.lines.map(l => `<li><b>${esc(l.quantity)}×</b> ${lineText(l)}</li>`).join('')}</ul>`;
     }
-    if (sp.cashOnly) body += `<p class="li-card__note">${sp.percentOff != null ? `${sp.percentOff}% off` : 'This special'} applies when the exchange is settled in cash. Settled by card, the usual credits apply.</p>`;
+    if (sp.cashOnly) body += `<p class="li-card__note">${sp.percentOff != null ? `${esc(sp.percentOff)}% off` : 'This special'} applies when the exchange is settled in cash. Settled by card, the usual credits apply.</p>`;
     return `<article class="li-card"><div class="li-tags">${tags}</div><h3>${esc(sp.name)}</h3>${amount}${body}</article>`;
   }
 

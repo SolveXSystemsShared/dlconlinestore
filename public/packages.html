@@ -87,10 +87,10 @@
 
   function perks(p, turnCap) {
     const list = [];
-    if (p.cashPercent || p.cardPercent) list.push(`<strong>${p.cashPercent}% off</strong> exchanges settled in cash · ${p.cardPercent}% by card`);
+    if (p.cashPercent || p.cardPercent) list.push(`<strong>${esc(p.cashPercent)}% off</strong> exchanges settled in cash · ${esc(p.cardPercent)}% by card`);
     else list.push('Lounge access');
-    if (p.playstationMinutes === null) list.push(`<strong>Unlimited PlayStation</strong> · ${turnCap} min turns when others are waiting`);
-    else if (p.playstationMinutes > 0) list.push(`<strong>${minutes(p.playstationMinutes)} PlayStation</strong> each visit`);
+    if (p.playstationMinutes === null) list.push(`<strong>Unlimited PlayStation</strong> · ${esc(turnCap)} min turns when others are waiting`);
+    else if (p.playstationMinutes > 0) list.push(`<strong>${esc(minutes(p.playstationMinutes))} PlayStation</strong> each visit`);
     else list.push('No PlayStation time');
     if (p.earnsPoints) list.push('Earn points on every exchange');
     else if (p.kind === 'squad') list.push('No points or birthday rewards');
@@ -105,7 +105,7 @@
   function card(p, turnCap, { featured = false } = {}) {
     const period = p.billingPeriod === 'monthly' ? '/ month' : '/ visit';
     const visit = p.perVisitCredits ? `<p class="li-card__alt">or ${S.price(p.perVisitCredits)} / visit</p>` : '';
-    const who = p.squadSize ? `<p class="li-card__who">${p.squadSize} named people</p>` : '';
+    const who = p.squadSize ? `<p class="li-card__who">${esc(p.squadSize)} named people</p>` : '';
     return `<article class="li-card${featured ? ' is-featured' : ''}">
       ${featured ? '<span class="li-card__flag">MOST INCLUDED</span>' : ''}
       <h3>${esc(p.name)}</h3>${who}
@@ -124,10 +124,10 @@
 
     const day = info.packages.filter(p => p.kind === 'day_pass').map(p => card(p, cap));
     if (info.freeAccess.enabled) {
-      day.push(`<article class="li-card li-card--free"><h3>Free access</h3><p class="li-card__credits"><strong>C 0.00</strong> <span>/ ${info.freeAccess.hours} hours</span></p>
-        <ul class="li-perks"><li>Exchange more than <strong>${S.price(info.freeAccess.minSpend)}</strong> and the lounge is yours for ${info.freeAccess.hours} hours</li><li>Starts from the moment the exchange is settled</li><li>Come and go as you like while it lasts</li></ul></article>`);
+      day.push(`<article class="li-card li-card--free"><h3>Free access</h3><p class="li-card__credits"><strong>C 0.00</strong> <span>/ ${esc(info.freeAccess.hours)} hours</span></p>
+        <ul class="li-perks"><li>Exchange more than <strong>${S.price(info.freeAccess.minSpend)}</strong> and the lounge is yours for ${esc(info.freeAccess.hours)} hours</li><li>Starts from the moment the exchange is settled</li><li>Come and go as you like while it lasts</li></ul></article>`);
       const free = document.getElementById('freeAccess');
-      free.innerHTML = `<i aria-hidden="true"></i>Exchange more than <strong>${S.price(info.freeAccess.minSpend)}</strong> and get <strong>${info.freeAccess.hours} hours</strong> of free lounge access.`;
+      free.innerHTML = `<i aria-hidden="true"></i>Exchange more than <strong>${S.price(info.freeAccess.minSpend)}</strong> and get <strong>${esc(info.freeAccess.hours)} hours</strong> of free lounge access.`;
       free.hidden = false;
     }
     document.getElementById('daily').innerHTML = day.join('');

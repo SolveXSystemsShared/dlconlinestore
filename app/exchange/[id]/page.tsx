@@ -6,6 +6,7 @@ import { StoreFooter, StoreHeader } from "@/components/store-header"
 import { CollectionPointCard } from "@/components/collection-point"
 import { SettlePanel } from "@/components/settle-panel"
 import { LiveRefresh } from "@/components/live-refresh"
+import { SettledCelebration } from "@/components/settled-celebration"
 import { getCollectionPoint } from "@/lib/store-settings"
 
 export const dynamic = "force-dynamic"
@@ -91,6 +92,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
             <div style={{ marginTop: 16 }}><CollectionPointCard point={collectionPoint} /></div>
           </section>
           {settled && !collected && <LiveRefresh />}
+          {settled && <SettledCelebration orderId={order.id} />}
           <aside className="sf-panel" aria-labelledby="itemsTitle">
             <div className="sf-panel-head"><h2 id="itemsTitle">You requested</h2><span className="sf-badge sf-badge--blue"><i />{exchangeStatus(status)}</span></div>
             {lines.length === 0
