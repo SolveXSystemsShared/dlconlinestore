@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 130">
+<defs>
+<linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9eafd"/></linearGradient>
+<filter id="f" x="-15%" y="-25%" width="130%" height="160%" color-interpolation-filters="sRGB">
+<feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b"/>
+<feDiffuseLighting in="b" surfaceScale="6" diffuseConstant="1.08" lighting-color="#ffffff" result="d"><feDistantLight azimuth="235" elevation="50"/></feDiffuseLighting>
+<feComposite in="d" in2="SourceAlpha" operator="in" result="dl"/>
+<feComposite in="SourceGraphic" in2="dl" operator="arithmetic" k1=".5" k2=".56" k3="0" k4="0" result="lit"/>
+<feDropShadow in="lit" dx="0" dy="8" stdDeviation="7" flood-color="#0d4fb8" flood-opacity=".16"/>
+</filter>
+</defs>
+<g fill="url(#g)" filter="url(#f)"><circle cx="120" cy="56" r="38"/><circle cx="78" cy="72" r="28"/><circle cx="160" cy="74" r="27"/><circle cx="48" cy="88" r="20"/><circle cx="192" cy="90" r="18"/><rect x="44" y="80" width="152" height="28" rx="14"/></g>
+</svg>
