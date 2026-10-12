@@ -3793,3 +3793,7 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
   .lounge-info .li-card::after{right:-16px;bottom:-12px;width:120px;height:52px}
   .lounge-info .li-card::before{left:-18px;bottom:-14px;width:86px;height:37px}
 }
+/* Compact heroes on narrow screens: the pill and the referral code card keep clear of the mascot. */
+@media(max-width:900px){
+  .lounge-info .li-hero--compact .li-free,.li-hero--compact .li-code{max-width:calc(100% - clamp(70px,18vw,110px))}
+}
