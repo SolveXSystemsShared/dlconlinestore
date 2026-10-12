@@ -175,7 +175,16 @@
   const paintQty = () => { qtyValue.value = quantity; qtyValue.textContent = quantity; };
   document.getElementById('qtyMinus').addEventListener('click', () => { quantity = Math.max(1, quantity - 1); paintQty(); });
   document.getElementById('qtyPlus').addEventListener('click', () => { quantity = Math.min(Math.max(1, maxQuantity), quantity + 1); paintQty(); });
-  document.getElementById('backToCollection').addEventListener('click', () => { (window.DLCPageLoader ? window.DLCPageLoader.go(S.collectionUrl(category, tier)) : location.href = S.collectionUrl(category, tier)); });
+  // Back to the shelf the member came from (whole category or the tier they
+  // picked); straight to a product, back to the whole category.
+  const backUrl = () => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('dlcCollectionState') || 'null');
+      if (saved?.url && (saved.category === category || saved.category === 'all')) return saved.url;
+    } catch (e) {}
+    return S.collectionUrl(category);
+  };
+  document.getElementById('backToCollection').addEventListener('click', () => { (window.DLCPageLoader ? window.DLCPageLoader.go(backUrl()) : location.href = backUrl()); });
 
   function lock(label, sub) {
     cta.disabled = true;
@@ -248,7 +257,7 @@
     setText('factTier', category === 'more' ? (product.grade || 'Not listed') : tierLabel);
     setText('factPrice', displayPrice);
     setText('crumbCategory', categoryName.toUpperCase());
-    document.getElementById('crumbCategory').href = collection;
+    document.getElementById('crumbCategory').href = S.collectionUrl(category);
     setText('crumbTier', category === 'more' ? product.productType.toUpperCase() : shelf);
     document.getElementById('crumbTier').href = collection;
     setText('crumbProduct', product.name.toUpperCase());
