@@ -4,6 +4,8 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
 import { MEMBER_ID_COLUMN } from "@/lib/members-schema"
 import { getMemberProfile, logProfileUpdate } from "@/lib/profile"
+import { parseSaMobile, phoneKey } from "@/lib/phone"
+import { sendSms } from "@/lib/sms"
 
 export async function GET() {
   const access = await getMemberAccess()
@@ -70,12 +72,25 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    if (body.mobileNumber !== undefined && body.mobileNumber !== row.mobile_number) {
-      const { data: taken, error: takenError } = await supabase.from("members").select("id").eq("mobile_number", body.mobileNumber).neq("id", row.id as string).limit(1)
+    // The sign-in PIN is texted to this number, so a new one gets the same check
+    // as registration: a real South African mobile, saved as +27… like CDASH
+    // saves it. The form always sends the number, so one left as it was passes
+    // untouched even if it predates these rules.
+    if (body.mobileNumber !== undefined && body.mobileNumber !== row.mobile_number && !parseSaMobile(body.mobileNumber)) {
+      return NextResponse.json({ error: "Enter a valid South African mobile number, like 082 123 4567." }, { status: 400 })
+    }
+    const mobile = body.mobileNumber === undefined || body.mobileNumber === row.mobile_number ? null : parseSaMobile(body.mobileNumber)!.stored
+    if (mobile && phoneKey(mobile) !== phoneKey(row.mobile_number as string | null)) {
+      // Compared by key, as registration does: older members carry both the
+      // 082… and +27… forms, so an exact match would miss the other spelling.
+      const key = phoneKey(mobile)
+      const { data: sameEnding, error: takenError } = await supabase.from("members").select("id, mobile_number").ilike("mobile_number", `%${key.slice(-3)}%`).neq("id", row.id as string)
       if (takenError) throw takenError
-      if (taken?.length) return NextResponse.json({ error: "That phone number is already registered to another member." }, { status: 409 })
-      update.mobile_number = body.mobileNumber
-      changed.mobileNumber = { from: row.mobile_number, to: body.mobileNumber }
+      if ((sameEnding || []).some((other) => phoneKey(other.mobile_number as string | null) === key)) {
+        return NextResponse.json({ error: "That phone number is already registered to another member." }, { status: 409 })
+      }
+      update.mobile_number = mobile
+      changed.mobileNumber = { from: row.mobile_number, to: mobile }
     }
 
     if (body.residentialAddress !== undefined && body.residentialAddress !== row.residential_address) {
@@ -101,6 +116,12 @@ export async function PATCH(request: NextRequest) {
     if (error) throw error
 
     await logProfileUpdate(row.id as string, access.memberId, changed)
+    // The sign-in PIN now goes to the new number. Tell the old one, so someone
+    // who took over a signed-in browser cannot quietly keep the account.
+    if (changed.mobileNumber && row.mobile_number) {
+      await sendSms(row.mobile_number as string, "Your DLC sign-in number was just changed on the website. If this was not you, contact the DLC team straight away.")
+        .catch((smsError) => console.error("Number change notice failed for", access.memberId, smsError))
+    }
     const profile = await getMemberProfile(access.memberId)
     return NextResponse.json({ profile })
   } catch (error) {
