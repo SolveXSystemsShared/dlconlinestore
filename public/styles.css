@@ -3216,7 +3216,12 @@ html.lounge-row-visible{--float-lift:78px}
   .shop-filter-toggle{justify-content:center}
   .shop-filter-toggle span{flex:0 0 auto}
 }
-@media(prefers-reduced-motion:reduce){.shop-filter-panel,.shop-filter-toggle .chevron{transition:none}}
+/* A soft baby-blue ring breathes around Filters until the member has opened it once. */
+.shop-filter-toggle{position:relative}
+.shop-filter-toggle.is-hinting::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;box-shadow:0 0 0 0 rgba(65,168,252,.45);animation:dlcFilterPulse 2.4s ease-out infinite}
+.shop-filter-toggle.is-hinting{border-color:var(--dlc-sky)}
+@keyframes dlcFilterPulse{0%{box-shadow:0 0 0 0 rgba(65,168,252,.45)}70%{box-shadow:0 0 0 10px rgba(65,168,252,0)}100%{box-shadow:0 0 0 0 rgba(65,168,252,0)}}
+@media(prefers-reduced-motion:reduce){.shop-filter-panel,.shop-filter-toggle .chevron{transition:none}.shop-filter-toggle.is-hinting::after{animation:none;box-shadow:0 0 0 3px rgba(65,168,252,.22)}}
 
 /* ── Header icon buttons (bag, search, menu) ────────────────────────────────
    States: rest · hover (tint + lift) · active (press) · focus-visible (ring)

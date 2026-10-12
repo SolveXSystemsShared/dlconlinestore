@@ -388,6 +388,7 @@
 
   const COLLECTION_STATE_KEY = 'dlcCollectionState';
   const COLLECTION_SCROLL_KEY = 'dlcCollectionCrossScroll';
+  const FILTER_HINT_KEY = 'dlcFiltersSeen';
   const saveCrossCategoryScroll = () => {
     sessionStorage.setItem(COLLECTION_SCROLL_KEY, JSON.stringify({ scrollY: window.scrollY, savedAt: Date.now(), fromCategory: category, fromTier: tier }));
   };
@@ -694,7 +695,14 @@
     };
     if (!filterToggle.dataset.bound) {
       filterToggle.dataset.bound = '1';
-      filterToggle.addEventListener('click', () => setFiltersOpen(filterToggle.getAttribute('aria-expanded') !== 'true'));
+      filterToggle.addEventListener('click', () => {
+        setFiltersOpen(filterToggle.getAttribute('aria-expanded') !== 'true');
+        filterToggle.classList.remove('is-hinting');
+        try { localStorage.setItem(FILTER_HINT_KEY, '1'); } catch (e) {}
+      });
+      let filtersSeen = false;
+      try { filtersSeen = localStorage.getItem(FILTER_HINT_KEY) === '1'; } catch (e) {}
+      filterToggle.classList.toggle('is-hinting', !filtersSeen);
     }
     const clearButton = document.getElementById('clearFilters');
     // A chosen tier counts as a filter too; clearing it opens the whole category.

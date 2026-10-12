@@ -313,6 +313,7 @@ NECESSARY = [
     ("dlc_consent", "Cookie", "Remembers your cookie choices so we do not ask on every page.", "12 months"),
     ("dlc_age_verified_v1", "Local storage", "Avoids flashing the 18+ screen at a device that has already confirmed. Holds only “yes”.", "Until cleared"),
     ("dlc_member_verified_v1", "Local storage", "Avoids flashing the Member ID screen at a signed-in device. Holds only “yes”, never your Member ID.", "Until cleared"),
+    ("dlcFiltersSeen", "Local storage", "Stops the Filters button on the shelf from pulsing once you have opened it. Holds only “1”.", "Until cleared"),
     ("dlc_catalog_cache_v1", "Session storage", "A copy of the product list so pages load quickly on a slow connection. Contains no personal information.", "Until you close the tab"),
     ("dlcLoungeState, dlcReturnToLounge, dlcCollectionState, dlcCollectionCrossScroll, dlcTransitionIn", "Session storage", "Returns you to the same place in the lounge or a collection when you go back. No personal information.", "Until you close the tab"),
 ]
