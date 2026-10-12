@@ -620,3 +620,5 @@ html:has(.sf), body:has(.sf) { overflow-x: clip; }
 .sf-note--ok { border-color: #cfe6c9; background: linear-gradient(135deg, #fff 0%, #f1f9ee 100%); }
 .sf-note--ok::before { background: var(--sf-good, #4f8a45); }
 .sf-loading-line::before { flex-basis: 46px; height: 46px; background: url("/assets/dlc-mascot-small.png") center 70% / 30px auto no-repeat, radial-gradient(circle at 34% 28%, #8fd0ff 0%, #41a8fc 55%, #1a6ef0 100%); box-shadow: inset 0 -4px 8px rgba(6, 33, 61, .18), inset 0 2px 3px rgba(255, 255, 255, .45), 0 6px 14px rgba(26, 110, 240, .28); }
+.sfreg__req { color: #b3261e; font-weight: 900; font-size: max(13px, 1em); line-height: 0; }
+.sfreg__reqnote { margin: 10px 0 0; font-size: 12px; color: #6b7a90; }

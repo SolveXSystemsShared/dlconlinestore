@@ -57,6 +57,11 @@ function Modal({ titleId, onClose, children }: { titleId: string; onClose?: () =
   </div>
 }
 
+/** The required marker. Screen readers get aria-required on the field instead. */
+function Req() {
+  return <span className="sfreg__req" aria-hidden="true">*</span>
+}
+
 function FieldError({ id, message }: { id: string; message?: string }) {
   return message ? <p className="sfreg__error" id={id} role="alert">{message}</p> : null
 }
@@ -214,6 +219,7 @@ export default function RegisterPage() {
         <p className="sfgate__eyebrow">DLC MEMBERSHIP · 18+ ONLY</p>
         <h1>Become a<br />member.</h1>
         <p className="sfreg__lead">DLC is a private members&apos; club. It takes about 3 minutes, and your Member ID is issued the moment you submit. You only need to register once.</p>
+        <p className="sfreg__reqnote">Fields marked <Req /> are required.</p>
 
         <div className="sfreg__notice" role="note">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5" /><path d="M11 18h2" /></svg>
@@ -223,14 +229,14 @@ export default function RegisterPage() {
         <form onSubmit={review} noValidate>
           <section className="sfreg__section" aria-labelledby="aboutTitle">
             <h2 id="aboutTitle"><b>1</b>About you</h2>
-            <div className="sfreg__field"><label htmlFor="fullName">Full name</label>
-              <input id="fullName" autoComplete="name" maxLength={120} placeholder="As it appears on your ID" value={values.fullName} onChange={(e) => set("fullName", e.target.value)} aria-invalid={invalid("fullName")} aria-describedby={errors.fullName ? "fullNameError" : undefined} />
+            <div className="sfreg__field"><label htmlFor="fullName">Full name <Req /></label>
+              <input id="fullName" aria-required="true" autoComplete="name" maxLength={120} placeholder="As it appears on your ID" value={values.fullName} onChange={(e) => set("fullName", e.target.value)} aria-invalid={invalid("fullName")} aria-describedby={errors.fullName ? "fullNameError" : undefined} />
               <FieldError id="fullNameError" message={errors.fullName} /></div>
-            <div className="sfreg__field"><label htmlFor="email">Email</label>
-              <input id="email" type="email" autoComplete="email" maxLength={160} placeholder="you@example.com" value={values.email} onChange={(e) => set("email", e.target.value)} aria-invalid={invalid("email")} aria-describedby={errors.email ? "emailError" : undefined} />
+            <div className="sfreg__field"><label htmlFor="email">Email <Req /></label>
+              <input id="email" aria-required="true" type="email" autoComplete="email" maxLength={160} placeholder="you@example.com" value={values.email} onChange={(e) => set("email", e.target.value)} aria-invalid={invalid("email")} aria-describedby={errors.email ? "emailError" : undefined} />
               <FieldError id="emailError" message={errors.email} /></div>
-            <div className="sfreg__field"><label htmlFor="mobileNumber">South African mobile number</label>
-              <input id="mobileNumber" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} placeholder="082 123 4567" value={values.mobileNumber}
+            <div className="sfreg__field"><label htmlFor="mobileNumber">South African mobile number <Req /></label>
+              <input id="mobileNumber" aria-required="true" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} placeholder="082 123 4567" value={values.mobileNumber}
                 onChange={(e) => set("mobileNumber", e.target.value.replace(/[^\d+\s()-]/g, ""))}
                 onBlur={() => { setMobileTouched(true); if (mobile) set("mobileNumber", mobile.display) }}
                 aria-invalid={invalid("mobileNumber") ?? (mobileTouched && values.mobileNumber && !mobile ? true : undefined)} aria-describedby="mobileHint" />
@@ -240,8 +246,8 @@ export default function RegisterPage() {
                   ? <p className="sfreg__hint sfreg__hint--ok" id="mobileHint">✓ Your login PIN will be texted to <strong>{mobile.display}</strong>.</p>
                   : <p className={`sfreg__hint${mobileTouched && values.mobileNumber ? " sfreg__hint--bad" : ""}`} id="mobileHint">{mobileTouched && values.mobileNumber ? "That doesn’t look like a South African mobile number. Use 06, 07 or 08, like 082 123 4567." : "Starts with 06, 07 or 08 (or +27). We text your login PIN here."}</p>}
             </div>
-            <div className="sfreg__field"><label htmlFor="residentialAddress">Residential address</label>
-              <textarea id="residentialAddress" autoComplete="street-address" maxLength={500} placeholder="Street, suburb, city, postal code" value={values.residentialAddress} onChange={(e) => set("residentialAddress", e.target.value)} aria-invalid={invalid("residentialAddress")} aria-describedby={errors.residentialAddress ? "addressError" : undefined} />
+            <div className="sfreg__field"><label htmlFor="residentialAddress">Residential address <Req /></label>
+              <textarea id="residentialAddress" aria-required="true" autoComplete="street-address" maxLength={500} placeholder="Street, suburb, city, postal code" value={values.residentialAddress} onChange={(e) => set("residentialAddress", e.target.value)} aria-invalid={invalid("residentialAddress")} aria-describedby={errors.residentialAddress ? "addressError" : undefined} />
               <FieldError id="addressError" message={errors.residentialAddress} /></div>
           </section>
 
@@ -253,14 +259,14 @@ export default function RegisterPage() {
               <button type="button" aria-pressed={idType === "passport"} onClick={() => setIdType("passport")}>Passport</button>
             </div>
             {idType === "sa_id"
-              ? <div className="sfreg__field"><label htmlFor="idNumber">SA ID number</label>
-                  <input id="idNumber" inputMode="numeric" autoComplete="off" maxLength={17} placeholder="13-digit South African ID" value={values.idNumber} onChange={(e) => changeIdNumber(e.target.value)} aria-invalid={invalid("idNumber")} aria-describedby={errors.idNumber ? "idError" : undefined} />
+              ? <div className="sfreg__field"><label htmlFor="idNumber">SA ID number <Req /></label>
+                  <input id="idNumber" aria-required="true" inputMode="numeric" autoComplete="off" maxLength={17} placeholder="13-digit South African ID" value={values.idNumber} onChange={(e) => changeIdNumber(e.target.value)} aria-invalid={invalid("idNumber")} aria-describedby={errors.idNumber ? "idError" : undefined} />
                   <FieldError id="idError" message={errors.idNumber} /></div>
-              : <div className="sfreg__field"><label htmlFor="foreignPassport">Passport number</label>
-                  <input id="foreignPassport" autoComplete="off" maxLength={40} placeholder="Passport number" value={values.foreignPassport} onChange={(e) => set("foreignPassport", e.target.value)} aria-invalid={invalid("foreignPassport")} aria-describedby={errors.foreignPassport ? "passportError" : undefined} />
+              : <div className="sfreg__field"><label htmlFor="foreignPassport">Passport number <Req /></label>
+                  <input id="foreignPassport" aria-required="true" autoComplete="off" maxLength={40} placeholder="Passport number" value={values.foreignPassport} onChange={(e) => set("foreignPassport", e.target.value)} aria-invalid={invalid("foreignPassport")} aria-describedby={errors.foreignPassport ? "passportError" : undefined} />
                   <FieldError id="passportError" message={errors.foreignPassport} /></div>}
-            <div className="sfreg__field"><label htmlFor="dateOfBirth">Date of birth</label>
-              <input id="dateOfBirth" type="date" autoComplete="bday" max={today} value={values.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} aria-invalid={invalid("dateOfBirth")} aria-describedby={errors.dateOfBirth ? "dobError" : idType === "sa_id" ? "dobHint" : undefined} />
+            <div className="sfreg__field"><label htmlFor="dateOfBirth">Date of birth <Req /></label>
+              <input id="dateOfBirth" aria-required="true" type="date" autoComplete="bday" max={today} value={values.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} aria-invalid={invalid("dateOfBirth")} aria-describedby={errors.dateOfBirth ? "dobError" : idType === "sa_id" ? "dobHint" : undefined} />
               {errors.dateOfBirth ? <FieldError id="dobError" message={errors.dateOfBirth} /> : idType === "sa_id" ? <p className="sfreg__hint" id="dobHint">Filled in for you from a valid SA ID number.</p> : null}</div>
             <details className="sfreg__referral" open={Boolean(values.referralCode || errors.referralCode)}>
               <summary>Have a referral code? <small>(optional)</small></summary>
@@ -278,11 +284,11 @@ export default function RegisterPage() {
 
           <section className="sfreg__section" aria-labelledby="rulesTitle">
             <h2 id="rulesTitle"><b>4</b>Club rules</h2>
-            <p className="sfreg__hint">Tick each statement to confirm it.</p>
+            <p className="sfreg__hint">Tick each statement to confirm it. All are required.</p>
             <div className="sfreg__rules" role="group" aria-labelledby="rulesTitle" aria-describedby={errors.rules ? "rulesError" : undefined}>
               {MEMBERSHIP_RULES.map((rule) => <label key={rule.key} className={`sfreg__rule${rules[rule.key] ? " is-on" : errors.rules ? " is-bad" : ""}`}>
-                <input id={`rule-${rule.key}`} type="checkbox" checked={Boolean(rules[rule.key])} onChange={(e) => { const checked = e.target.checked; setRules((current) => ({ ...current, [rule.key]: checked })); setErrors((current) => ({ ...current, rules: undefined })); setServerError("") }} />
-                <span>{rule.text}</span>
+                <input id={`rule-${rule.key}`} type="checkbox" aria-required="true" checked={Boolean(rules[rule.key])} onChange={(e) => { const checked = e.target.checked; setRules((current) => ({ ...current, [rule.key]: checked })); setErrors((current) => ({ ...current, rules: undefined })); setServerError("") }} />
+                <span>{rule.text} <Req /></span>
               </label>)}
             </div>
             {errors.rules ? <FieldError id="rulesError" message={errors.rules} /> : allRulesAccepted ? <p className="sfreg__hint sfreg__hint--ok">✓ All club rules confirmed</p> : null}
@@ -290,10 +296,10 @@ export default function RegisterPage() {
 
           <section className="sfreg__section" aria-labelledby="signTitle">
             <h2 id="signTitle"><b>5</b>Sign &amp; agree</h2>
-            <div className="sfreg__field" id="signatureArea"><span className="sfreg__label" id="signatureLabel">Digital signature</span>
+            <div className="sfreg__field" id="signatureArea"><span className="sfreg__label" id="signatureLabel">Digital signature <Req /></span>
               <div className={`sfreg__sign${errors.signature ? " is-bad" : ""}`} aria-labelledby="signatureLabel"><SignaturePad onChange={(value) => { setSignature(value); setErrors((current) => ({ ...current, signature: undefined })) }} /></div>
               {errors.signature ? <FieldError id="signatureError" message={errors.signature} /> : <p className="sfreg__hint">Signed on {signedOn}.</p>}</div>
-            <label className="sfreg__check"><input id="accepted" type="checkbox" checked={accepted} onChange={(e) => { setAccepted(e.target.checked); setErrors((current) => ({ ...current, accepted: undefined })) }} aria-invalid={invalid("accepted")} /><span><LegalStatement text={REGISTRATION_STATEMENT} /></span></label>
+            <label className="sfreg__check"><input id="accepted" type="checkbox" aria-required="true" checked={accepted} onChange={(e) => { setAccepted(e.target.checked); setErrors((current) => ({ ...current, accepted: undefined })) }} aria-invalid={invalid("accepted")} /><span><LegalStatement text={REGISTRATION_STATEMENT} /> <Req /></span></label>
             <FieldError id="acceptedError" message={errors.accepted} />
             <label className="sfreg__check"><input type="checkbox" checked={marketingOptIn} onChange={(e) => setMarketingOptIn(e.target.checked)} /><span><strong>Optional:</strong> I would like to receive news, specials and event invitations from DLC by SMS and email. Your membership is not affected by this choice, and you can opt out at any time from your account or by telling the team at the lounge.</span></label>
           </section>
