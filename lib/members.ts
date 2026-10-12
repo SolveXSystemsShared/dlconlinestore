@@ -66,10 +66,14 @@ export function memberLookupMessage(lookup: Extract<MemberLookup, { found: true 
  * Matching mirrors the CDASH `/api/verify-member` endpoint: `ilike` with no
  * wildcards is an exact but case-insensitive compare, so it also tolerates rows
  * saved with different casing. `normalizeMemberId` trims and upper-cases the
- * input first.
+ * input first, and anything that could act as a wildcard is refused.
  */
 export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
   const memberId = normalizeMemberId(rawMemberId)
+  // `ilike` treats % and _ (and PostgREST's *) as wildcards, so "DLC-1234-%"
+  // would find a member without knowing their ID and text them a PIN. Real
+  // Member IDs are letters, digits and dashes only.
+  if (!/^[A-Z0-9-]+$/.test(memberId)) return { found: false }
 
   if (isPreviewMode()) {
     if (memberId !== PREVIEW_MEMBER.memberId) return { found: false }
