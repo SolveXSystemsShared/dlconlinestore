@@ -3,9 +3,23 @@ import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
 
+// The push services browsers actually use. Whatever sends updates later posts
+// to this address from inside our network, so an arbitrary URL here would let a
+// member point that server at anything (an internal admin page, a metadata
+// endpoint) on our behalf.
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/, /^updates\.push\.services\.mozilla\.com$/, /^web\.push\.apple\.com$/, /\.notify\.windows\.com$/]
+const isPushService = (value: string) => {
+  try {
+    const url = new URL(value)
+    return url.protocol === "https:" && !url.port && PUSH_HOSTS.some((host) => host.test(url.hostname))
+  } catch {
+    return false
+  }
+}
+
 // A browser's own push service address, and the two keys it handed back.
 const subscription = z.object({
-  endpoint: z.string().url().max(1000).startsWith("https://"),
+  endpoint: z.string().url().max(1000).refine(isPushService),
   keys: z.object({ p256dh: z.string().min(10).max(200), auth: z.string().min(10).max(100) }),
 })
 
