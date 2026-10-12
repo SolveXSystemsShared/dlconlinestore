@@ -3,16 +3,20 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react"
 import { SignaturePad } from "@/components/signature-pad"
 import { LegalStatement } from "@/components/legal-statement"
-import { REGISTRATION_STATEMENT, TERMS_VERSION } from "@/lib/legal"
+import { CREDITS_EXPLAINER, MEMBERSHIP_RULES, type MembershipRuleKey, REGISTRATION_STATEMENT, TERMS_VERSION } from "@/lib/legal"
+import { memberNameProblem } from "@/lib/member-name"
 import { dateOfBirthFromSaId, validateSaId } from "@/lib/sa-id"
 import { parseSaMobile } from "@/lib/phone"
 
-type Field = "fullName" | "email" | "mobileNumber" | "residentialAddress" | "dateOfBirth" | "idNumber" | "foreignPassport" | "referralCode" | "signature" | "accepted"
+type Field = "fullName" | "email" | "mobileNumber" | "residentialAddress" | "dateOfBirth" | "idNumber" | "foreignPassport" | "referralCode" | "rules" | "signature" | "accepted"
 type Errors = Partial<Record<Field, string>>
 type Registered = { memberNumber: string; memberName: string; smsSentTo: string; smsSent: boolean }
 
-const FIELD_ORDER: Field[] = ["fullName", "email", "mobileNumber", "residentialAddress", "dateOfBirth", "idNumber", "foreignPassport", "referralCode", "signature", "accepted"]
+const FIELD_ORDER: Field[] = ["fullName", "email", "mobileNumber", "residentialAddress", "dateOfBirth", "idNumber", "foreignPassport", "referralCode", "rules", "signature", "accepted"]
 const FIELD_LABEL: Partial<Record<Field, string>> = { email: "email address", mobileNumber: "phone number", idNumber: "ID number", foreignPassport: "passport number", referralCode: "referral code" }
+
+/** Upper case without spaces or dashes, so "abc 123" and "ABC-123" both find ABC123. */
+const cleanReferralCode = (value: string) => value.toUpperCase().replace(/[\s-]/g, "")
 
 const toIsoDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
 
@@ -62,6 +66,8 @@ export default function RegisterPage() {
   const [idType, setIdType] = useState<"sa_id" | "passport">("sa_id")
   const [signature, setSignature] = useState("")
   const [accepted, setAccepted] = useState(false)
+  const [rules, setRules] = useState<Partial<Record<MembershipRuleKey, boolean>>>({})
+  const allRulesAccepted = MEMBERSHIP_RULES.every((rule) => rules[rule.key])
   const [marketingOptIn, setMarketingOptIn] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
   const [mobileTouched, setMobileTouched] = useState(false)
@@ -91,7 +97,8 @@ export default function RegisterPage() {
 
   function validate(): Errors {
     const problems: Errors = {}
-    if (values.fullName.trim().length < 2) problems.fullName = "Enter your full name, as it appears on your ID."
+    const nameProblem = memberNameProblem(values.fullName)
+    if (nameProblem) problems.fullName = nameProblem
     if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) problems.email = "Enter a valid email address."
     if (!mobile) problems.mobileNumber = "Enter a valid South African mobile number, like 082 123 4567. Your login PIN is sent to it by SMS."
     if (values.residentialAddress.trim().length < 6) problems.residentialAddress = "Enter your residential address."
@@ -106,6 +113,7 @@ export default function RegisterPage() {
       const check = validateSaId(values.idNumber)
       if (!check.valid) problems.idNumber = check.error || "Enter a valid South African ID number."
     } else if (values.foreignPassport.trim().length < 4) problems.foreignPassport = "Enter your passport number."
+    if (!allRulesAccepted) problems.rules = "Please confirm each of the club rules."
     if (!signature) problems.signature = "Please draw your signature."
     if (!accepted) problems.accepted = "Please confirm you have read the Terms & Conditions and Privacy Policy."
     return problems
@@ -114,7 +122,7 @@ export default function RegisterPage() {
   function focusFirst(problems: Errors) {
     const first = FIELD_ORDER.find((field) => problems[field])
     if (!first) return
-    const target = first === "signature" ? document.getElementById("signatureArea") : first === "accepted" ? document.getElementById("accepted") : document.getElementById(first)
+    const target = first === "signature" ? document.getElementById("signatureArea") : first === "rules" ? document.getElementById(`rule-${MEMBERSHIP_RULES.find((rule) => !rules[rule.key])?.key ?? MEMBERSHIP_RULES[0].key}`) : first === "accepted" ? document.getElementById("accepted") : document.getElementById(first)
     target?.scrollIntoView({ behavior: "smooth", block: "center" })
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) target.focus({ preventScroll: true })
   }
@@ -150,7 +158,8 @@ export default function RegisterPage() {
           idNumber: idType === "sa_id" ? values.idNumber.replace(/\s/g, "") : "",
           foreignPassport: idType === "passport" ? values.foreignPassport.trim() : "",
           residentialAddress: values.residentialAddress.trim(),
-          referralCode: values.referralCode.trim(),
+          referralCode: cleanReferralCode(values.referralCode),
+          acceptedRules: MEMBERSHIP_RULES.filter((rule) => rules[rule.key]).map((rule) => rule.key),
           digitalSignature: signature,
           marketingOptIn,
           acceptedTerms: accepted,
@@ -192,6 +201,7 @@ export default function RegisterPage() {
   }
 
   const mobileShown = mobile ? mobile.display : values.mobileNumber
+  const signedOn = new Date(`${today}T00:00:00`).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })
   const invalid = (field: Field) => (errors[field] ? true : undefined)
 
   return <div className="sfreg">
@@ -255,20 +265,37 @@ export default function RegisterPage() {
             <details className="sfreg__referral" open={Boolean(values.referralCode || errors.referralCode)}>
               <summary>Have a referral code? <small>(optional)</small></summary>
               <div className="sfreg__field"><label htmlFor="referralCode">Referral code</label>
-                <input id="referralCode" autoComplete="off" autoCapitalize="characters" maxLength={40} placeholder="From the member who told you about DLC" value={values.referralCode} onChange={(e) => set("referralCode", e.target.value)} aria-invalid={invalid("referralCode")} aria-describedby={errors.referralCode?.trim() ? "referralError" : undefined} />
+                <input id="referralCode" autoComplete="off" autoCapitalize="characters" maxLength={40} placeholder="e.g. K7RB4Q" value={values.referralCode} onChange={(e) => set("referralCode", cleanReferralCode(e.target.value))} aria-invalid={invalid("referralCode")} aria-describedby={errors.referralCode?.trim() ? "referralError" : undefined} />
                 <FieldError id="referralError" message={errors.referralCode?.trim() ? errors.referralCode : undefined} /></div>
-              <p className="sfreg__hint"><a href="/referrals.html" target="_blank" rel="noopener">How referrals work</a></p>
+              <p className="sfreg__hint">From the member who told you about DLC, so they get credited. <a href="/referrals.html" target="_blank" rel="noopener">How referrals work</a></p>
             </details>
           </section>
 
+          <section className="sfreg__section" aria-labelledby="creditsTitle">
+            <h2 id="creditsTitle"><b>3</b>How credits work</h2>
+            <div className="sfreg__credits">{CREDITS_EXPLAINER.map((line, index) => <p key={index}>{line}</p>)}</div>
+          </section>
+
+          <section className="sfreg__section" aria-labelledby="rulesTitle">
+            <h2 id="rulesTitle"><b>4</b>Club rules</h2>
+            <p className="sfreg__hint">Tick each statement to confirm it.</p>
+            <div className="sfreg__rules" role="group" aria-labelledby="rulesTitle" aria-describedby={errors.rules ? "rulesError" : undefined}>
+              {MEMBERSHIP_RULES.map((rule) => <label key={rule.key} className={`sfreg__rule${rules[rule.key] ? " is-on" : errors.rules ? " is-bad" : ""}`}>
+                <input id={`rule-${rule.key}`} type="checkbox" checked={Boolean(rules[rule.key])} onChange={(e) => { const checked = e.target.checked; setRules((current) => ({ ...current, [rule.key]: checked })); setErrors((current) => ({ ...current, rules: undefined })); setServerError("") }} />
+                <span>{rule.text}</span>
+              </label>)}
+            </div>
+            {errors.rules ? <FieldError id="rulesError" message={errors.rules} /> : allRulesAccepted ? <p className="sfreg__hint sfreg__hint--ok">✓ All club rules confirmed</p> : null}
+          </section>
+
           <section className="sfreg__section" aria-labelledby="signTitle">
-            <h2 id="signTitle"><b>3</b>Sign &amp; agree</h2>
+            <h2 id="signTitle"><b>5</b>Sign &amp; agree</h2>
             <div className="sfreg__field" id="signatureArea"><span className="sfreg__label" id="signatureLabel">Digital signature</span>
               <div className={`sfreg__sign${errors.signature ? " is-bad" : ""}`} aria-labelledby="signatureLabel"><SignaturePad onChange={(value) => { setSignature(value); setErrors((current) => ({ ...current, signature: undefined })) }} /></div>
-              <FieldError id="signatureError" message={errors.signature} /></div>
+              {errors.signature ? <FieldError id="signatureError" message={errors.signature} /> : <p className="sfreg__hint">Signed on {signedOn}.</p>}</div>
             <label className="sfreg__check"><input id="accepted" type="checkbox" checked={accepted} onChange={(e) => { setAccepted(e.target.checked); setErrors((current) => ({ ...current, accepted: undefined })) }} aria-invalid={invalid("accepted")} /><span><LegalStatement text={REGISTRATION_STATEMENT} /></span></label>
             <FieldError id="acceptedError" message={errors.accepted} />
-            <label className="sfreg__check"><input type="checkbox" checked={marketingOptIn} onChange={(e) => setMarketingOptIn(e.target.checked)} /><span><strong>Optional:</strong> keep me posted on DLC drops, specials and member news. You can opt out at any time from your account.</span></label>
+            <label className="sfreg__check"><input type="checkbox" checked={marketingOptIn} onChange={(e) => setMarketingOptIn(e.target.checked)} /><span><strong>Optional:</strong> I would like to receive news, specials and event invitations from DLC by SMS and email. Your membership is not affected by this choice, and you can opt out at any time from your account or by telling the team at the lounge.</span></label>
           </section>
 
           {serverError && <p className="sfreg__banner" role="alert">{serverError}</p>}
@@ -291,7 +318,11 @@ export default function RegisterPage() {
         <div><dt>Email</dt><dd>{values.email.trim()}</dd></div>
         <div><dt>{idType === "sa_id" ? "SA ID" : "Passport"}</dt><dd>{idType === "sa_id" ? values.idNumber.replace(/\s/g, "") : values.foreignPassport.trim()}</dd></div>
         <div><dt>Date of birth</dt><dd>{values.dateOfBirth}</dd></div>
+        <div><dt>Address</dt><dd>{values.residentialAddress.trim()}</dd></div>
+        {values.referralCode && <div><dt>Referral code</dt><dd>{cleanReferralCode(values.referralCode)}</dd></div>}
+        <div><dt>Marketing</dt><dd>{marketingOptIn ? "Opted in" : "Opted out"}</dd></div>
       </dl>
+      <p className="sfreg__hint sfreg__hint--ok">✓ All club rules confirmed</p>
       <div className="sfgate__actions">
         <button type="button" className="sfgate__btn sfgate__btn--yes" onClick={register} disabled={busy} data-autofocus>{busy ? <><i className="sfgate__spinner" aria-hidden="true" />REGISTERING…</> : "CONFIRM & REGISTER"}</button>
         <button type="button" className="sfgate__btn" onClick={closeReview} disabled={busy}>EDIT DETAILS</button>

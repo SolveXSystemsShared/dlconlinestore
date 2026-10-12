@@ -6,7 +6,7 @@ import {
   type AcceptanceContext,
   EXCHANGE_REQUEST_STATEMENT,
   PRIVACY_VERSION,
-  REGISTRATION_STATEMENT,
+  REGISTRATION_EVIDENCE,
   TERMS_VERSION,
 } from "./legal"
 
@@ -49,7 +49,7 @@ export async function recordAcceptance(request: NextRequest, { context, memberId
       context,
       terms_version: TERMS_VERSION,
       privacy_version: PRIVACY_VERSION,
-      statement: context === "registration" ? REGISTRATION_STATEMENT : EXCHANGE_REQUEST_STATEMENT,
+      statement: context === "registration" ? REGISTRATION_EVIDENCE : EXCHANGE_REQUEST_STATEMENT,
       ip_address: clientIp(request),
       user_agent: request.headers.get("user-agent")?.slice(0, 500) ?? null,
     })
