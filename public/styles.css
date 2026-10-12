@@ -3749,3 +3749,47 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
 .lounge-info .li-card:hover::before{transform:translateX(8px)}
 @media(max-width:480px){.lounge-info .li-card{padding-bottom:64px}.lounge-info .li-card::after{width:170px;height:73px}.lounge-info .li-card::before{width:120px;height:52px}}
 @media(prefers-reduced-motion:reduce){.lounge-info .li-free i::after{animation:none;opacity:0}.lounge-info .li-card,.lounge-info .li-card::before,.lounge-info .li-card::after{transition:none}.lounge-info .li-card:hover,.lounge-info .li-card:hover::before,.lounge-info .li-card:hover::after{transform:none}}
+
+/* The MOST INCLUDED label sits above the package name, never over it. */
+.lounge-info .li-card__flag{position:static;align-self:flex-start;margin:0 0 12px}
+
+/* Specials hero, compact: a shorter sky with the mascot beside the title. */
+.li-hero--compact{padding-top:clamp(24px,4vw,44px)}
+.li-hero--compact .li-tabs{margin-bottom:clamp(18px,3vw,28px)}
+.li-hero--compact .li-hero__text{padding-bottom:clamp(44px,5vw,60px)}
+.li-hero--compact h1{font-size:clamp(42px,6vw,80px)}
+.li-hero--compact .li-lead{margin-top:14px;max-width:500px;font-size:14px;line-height:1.6}
+.lounge-info .li-hero--compact .li-free{margin-top:30px}
+.li-hero--compact .li-hero__art img{width:clamp(130px,14vw,190px)}
+@media(max-width:900px){
+  .li-hero--compact .li-hero__text{padding-top:0;padding-bottom:40px}
+  .li-hero--compact .li-hero__art{top:auto;bottom:30px;right:max(8px,3vw)}
+  .li-hero--compact .li-hero__art img{width:clamp(78px,20vw,120px)}
+  .li-hero--compact .li-lead{padding-right:clamp(70px,18vw,110px)}
+  .lounge-info .li-hero--compact .li-free{font-size:11.5px;padding:11px 16px 10px}
+}
+
+/* Phones: two cards to a row, so a shelf of packages or specials is half the scroll. */
+@media(max-width:600px){
+  .lounge-info .li-cards--three,.lounge-info .li-cards--two{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .lounge-info .li-card{padding:16px 13px 48px;border-radius:18px}
+  .lounge-info .li-card h3{font-size:19px;line-height:1.05;letter-spacing:-.04em;overflow-wrap:anywhere}
+  .lounge-info .li-card__who,.lounge-info .li-card__alt{font-size:10.5px}
+  .lounge-info .li-card__credits{margin-top:10px;flex-wrap:wrap;gap:0 4px}
+  .lounge-info .li-card__credits strong{font-size:20px}
+  .lounge-info .li-card__credits span{font-size:10px}
+  .lounge-info .li-card__flag{font-size:7.5px;padding:5px 8px;margin-bottom:10px}
+  .lounge-info .li-tags{gap:4px;margin-bottom:10px}
+  .lounge-info .li-tag{font-size:7.5px;padding:4px 7px 4px 6px;letter-spacing:.8px;gap:4px}
+  .lounge-info .li-tag::before{width:11px;height:7px}
+  .lounge-info .li-card .li-perks{margin-top:12px;padding-top:12px;gap:7px}
+  .lounge-info .li-card .li-perks li{padding-left:12px;font-size:11.5px;line-height:1.4}
+  .lounge-info .li-card .li-perks li::before{width:6px;height:6px}
+  .lounge-info .li-card .li-perks small{display:block;margin:2px 0 0;font-size:8.5px}
+  .lounge-info .li-card__desc{margin-top:12px;padding-top:12px;font-size:12px;line-height:1.5}
+  .lounge-info .li-card__flavours{gap:4px;margin-top:10px}
+  .lounge-info .li-card__flavours em{font-size:10px;padding:4px 8px}
+  .lounge-info .li-card__note{margin-top:10px;font-size:10.5px;line-height:1.45}
+  .lounge-info .li-card::after{right:-16px;bottom:-12px;width:120px;height:52px}
+  .lounge-info .li-card::before{left:-18px;bottom:-14px;width:86px;height:37px}
+}

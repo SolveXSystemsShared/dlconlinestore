@@ -28,13 +28,13 @@
 </header>
 
 <main id="main-content" class="lounge-info">
-  <section class="li-hero">
+  <section class="li-hero li-hero--compact">
     <div class="li-hero__text">
       <nav class="li-tabs" aria-label="Lounge information"><a href="packages.html">Packages</a><a href="specials.html" aria-current="page">Specials</a><a href="referrals.html">Referrals</a></nav>
       <p class="li-kicker">AT THE LOUNGE · MIDRAND</p>
       <h1>In-store<br/>specials.</h1>
-      <p class="li-lead">What is running at the counter right now. Specials are rung up in the lounge, so they cannot be added to your bag online. Ask the team on your next visit.</p>
-      <p class="li-free"><i aria-hidden="true"></i><strong>IN STORE ONLY</strong>&nbsp;· updated as the team changes them</p>
+      <p class="li-lead">Bundles and credits off, rung up at the counter. They cannot go in your online bag, so ask the team on your next visit.</p>
+      <p class="li-free" id="specialsLive"><i aria-hidden="true"></i><strong>IN STORE ONLY</strong>&nbsp;· <span id="specialsLiveText">updated as the team changes them</span></p>
     </div>
     <figure class="li-hero__art" aria-hidden="true"><img src="assets/dlc-mascot.png" alt="" width="605" height="863" decoding="async"/></figure>
   </section>
@@ -109,6 +109,7 @@
     const singles = specials.filter(s => s.kind !== 'bundle');
     const bundlesEl = document.getElementById('bundles');
     bundlesEl.removeAttribute('aria-busy');
+    if (specials.length) document.getElementById('specialsLiveText').textContent = `${specials.length} running now`;
     // Sections with nothing in them are hidden, never left blank.
     if (bundles.length) bundlesEl.innerHTML = bundles.map(card).join('');
     else if (singles.length) document.getElementById('bundleSection').hidden = true;
