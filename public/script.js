@@ -349,8 +349,28 @@
     row.scrollTo({ left: Math.max(0, left), behavior: reducedMotion ? 'auto' : 'smooth' });
   }
 
+  // One seek at a time. Asking for a new frame while the last is still being
+  // decoded cancels it, and going backwards (decoding from the previous
+  // keyframe) never got a frame on screen: the lounge looked frozen when
+  // scrolling up. A seek that never reports back is given up after 400ms.
   let lastSeekAt = 0;
+  function seekToCurrent(now = performance.now()){
+    if (reducedMotion || !durationReady) return;
+    if (video.seeking && now - lastSeekAt < 400) return;
+    const time = Math.min(getScrubEnd(), currentTime);
+    if (Math.abs(video.currentTime - time) <= 0.035) return;
+    lastSeekAt = now;
+    try { video.currentTime = time; } catch(e) {}
+  }
+  // The moment a frame lands, go after wherever the scroll is now.
+  video.addEventListener('seeked', () => seekToCurrent());
+
   function render(now = performance.now()){
+    // The next frame is booked first, so an error in this one can never stop
+    // the lounge for good (only a reload used to bring it back). Any frame
+    // already booked is dropped, so a second caller never starts a second loop.
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = stageVisible && !navigationTransitioning ? requestAnimationFrame(render) : null;
     const p = getProgress();
     progressFill.style.height = `${p * 100}%`;
 
@@ -408,13 +428,9 @@
 
     if (durationReady) {
       currentTime += (targetTime - currentTime) * 0.19;
-      if (!reducedMotion && now - lastSeekAt > 30 && Math.abs(video.currentTime - currentTime) > 0.035) {
-        lastSeekAt = now;
-        try { video.currentTime = Math.min(getScrubEnd(), currentTime); } catch(e) {}
-      }
+      seekToCurrent(now);
     }
 
-    rafId = stageVisible && !navigationTransitioning ? requestAnimationFrame(render) : null;
   }
 
   // Keyed by the card label slug; names match the CDASH wellness products.
