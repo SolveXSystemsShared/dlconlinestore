@@ -3176,6 +3176,9 @@ html.lounge-row-visible{--float-lift:78px}
 .dlc-cloud-stage{background:radial-gradient(56% 46% at 50% 70%,rgba(214,235,255,.75) 0%,rgba(234,244,255,.4) 50%,rgba(255,255,255,0) 76%)!important}
 .dlc-cloud-stage::before{left:2%!important;right:2%!important;bottom:5%!important;height:48%!important;background:url("assets/cloud-back.webp") center bottom/contain no-repeat!important;filter:none!important}
 .dlc-cloud-stage::after{left:13%!important;right:13%!important;bottom:2%!important;height:26%!important;inset:auto 13% 2% 13%!important;background:url("assets/cloud-front.webp") center bottom/contain no-repeat!important;filter:none!important}
+/* The cloud art is cropped flat along its bottom edge; fade that edge out so
+   the clouds melt into the page instead of ending on a straight line. */
+.dlc-cloud-stage::before,.dlc-cloud-stage::after{-webkit-mask-image:linear-gradient(180deg,#000 62%,rgba(0,0,0,.55) 80%,transparent 100%);mask-image:linear-gradient(180deg,#000 62%,rgba(0,0,0,.55) 80%,transparent 100%)}
 .dlc-cloud-stage>img,.dlc-cloud-stage>.product-stage-art{margin-bottom:17%!important}
 .dlc-cloud-stage>img,.dlc-cloud-stage>.product-stage-art{margin-bottom:11%!important}
 /* The product image area is pinned inside the square stage: centred
