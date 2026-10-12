@@ -22,23 +22,27 @@ export function clientKey(request: NextRequest) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip")?.trim() || "unknown"
 }
 
-function recent(key: string) {
+/** A different window and limit for one kind of key, e.g. call-back requests. */
+export type Limit = { windowMs: number; max: number }
+const DEFAULT_LIMIT: Limit = { windowMs: WINDOW_MS, max: MAX_FAILURES }
+
+function recent(key: string, windowMs = WINDOW_MS) {
   const now = Date.now()
   const entry = windows.get(key) ?? { failures: [] }
-  entry.failures = entry.failures.filter((at) => now - at < WINDOW_MS)
+  entry.failures = entry.failures.filter((at) => now - at < windowMs)
   windows.set(key, entry)
   return entry
 }
 
 /** Minutes until another attempt is allowed, or 0 if the client may try now. */
-export function lockedFor(key: string) {
-  const entry = recent(key)
-  if (entry.failures.length < MAX_FAILURES) return 0
-  return Math.max(1, Math.ceil((entry.failures[0] + WINDOW_MS - Date.now()) / 60000))
+export function lockedFor(key: string, limit: Limit = DEFAULT_LIMIT) {
+  const entry = recent(key, limit.windowMs)
+  if (entry.failures.length < limit.max) return 0
+  return Math.max(1, Math.ceil((entry.failures[entry.failures.length - limit.max] + limit.windowMs - Date.now()) / 60000))
 }
 
-export function recordFailure(key: string) {
-  recent(key).failures.push(Date.now())
+export function recordFailure(key: string, limit: Limit = DEFAULT_LIMIT) {
+  recent(key, limit.windowMs).failures.push(Date.now())
   // Keep the map from growing without bound under a flood of addresses.
   if (windows.size > 5000) for (const [k, v] of windows) if (!v.failures.length) windows.delete(k)
 }

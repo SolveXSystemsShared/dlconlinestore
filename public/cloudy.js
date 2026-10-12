@@ -116,8 +116,9 @@
             text: [`You collect from ${point.name}${point.address ? `, ${point.address}` : ''}.${phone ? ` You can reach the team on ${phone}.` : ''}`],
             links: phone ? [['Call the lounge', `tel:${phone.replace(/[^\d+]/g, '')}`]] : [],
           });
-          return;
         }
+        // The lounge details are for signed-in members only, so a call back can follow.
+        if (data) return callbackForm();
       } catch (e) {}
       add({ text: ['Sign in with your Member ID to see the lounge details and number, or ask the team when you next visit.'] });
     },
@@ -168,6 +169,10 @@
   .cloudy__msg--me{align-self:flex-end;background:#41a8fc;color:#06213d;font-weight:700;border-bottom-right-radius:4px}
   .cloudy__msg p{margin:0}.cloudy__msg p+p{margin-top:8px}
   .cloudy__msg a{display:inline-block;margin:8px 8px 0 0;color:#1a6ef0;font-weight:800;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+  .cloudy__callback{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .cloudy__callback input{min-height:42px;border-radius:12px;border:1px solid #cfe3f7;padding:0 12px;font:inherit;font-size:16px;color:#06213d;background:#fff}
+  .cloudy__callback button{align-self:flex-start;min-height:40px;padding:0 16px;border-radius:999px;border:0;background:#41a8fc;color:#06213d;font:inherit;font-size:11px;font-weight:900;letter-spacing:1px;cursor:pointer}
+  .cloudy__callback :disabled{opacity:.6;cursor:default}
   .cloudy__note{margin:0;padding:8px 16px;background:#eaf4ff;border-bottom:1px solid #d5e8fb;font-size:11.5px;line-height:1.45;color:#3d5170;flex:0 0 auto}
   .cloudy__note b{color:#06213d}
   .cloudy__chips{padding:10px 12px 4px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #e3eefa;background:#fff;flex:0 0 auto}
@@ -226,8 +231,52 @@
       (parts.links || []).map(([label, href]) => `<a href="${esc(href)}">${esc(label)} →</a>`).join('');
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
+    return el;
   }
   const bot = parts => add('bot', parts);
+
+  // A signed-in member can ask the team to phone them. The number used is the
+  // one on their membership, looked up by the store, not typed here.
+  function callbackForm() {
+    const el = add('bot', { text: ['Prefer a call from the team? Add a short note if you want, then send your request.'] });
+    const box = document.createElement('form');
+    box.className = 'cloudy__callback';
+    box.innerHTML = '<input type="text" maxlength="200" placeholder="What is it about? (optional)" aria-label="What the call back is about (optional)" autocomplete="off"><button type="submit">SEND REQUEST</button>';
+    el.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+    box.addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = box.querySelector('button');
+      const note = box.querySelector('input');
+      if (button.disabled) return;
+      button.disabled = true;
+      note.disabled = true;
+      try {
+        const response = await fetch('/api/members/callback', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ question: note.value.trim().slice(0, 200) }),
+        });
+        const data = await response.json().catch(() => null);
+        if (response.ok && data && data.ok) {
+          box.remove();
+          bot({ text: [`Thanks, the team will call you back on ${data.mobile || 'your mobile number'} during lounge hours.`] });
+          return;
+        }
+        if (response.status === 401) {
+          box.remove();
+          bot({ text: ['Sign in with your Member ID to ask for a call back, or ask the team when you next visit.'] });
+          return;
+        }
+        bot({ text: [(data && data.error) || 'I could not send that just now. Please try again in a moment.'] });
+        if (response.status === 429 || response.status === 409) { box.remove(); return; }
+      } catch (e) {
+        bot({ text: ['I could not send that just now. Please try again in a moment.'] });
+      }
+      button.disabled = false;
+      note.disabled = false;
+    });
+  }
 
   function renderChips() {
     // Speak to the lounge leads, so a way to a real person is always in view.
