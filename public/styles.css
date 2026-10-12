@@ -3797,3 +3797,54 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
 @media(max-width:900px){
   .lounge-info .li-hero--compact .li-free,.li-hero--compact .li-code{max-width:calc(100% - clamp(70px,18vw,110px))}
 }
+
+/* ── Compact hero sky: layered 3D clouds ────────────────────────────────────
+   Three banks of shaded clouds (assets/sky-clouds-*.svg) drift slowly at the
+   bottom, a few single clouds float in the sky, and the mascot stands in the
+   front bank. Order, back to front: sky, mascot, front bank, text. */
+.li-hero--compact{isolation:isolate;z-index:1;overflow:visible}
+.li-hero--compact::after{content:none}
+.li-sky{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+/* The front bank hangs a few pixels past the hero, so the sky never shows as a line under the clouds. */
+.li-sky--front{z-index:3;bottom:-6px}
+.li-hero--compact .li-hero__art{z-index:2}
+.li-hero--compact .li-hero__text{z-index:4}
+/* Banks scale to their height, so tops are never cropped; the drawing is wide enough for large screens. */
+.li-sky__layer{position:absolute;left:-6%;width:112%;bottom:0;background:center bottom/auto 100% repeat-x;will-change:transform}
+.li-sky__layer--back{height:clamp(110px,14vw,220px);background-image:url("assets/sky-clouds-back.svg");opacity:.8;animation:liDrift 28s ease-in-out infinite alternate}
+.li-sky__layer--mid{height:clamp(86px,11vw,172px);background-image:url("assets/sky-clouds-mid.svg");animation:liDrift 22s ease-in-out infinite alternate-reverse}
+.li-sky__layer--front{bottom:0;height:clamp(62px,8vw,124px);background-image:url("assets/sky-clouds-front.svg");animation:liDrift 17s ease-in-out infinite alternate}
+.li-sky__float{position:absolute;background:url("assets/sky-cloud.svg") center/contain no-repeat;animation:liFloat 8s ease-in-out infinite alternate}
+.li-sky__float--a{left:50%;top:14%;width:clamp(120px,12vw,190px);aspect-ratio:2/1}
+.li-sky__float--b{right:24%;top:40%;width:clamp(80px,8vw,120px);aspect-ratio:2/1;opacity:.85;animation-duration:10s;animation-delay:-3s}
+.li-sky__float--c{right:5%;top:10%;width:clamp(64px,6vw,96px);aspect-ratio:2/1;opacity:.7;filter:blur(.6px);animation-duration:12s;animation-delay:-6s}
+@keyframes liDrift{from{transform:translateX(-2.5%)}to{transform:translateX(2.5%)}}
+@keyframes liFloat{from{transform:translate(0,0)}to{transform:translate(18px,-8px)}}
+.li-hero--compact .li-hero__text{padding-bottom:clamp(104px,12vw,176px)}
+.li-hero--compact .li-hero__art img{margin-bottom:clamp(24px,3.4vw,56px);filter:drop-shadow(0 18px 24px rgba(6,33,61,.18))}
+@media(max-width:900px){
+  .li-sky__float--b,.li-sky__float--c{display:none}
+  .li-sky__float--a{left:auto;right:6%;top:auto;bottom:clamp(150px,40vw,210px);width:96px;opacity:.9}
+  .li-hero--compact .li-hero__text{padding-bottom:96px}
+  .li-hero--compact .li-hero__art{bottom:20px}
+}
+@media(max-width:600px){.li-sky__float--a{display:none}}
+
+/* The status pill in the hero: a clean glass pill with the live dot, no puffs. */
+.lounge-info .li-free{padding:12px 20px 12px 16px;background:linear-gradient(180deg,rgba(255,255,255,.97) 0%,rgba(238,246,255,.94) 100%);border:1px solid rgba(255,255,255,.95);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(26,110,240,.08),0 14px 30px rgba(6,33,61,.16),0 2px 6px rgba(6,33,61,.08);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.lounge-info .li-free::before,.lounge-info .li-free::after{content:none}
+.lounge-info .li-hero--compact .li-free{margin-top:26px}
+@media(prefers-reduced-motion:reduce){.li-sky__layer,.li-sky__float{animation:none}}
+
+/* ── Loading lines and notes: cloud cards, no side bar ──────────────────────
+   The rotating loading line is a soft rounded card with the mascot in a little
+   sky bubble and a shimmer running along the bottom while it waits. The slow
+   connection note and guidance hints share the card, with a cloud icon. */
+.store-loading-line{position:relative;overflow:hidden;gap:14px;min-height:64px;padding:10px 20px 12px 10px;border:1px solid #d6e8fc;border-left:1px solid #d6e8fc;border-radius:20px;background:linear-gradient(135deg,#fff 0%,#f3f9ff 55%,#e5f1ff 100%);box-shadow:inset 0 1px 0 #fff,0 10px 26px rgba(26,110,240,.08);color:#0f2c4d;font-size:13px;line-height:1.4}
+.store-loading-line::before{flex:0 0 44px;height:44px;border-radius:50%;background:url("assets/dlc-mascot-small.png") center 62%/24px auto no-repeat,radial-gradient(circle at 36% 30%,#fff 0%,#e3f0ff 70%,#cfe4fc 100%);box-shadow:inset 0 -3px 6px rgba(26,110,240,.12),0 4px 12px rgba(26,110,240,.16)}
+.store-loading-line::after{content:"";position:absolute;left:16px;right:16px;bottom:0;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#41a8fc,transparent) no-repeat;background-size:38% 100%;animation:dlcLoadShimmer 1.6s ease-in-out infinite}
+@keyframes dlcLoadShimmer{from{background-position:-60% 0}to{background-position:160% 0}}
+.store-slow,.guidance-hint{position:relative;padding:12px 16px 12px 44px;border:1px solid #d6e8fc;border-left:1px solid #d6e8fc;border-radius:16px;background:linear-gradient(135deg,#fff 0%,#f1f8ff 100%);box-shadow:0 8px 20px rgba(26,110,240,.06)}
+.store-slow::before,.guidance-hint::before{content:"";position:absolute;left:15px;top:14px;width:18px;height:12px;background:#41a8fc;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 60'%3E%3Crect x='9' y='31' width='122' height='26' rx='13'/%3E%3Ccircle cx='33' cy='33' r='15'/%3E%3Ccircle cx='58' cy='24' r='20'/%3E%3Ccircle cx='87' cy='25' r='17'/%3E%3Ccircle cx='109' cy='35' r='13'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 60'%3E%3Crect x='9' y='31' width='122' height='26' rx='13'/%3E%3Ccircle cx='33' cy='33' r='15'/%3E%3Ccircle cx='58' cy='24' r='20'/%3E%3Ccircle cx='87' cy='25' r='17'/%3E%3Ccircle cx='109' cy='35' r='13'/%3E%3C/svg%3E") center/contain no-repeat}
+@media(prefers-reduced-motion:reduce){.store-loading-line::after{animation:none;background-position:50% 0}}
+.store-loading-line::before{flex-basis:46px;height:46px;background:url("assets/dlc-mascot-small.png") center 70%/30px auto no-repeat,radial-gradient(circle at 34% 28%,#8fd0ff 0%,#41a8fc 55%,#1a6ef0 100%);box-shadow:inset 0 -4px 8px rgba(6,33,61,.18),inset 0 2px 3px rgba(255,255,255,.45),0 6px 14px rgba(26,110,240,.28)}

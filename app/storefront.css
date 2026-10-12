@@ -593,3 +593,20 @@ html:has(.sf), body:has(.sf) { overflow-x: clip; }
 
 /* Confetti when a card settlement is confirmed (components/settled-celebration.tsx). */
 .sf-confetti { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 9999; pointer-events: none; }
+
+/* Loading lines and notes: cloud cards, no side bar. Same look as the static
+   pages (public/styles.css): the mascot in a sky bubble with a shimmer while
+   loading, and a small icon on notes and errors. */
+.sf-loading-line { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 10px 20px 12px 10px; border: 1px solid #d6e8fc; border-radius: 20px; background: linear-gradient(135deg, #fff 0%, #f3f9ff 55%, #e5f1ff 100%); box-shadow: inset 0 1px 0 #fff, 0 10px 26px rgba(26, 110, 240, .08); color: #0f2c4d; line-height: 1.4; }
+.sf-loading-line::before { content: ""; flex: 0 0 44px; height: 44px; border-radius: 50%; background: url("/assets/dlc-mascot-small.png") center 62% / 24px auto no-repeat, radial-gradient(circle at 36% 30%, #fff 0%, #e3f0ff 70%, #cfe4fc 100%); box-shadow: inset 0 -3px 6px rgba(26, 110, 240, .12), 0 4px 12px rgba(26, 110, 240, .16); animation: sfMascotBob 2.6s ease-in-out infinite; }
+.sf-loading-line::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, #41a8fc, transparent) no-repeat; background-size: 38% 100%; animation: sfLoadShimmer 1.6s ease-in-out infinite; }
+@keyframes sfLoadShimmer { from { background-position: -60% 0; } to { background-position: 160% 0; } }
+@keyframes sfMascotBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.sf-note, .sf-slow, .sf-error { position: relative; padding: 12px 16px 12px 44px; border: 1px solid #d6e8fc; border-radius: 16px; background: linear-gradient(135deg, #fff 0%, #f1f8ff 100%); box-shadow: 0 8px 20px rgba(26, 110, 240, .06); }
+.sf-note::before, .sf-slow::before { content: ""; position: absolute; left: 15px; top: 14px; width: 18px; height: 12px; background: #41a8fc; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 60'%3E%3Crect x='9' y='31' width='122' height='26' rx='13'/%3E%3Ccircle cx='33' cy='33' r='15'/%3E%3Ccircle cx='58' cy='24' r='20'/%3E%3Ccircle cx='87' cy='25' r='17'/%3E%3Ccircle cx='109' cy='35' r='13'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 60'%3E%3Crect x='9' y='31' width='122' height='26' rx='13'/%3E%3Ccircle cx='33' cy='33' r='15'/%3E%3Ccircle cx='58' cy='24' r='20'/%3E%3Ccircle cx='87' cy='25' r='17'/%3E%3Ccircle cx='109' cy='35' r='13'/%3E%3C/svg%3E") center / contain no-repeat; }
+.sf-error { border-color: #f3cfcb; background: linear-gradient(135deg, #fff 0%, #fff4f3 100%); box-shadow: 0 8px 20px rgba(179, 38, 30, .06); }
+.sf-error::before { content: "!"; position: absolute; left: 14px; top: 11px; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; background: var(--sf-bad, #b3261e); color: #fff; font-size: 12px; font-weight: 900; line-height: 1; }
+@media (prefers-reduced-motion: reduce) { .sf-loading-line::before, .sf-loading-line::after { animation: none; } }
+.sf-note--ok { border-color: #cfe6c9; background: linear-gradient(135deg, #fff 0%, #f1f9ee 100%); }
+.sf-note--ok::before { background: var(--sf-good, #4f8a45); }
+.sf-loading-line::before { flex-basis: 46px; height: 46px; background: url("/assets/dlc-mascot-small.png") center 70% / 30px auto no-repeat, radial-gradient(circle at 34% 28%, #8fd0ff 0%, #41a8fc 55%, #1a6ef0 100%); box-shadow: inset 0 -4px 8px rgba(6, 33, 61, .18), inset 0 2px 3px rgba(255, 255, 255, .45), 0 6px 14px rgba(26, 110, 240, .28); }
