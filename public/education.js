@@ -21,6 +21,9 @@
   const categoryLabel = category === 'prerolls' ? 'Prerolls' : category === 'wellness' ? 'Wellness' : category === 'flower' ? 'Flower' : category === 'more' ? 'More' : '';
   const tierLabel = tier && tier !== 'wellness' ? tier.replaceAll('-', ' ').replace(/\b\w/g, c => c.toUpperCase()) : '';
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  // tierLabel comes straight from the address bar, so it is escaped wherever it
+  // lands in HTML: a crafted link must never run script on this site.
+  const tierHtml = esc(tierLabel);
   let lastFocus = null;
   // Preference storage is opt-in (cookies.js). Without it, choices last for this page only.
   const mayRemember = () => !!window.DLCConsent?.allows('preferences');
@@ -381,7 +384,7 @@
           ? 'Guidance is on: Wellness covers non-smoking formats. Open any product for its format and measured serving.'
           : category === 'more'
           ? 'Guidance is on: this shelf holds every other format, from edibles to vapes. Open the Formats tab in the DLC Decoder to see what each one is.'
-          : `Guidance is on: you are browsing ${categoryLabel} in the ${tierLabel || 'selected'} tier. Tap “What do these tiers mean?” for the cultivation terms.`;
+          : `Guidance is on: you are browsing ${categoryLabel} in the ${tierHtml || 'selected'} tier. Tap “What do these tiers mean?” for the cultivation terms.`;
         collectionHint.innerHTML = `<strong>GUIDANCE MODE</strong> ${ctext}`;
         collectionHint.hidden = false;
       }
@@ -391,10 +394,10 @@
     const text = category === 'wellness'
       ? 'Guidance is on: this is a wellness product. The measured serving is on this page, and the DLC Decoder explains any unfamiliar term.'
       : category === 'prerolls'
-      ? `Guidance is on: this is a preroll from the ${tierLabel || 'selected'} tier. The tier says how it was grown. The format says what it is.`
+      ? `Guidance is on: this is a preroll from the ${tierHtml || 'selected'} tier. The tier says how it was grown. The format says what it is.`
       : category === 'more'
       ? 'Guidance is on: tap “What is this?” for a plain explanation of this format.'
-      : `Guidance is on: this is flower from the ${tierLabel || 'selected'} tier. The tier says how it was grown, not exactly how strong it is.`;
+      : `Guidance is on: this is flower from the ${tierHtml || 'selected'} tier. The tier says how it was grown, not exactly how strong it is.`;
     hint.innerHTML = `<strong>NEW TO THIS?</strong> ${text}`;
     hint.hidden = false;
   };
