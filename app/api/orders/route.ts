@@ -11,13 +11,14 @@ import { CdashError, createOnlineOrder, fetchQuote } from "@/lib/cdash"
 import { resolveOrderLines } from "@/lib/order-lines"
 import { PaystackError } from "@/lib/paystack"
 import { SettlementError, settlementReturnUrl, startSettlement } from "@/lib/settlement"
+import { lockedFor, recordFailure } from "@/lib/rate-limit"
 import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptance, staleTermsMessage } from "@/lib/acceptance"
 
 const input = z.object({
   memberId: z.string().min(4).max(40),
   phone: z.string().min(7).max(30),
   customerNotes: z.string().max(1000).optional().default(""),
-  items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().positive().max(100) })).min(1).max(50),
+  items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().int().positive().max(100) })).min(1).max(50),
   ...acceptanceInput,
 })
 
@@ -108,6 +109,12 @@ export async function POST(request: NextRequest) {
   try {
     const access = await getMemberAccess()
     if (!access.ageConfirmed || !access.memberId) return NextResponse.json({ error: "Registered DLC member access is required" }, { status: 401 })
+    // Each request creates a pending exchange in CDASH and opens a Paystack
+    // checkout, so a script must not be able to flood the team's queue.
+    const limitKey = `orders:${access.memberId}`
+    const wait = lockedFor(limitKey)
+    if (wait) return NextResponse.json({ error: `You have sent a lot of exchange requests just now. Please try again in ${wait} minute${wait === 1 ? "" : "s"}.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
+    recordFailure(limitKey)
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) {
       const termsIssue = parsed.error.issues.find((issue) => issue.path[0] === "acceptedTerms")

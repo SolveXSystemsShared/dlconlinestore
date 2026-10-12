@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
+import { lockedFor, recordFailure } from "@/lib/rate-limit"
 import { CdashError } from "@/lib/cdash"
 import { PaystackError } from "@/lib/paystack"
 import { receiptEmailFor } from "@/lib/receipt-email"
@@ -39,6 +40,11 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
   try {
     if (parsed.data.action === "start") {
+      // Every start opens a new Paystack transaction and asks CDASH for a quote.
+      const limitKey = `settle:${access.memberId}`
+      const wait = lockedFor(limitKey)
+      if (wait) return NextResponse.json({ error: `Please wait ${wait} minute${wait === 1 ? "" : "s"} before opening settlement again.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
+      recordFailure(limitKey)
       const started = await startSettlement(order, { email: await receiptEmailFor(order.member_id), callbackUrl: settlementReturnUrl(request.url, order.id) })
       return NextResponse.json({ authorizationUrl: started.authorizationUrl, amountDue: started.amountDue })
     }
