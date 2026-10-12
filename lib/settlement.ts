@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto"
 import { getSupabaseAdmin } from "./supabase-admin"
 import { CdashError, cancelExchange, fetchSettleQuote, settleExchange } from "./cdash"
+import { lookupMember } from "./members"
 import { PaystackError, initializeTransaction, refundTransaction, toCents, verifyTransaction } from "./paystack"
 
 /**
@@ -97,7 +98,7 @@ export async function completeSettlement(reference: string): Promise<SettlementO
   const supabase = getSupabaseAdmin()
   const { data: attempt, error } = await supabase
     .from("online_payment_attempts")
-    .select("reference, order_id, exchange_id, amount_cents, currency, status")
+    .select("reference, order_id, exchange_id, member_id, amount_cents, currency, status")
     .eq("reference", reference)
     .maybeSingle()
   if (error) throw new SettlementError("Payment attempt could not be read", 503)
@@ -126,6 +127,14 @@ export async function completeSettlement(reference: string): Promise<SettlementO
   // would refuse it too; return it now rather than make a round trip.
   if (transaction.amount !== attempt.amount_cents || String(transaction.currency).toUpperCase() !== "ZAR") {
     return refund(reference, orderId, attempt.exchange_id, "The amount collected did not match this exchange request.", { cancelOrder: false })
+  }
+
+  // A membership stopped in CDASH after the checkout opened is not served: the
+  // Paystack page cannot be withdrawn once open, so the money goes back instead.
+  // A failed lookup throws, and the webhook retries.
+  const member = await lookupMember(attempt.member_id)
+  if (!member.found || member.verdict !== "active") {
+    return refund(reference, orderId, attempt.exchange_id, "This membership is no longer active.", { cancelOrder: true })
   }
 
   try {
