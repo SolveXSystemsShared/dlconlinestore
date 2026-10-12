@@ -340,12 +340,29 @@
     });
     lastCount = count;
   });
+  // Every product type outside flower, prerolls and wellness, as its own
+  // collection, in the lounge row's order. Shared by the header's Browse menu
+  // and the shelf's collections bar so they always list the same shelves.
+  const MORE_ORDER = ['concentrates', 'shooters', 'moonsticks', 'edibles', 'drinks', 'vapes', 'rolling-papers', 'accessories', 'dab-hits'];
+  function moreShelves(products) {
+    const types = new Map();
+    products.forEach(p => {
+      const place = classify(p);
+      if (place.category !== 'more') return;
+      const entry = types.get(place.tier) || { slug: place.tier, label: p.productType, count: 0 };
+      entry.count++;
+      types.set(place.tier, entry);
+    });
+    const rank = slug => { const i = MORE_ORDER.indexOf(slug); return i === -1 ? MORE_ORDER.length : i; };
+    return [...types.values()].sort((a, b) => rank(a.slug) - rank(b.slug) || a.label.localeCompare(b.label));
+  }
+
   // As soon as the member is confirmed, start the catalogue and bag downloads
   // — on a slow line every page needs them, so waiting to be asked wastes time.
   gateReady.then(member => { if (member) { cart().catch(() => {}); catalog().catch(() => {}); } });
 
   window.DLCStore = {
-    TIERS, classify, tierForGrade, imageFor, price, productUrl, collectionUrl, slugify,
+    TIERS, classify, tierForGrade, imageFor, price, productUrl, collectionUrl, slugify, moreShelves,
     catalog, cart, setQuantity, addToCart, inCart, slowConnection, api,
   };
 })();

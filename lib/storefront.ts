@@ -35,6 +35,21 @@ export function classify(product: Placeable): Shelf {
   return { category: "more", tier: slugify(product.productType) }
 }
 
+// Every product type outside flower, prerolls and wellness, as its own
+// collection, in the lounge row's order (moreShelves in public/store.js).
+const MORE_ORDER = ["concentrates", "shooters", "moonsticks", "edibles", "drinks", "vapes", "rolling-papers", "accessories", "dab-hits"]
+export function moreShelves(products: Placeable[]): Array<{ slug: string; label: string }> {
+  const types = new Map<string, string>()
+  products.forEach((product) => {
+    const place = classify(product)
+    if (place.category === "more" && !types.has(place.tier)) types.set(place.tier, product.productType ?? "")
+  })
+  const rank = (slug: string) => { const i = MORE_ORDER.indexOf(slug); return i === -1 ? MORE_ORDER.length : i }
+  return [...types.entries()]
+    .sort(([a, labelA], [b, labelB]) => rank(a) - rank(b) || labelA.localeCompare(labelB))
+    .map(([slug, label]) => ({ slug, label }))
+}
+
 const PREROLL_ART: Record<string, string> = {
   "blue-dream": "/assets/webp/prerolls/blue-dream.webp",
   "lemon-cherry-gelato": "/assets/webp/prerolls/lemon-cherry-gelato.webp",

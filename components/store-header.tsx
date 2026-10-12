@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { moreShelves } from "@/lib/storefront"
 
 // Line icons matching the storefront header (public/common.js).
 const iconProps = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true, focusable: false }
@@ -19,6 +20,26 @@ const CloseIcon = () => <svg className="sf-icon" {...iconProps}><path d="M18 6 6
 export function StoreHeader({ bagCount, current }: { bagCount?: number; current?: "account" | "bag" }) {
   const [fetched, setFetched] = useState<number | null>(null)
   const [open, setOpen] = useState(false)
+  const [shelves, setShelves] = useState<Array<{ slug: string; label: string }>>([])
+
+  // Browse lists the same collections as the lounge row and the shelf. The
+  // static pages keep the last list in this tab (public/common.js); with none
+  // yet, it comes from the catalogue.
+  useEffect(() => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem("dlcNavShelves") || "null")
+      if (Array.isArray(cached)) { setShelves(cached); return }
+    } catch {}
+    fetch("/api/catalog")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data?.products) return
+        const list = moreShelves(data.products)
+        try { sessionStorage.setItem("dlcNavShelves", JSON.stringify(list)) } catch {}
+        setShelves(list)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (bagCount !== undefined) return
@@ -44,11 +65,18 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
         <a href="/strains.html">ALL PRODUCTS</a>
         <a href="/strains.html?category=flower">FLOWER</a>
         <a href="/strains.html?category=prerolls">PREROLLS</a>
+        {shelves.map(({ slug, label }) => <a key={slug} href={`/strains.html?category=more&tier=${encodeURIComponent(slug)}`}>{label.toUpperCase()}</a>)}
         <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>
       </div>
     </div>
-    <a href="/packages.html">PACKAGES</a>
-    <a href="/specials.html">SPECIALS</a>
+    <div className="nav-drop">
+      <a className="nav-drop__top" href="/packages.html">IN STORE</a>
+      <div className="nav-drop__menu">
+        <a href="/packages.html">PACKAGES</a>
+        <a href="/specials.html">SPECIALS</a>
+        <a href="/referrals.html">REFERRALS</a>
+      </div>
+    </div>
     <a href="/account" aria-current={current === "account" ? "page" : undefined}>ACCOUNT</a>
   </>
 

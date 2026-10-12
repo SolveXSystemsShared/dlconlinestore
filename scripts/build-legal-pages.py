@@ -70,7 +70,7 @@ def mail(key, label):
 NAV = (
     '<a href="index.html?home=1">LOUNGE</a>'
     '<div class="nav-drop"><a class="nav-drop__top" href="strains.html">BROWSE</a><div class="nav-drop__menu"><a href="strains.html">ALL PRODUCTS</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a></div></div>'
-    '<a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a>'
+    '<div class="nav-drop"><a class="nav-drop__top" href="packages.html">IN STORE</a><div class="nav-drop__menu"><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html">REFERRALS</a></div></div>'
 )
 
 
@@ -316,6 +316,7 @@ NECESSARY = [
     ("dlcFiltersSeen", "Local storage", "Stops the Filters button on the shelf from pulsing once you have opened it. Holds only “1”.", "Until cleared"),
     ("dlc_catalog_cache_v1", "Session storage", "A copy of the product list so pages load quickly on a slow connection. Contains no personal information.", "Until you close the tab"),
     ("dlcLoungeState, dlcReturnToLounge, dlcCollectionState, dlcCollectionCrossScroll, dlcTransitionIn", "Session storage", "Returns you to the same place in the lounge or a collection when you go back. No personal information.", "Until you close the tab"),
+    ("dlcNavShelves", "Session storage", "The list of collections in the Browse menu, so it shows at once on the next page. No personal information.", "Until you close the tab"),
 ]
 PREFERENCES = [
     ("dlc_guidance_enabled_v1", "Local storage", "Remembers whether guidance mode is switched on.", "Until cleared or consent withdrawn"),

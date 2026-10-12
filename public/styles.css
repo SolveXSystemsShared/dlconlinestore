@@ -3544,7 +3544,7 @@ html.lounge-row-visible{--float-lift:78px}
    you are on (aria-current, set by common.js). Light headers sit on white
    (shop, product, lounge info and legal pages); the lounge header sits over
    the video, so it flips to white. The mobile menu follows the same states. */
-.nav-links{gap:2px!important;align-items:center}
+.nav-links{gap:8px!important;align-items:center}
 .nav-links a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;opacity:1!important;white-space:nowrap;transition:background-color .18s ease,color .18s ease,box-shadow .18s ease}
 .nav-links a{color:rgba(255,255,255,.82)}
 .nav-links a:hover{background:rgba(255,255,255,.16);color:#fff}
@@ -3566,7 +3566,7 @@ body:is(.product-page,.strains-page,.legal-body) .mobile-nav a:hover{background:
 body:is(.product-page,.strains-page,.legal-body) .mobile-nav a:active{background:#d8ecff}
 body:is(.product-page,.strains-page,.legal-body) .mobile-nav a:focus-visible{outline-color:#1a6ef0}
 body:is(.product-page,.strains-page,.legal-body) .mobile-nav a[aria-current="page"]{background:#1a6ef0;color:#fff}
-@media (min-width:1025px) and (max-width:1240px){.nav-links a{padding:0 8px;letter-spacing:1px}.nav{column-gap:14px}}
+@media (min-width:1025px) and (max-width:1240px){.nav-links{gap:4px!important}.nav-links a{padding:0 8px;letter-spacing:1px}.nav{column-gap:14px}}
 
 /* ── DLC blue heroes and footers ──────────────────────────────────────────
    Hero bands and footers share the sky-blue gradient with navy text, the
@@ -3921,6 +3921,15 @@ body:is(.product-page,.strains-page,.legal-body) .nav-links .nav-drop:has(.nav-d
 .mobile-nav .nav-drop,.mobile-nav .nav-drop__menu{display:contents;visibility:visible;opacity:1}
 .mobile-nav .nav-drop__top{display:none!important}
 @media(prefers-reduced-motion:reduce){.nav-drop__menu,.nav-links .nav-drop__top::after{transition:none}}
+/* Phone menu: each dropdown becomes a titled group of two-column links, so
+   Browse and In store stay short however many collections there are. */
+.mobile-nav .nav-drop{display:grid!important;gap:6px;margin-top:4px}
+.mobile-nav .nav-drop__top{display:flex!important;min-height:0!important;padding:8px 4px 0!important;background:none!important;font-size:9px!important;letter-spacing:1.6px!important;opacity:.6}
+.mobile-nav .nav-drop__top::after{display:none}
+.mobile-nav .nav-drop__menu{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;position:static;min-width:0;padding:0;margin:0;border-radius:0;background:none;box-shadow:none;transform:none;transition:none}
+.mobile-nav .nav-drop__menu::before{display:none}
+.mobile-nav .nav-drop__menu a{min-width:0;font-size:11px;letter-spacing:1.1px;overflow-wrap:anywhere}
+
 
 /* ── Product page band: the same sky as the shelf's More from band ──────────
    A contained, rounded card (so it does not run into the footer's sky), with

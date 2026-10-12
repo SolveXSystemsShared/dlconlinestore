@@ -11,6 +11,40 @@
   const menuButton = document.getElementById('menuBtn');
   const primaryNav = header?.querySelector('.nav-links');
 
+  // Browse lists every collection with stock, the same as the lounge row and
+  // the shelf: flower, prerolls, each other product type, then wellness. The
+  // last list seen in this tab paints at once; the live catalogue refreshes it.
+  const NAV_SHELVES_KEY = 'dlcNavShelves';
+  const paintBrowseShelves = shelves => {
+    const here = new URL(location.href);
+    const onShelf = (here.pathname.split('/').pop() || '') === 'strains.html' && here.searchParams.get('category') === 'more';
+    document.querySelectorAll('.nav-drop__menu').forEach(menu => {
+      const wellness = menu.querySelector('[data-global-collection="wellness"]');
+      if (!wellness) return;
+      menu.querySelectorAll('[data-nav-shelf]').forEach(link => link.remove());
+      shelves.forEach(({ slug, label }) => {
+        const link = document.createElement('a');
+        link.dataset.navShelf = slug;
+        link.href = `strains.html?category=more&tier=${encodeURIComponent(slug)}`;
+        link.textContent = String(label).toUpperCase();
+        if (onShelf && here.searchParams.get('tier') === slug) link.setAttribute('aria-current', 'page');
+        menu.insertBefore(link, wellness);
+      });
+    });
+  };
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(NAV_SHELVES_KEY) || 'null');
+    if (Array.isArray(cached)) paintBrowseShelves(cached);
+  } catch (e) {}
+  if (window.DLCStore && window.DLCGate) {
+    window.DLCGate.ready.then(member => member && window.DLCStore.catalog()).then(products => {
+      if (!products) return;
+      const shelves = window.DLCStore.moreShelves(products).map(({ slug, label }) => ({ slug, label }));
+      try { sessionStorage.setItem(NAV_SHELVES_KEY, JSON.stringify(shelves)); } catch (e) {}
+      paintBrowseShelves(shelves);
+    }).catch(() => {});
+  }
+
   // Mark the header link for the page you are on (aria-current drives the
   // "current" style). Done before the mobile menu copies the links, so both
   // menus agree. Shelf and product pages count as their category.
@@ -19,7 +53,9 @@
     const hereFile = here.pathname.split('/').pop() || 'index.html';
     const hereCategory = here.searchParams.get('category') || '';
     primaryNav.querySelectorAll('a[href]').forEach(link => {
-      if (link.hasAttribute('data-open-education')) return;
+      if (link.hasAttribute('data-open-education') || link.hasAttribute('data-nav-shelf')) return;
+      // A dropdown's own label lights up from the page inside it (styles.css), not by itself.
+      if (link.classList.contains('nav-drop__top')) { link.removeAttribute('aria-current'); return; }
       const target = new URL(link.getAttribute('href'), location.href);
       const targetFile = target.pathname.split('/').pop() || 'index.html';
       const shelfPage = hereFile === 'strains.html' || hereFile === 'product.html';

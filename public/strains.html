@@ -292,7 +292,7 @@
     <img class="brand-logo" src="assets/dlc-logo.svg" alt="Down Low Cannabis logo" width="52" height="52" decoding="async"/>
   </a>
   <nav class="nav-links" aria-label="Primary navigation">
-    <a href="index.html?home=1" data-analytics="lounge_nav_click">LOUNGE</a><div class="nav-drop"><a class="nav-drop__top" href="strains.html">BROWSE</a><div class="nav-drop__menu"><a href="strains.html">ALL PRODUCTS</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a></div></div><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
+    <a href="index.html?home=1" data-analytics="lounge_nav_click">LOUNGE</a><div class="nav-drop"><a class="nav-drop__top" href="strains.html">BROWSE</a><div class="nav-drop__menu"><a href="strains.html">ALL PRODUCTS</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a></div></div><div class="nav-drop"><a class="nav-drop__top" href="packages.html">IN STORE</a><div class="nav-drop__menu"><a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a><a href="referrals.html">REFERRALS</a></div></div><a href="#learn" data-open-education="basics">LEARN</a><a href="/account">ACCOUNT</a>
   </nav>
   <div class="nav-actions"><a class="nav-icon-btn nav-bag" href="/bag" aria-label="Your bag" data-label="Bag" data-bag-link><svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><b class="nav-badge" data-bag-count hidden>0</b></a><span class="age-pill">18+</span><button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">MENU</button></div>
 </header>
@@ -412,7 +412,6 @@
   const collectionHref = (dest) => dest === 'all' ? 'strains.html' : dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest);
   // Every other product type sits in the bar as its own collection, in the
   // lounge row's order, between prerolls and wellness.
-  const MORE_ORDER = ['concentrates', 'shooters', 'moonsticks', 'edibles', 'drinks', 'vapes', 'rolling-papers', 'accessories', 'dab-hits'];
   const shopJump = document.querySelector('.shop-jump');
   const bindShopLink = link => {
     const destination = link.dataset.shop;
@@ -431,19 +430,12 @@
     shopJump.scrollLeft = active.offsetLeft - (shopJump.clientWidth - active.offsetWidth) / 2;
   };
   function paintMoreShops(products) {
-    const types = new Map();
-    products.forEach(p => {
-      const place = S.classify(p);
-      if (place.category === 'more' && !types.has(place.tier)) types.set(place.tier, p.productType);
-    });
-    const rank = slug => { const i = MORE_ORDER.indexOf(slug); return i === -1 ? MORE_ORDER.length : i; };
-    const slugs = [...types.keys()].sort((a, b) => rank(a) - rank(b) || types.get(a).localeCompare(types.get(b)));
     const wellness = shopJump.querySelector('[data-shop="wellness"]');
     shopJump.querySelectorAll('[data-shop^="more:"]').forEach(link => link.remove());
-    slugs.forEach(slug => {
+    S.moreShelves(products).forEach(({ slug, label }) => {
       const link = document.createElement('a');
       link.dataset.shop = `more:${slug}`;
-      link.textContent = types.get(slug).toUpperCase();
+      link.textContent = label.toUpperCase();
       shopJump.insertBefore(link, wellness);
       bindShopLink(link);
     });
