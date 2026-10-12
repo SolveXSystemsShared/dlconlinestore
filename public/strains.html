@@ -376,15 +376,15 @@
   // No category is the main shop: everything on the shelf in one place.
   const category = ['flower', 'prerolls', 'wellness', 'more'].includes(params.get('category')) ? params.get('category') : 'all';
   const isAll = category === 'all';
-  // No tier in the URL means "wherever there is stock", resolved once the catalogue loads.
+  // No tier in the URL shows the whole category; the tier chips narrow it.
   let tier = category === 'wellness' ? 'wellness' : (params.get('tier') || '');
+  const tierLabel = slug => S.TIERS.find(t => t.slug === slug)?.label || '';
   const titleCase = value => value.replaceAll('-', ' ').replace(/\b\w/g, c => c.toUpperCase());
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const categoryName = isAll ? 'All products' : category === 'prerolls' ? 'Prerolls' : category === 'wellness' ? 'Wellness' : category === 'more' ? 'More' : 'Flower';
   const CATEGORY_LABEL = { flower: 'FLOWER', prerolls: 'PREROLLS', wellness: 'WELLNESS', more: 'MORE' };
-  let tierName = S.TIERS.find(t => t.slug === tier)?.label || titleCase(tier || 'products');
-  // Flower and prerolls keep their cultivation tier when switching between them.
-  const sharedTier = S.TIERS.some(t => t.slug === tier) ? tier : '';
+  let tierName = tierLabel(tier) || titleCase(tier || 'all');
+  const showsAllTiers = () => !isAll && category !== 'wellness' && !tier;
 
   const COLLECTION_STATE_KEY = 'dlcCollectionState';
   const COLLECTION_SCROLL_KEY = 'dlcCollectionCrossScroll';
@@ -408,7 +408,7 @@
     document.querySelectorAll('.strain-card.is-product-source').forEach(card => card.classList.remove('is-product-source'));
   });
 
-  const collectionHref = (dest) => dest === 'all' ? 'strains.html' : dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest, sharedTier);
+  const collectionHref = (dest) => dest === 'all' ? 'strains.html' : dest === 'wellness' ? S.collectionUrl('wellness') : dest === 'more' ? S.collectionUrl('more') : S.collectionUrl(dest);
   document.querySelectorAll('[data-shop]').forEach(link => {
     const destination = link.dataset.shop;
     const active = destination === category;
@@ -445,24 +445,25 @@
       document.title = 'DLC | Browse all products';
       return;
     }
-    // Until the catalogue says which tier has stock, speak about the category.
-    const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
-    const shelf = category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
+    const allTiers = showsAllTiers();
+    const shelf = category === 'wellness' ? 'PRODUCTS' : allTiers ? 'ALL' : tierName.toUpperCase();
     setText('crumbCategory', categoryName.toUpperCase());
     document.getElementById('crumbCategory').href = collectionHref(category);
     setText('crumbTier', shelf);
     setText('overviewCategory', categoryName.toUpperCase());
-    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : tierPending ? '…' : tierName.toUpperCase());
+    setText('overviewTier', category === 'wellness' ? 'WELLNESS' : shelf);
     setText('overviewCount', count == null ? '…' : String(count));
     setText('overviewCountLabel', count === 1 ? 'ITEM' : 'ITEMS');
     setText('overviewPrice', fromPrice == null ? '' : `FROM ${S.price(fromPrice)}`);
     setText('categoryLabel', `${categoryName.toUpperCase()} / ${shelf}`);
-    document.getElementById('bandTitle').innerHTML = `MORE FROM<br/>${escapeHtml(category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase())}`;
+    document.getElementById('bandTitle').innerHTML = `MORE FROM<br/>${escapeHtml(category === 'wellness' ? 'WELLNESS' : allTiers ? categoryName.toUpperCase() : tierName.toUpperCase())}`;
 
-    const titleWord = category === 'wellness' ? 'WELLNESS' : tierPending ? categoryName.toUpperCase() : tierName.toUpperCase();
-    const titleTail = tierPending ? 'COLLECTION' : category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
-    document.getElementById('pageTitle').textContent = `${titleWord} ${titleTail}`.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
-    document.title = `${category === 'wellness' ? 'Wellness Products' : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()} | DLC`;
+    const titleWord = category === 'wellness' ? 'WELLNESS' : tierName.toUpperCase();
+    const titleTail = category === 'flower' || category === 'prerolls' ? (category === 'prerolls' ? 'PREROLLS' : 'STRAINS') : category === 'wellness' ? 'PRODUCTS' : 'MENU';
+    document.getElementById('pageTitle').textContent = allTiers
+      ? `All ${category === 'more' ? 'other products' : categoryName.toLowerCase()}`
+      : `${titleWord} ${titleTail}`.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+    document.title = `${category === 'wellness' ? 'Wellness Products' : allTiers ? (category === 'more' ? 'Other products' : categoryName) : `${tierName} ${category === 'more' ? '' : categoryName}`.trim()} | DLC`;
 
     // The old overview card is gone; keep the wording logic but write to a detached link.
     const intro = document.querySelector('.intro-actions .primary') || document.createElement('a');
@@ -470,13 +471,14 @@
       setText('pageDescription', 'The DLC wellness range. Open a product for its format, measured serving and credits.');
       setText('bandCopy', 'Open any product above for its full details.');
       intro.textContent = 'WELLNESS COLLECTION';
-    } else if (category === 'more' && !tierPending) {
+    } else if (category === 'more' && !allTiers) {
       setText('pageDescription', `Browsing ${tierName.toLowerCase()} on the DLC shelf. Use the shelves below to switch.`);
       setText('bandCopy', 'Want one list you can filter and search? Open the full menu.');
       intro.textContent = 'FULL MENU';
       intro.href = '/menu';
-    } else if (tierPending) {
-      setText('pageDescription', `Loading the ${categoryName.toLowerCase()} on the DLC shelf right now…`);
+    } else if (allTiers) {
+      const noun = category === 'more' ? 'other product' : category === 'prerolls' ? 'preroll' : 'flower strain';
+      setText('pageDescription', `Every ${noun} on the DLC shelf right now. Open Filters to narrow it down by ${category === 'more' ? 'type' : 'tier or strain type'}.`);
       setText('bandCopy', 'Pick another collection, or open any product above for its details.');
       intro.textContent = `${categoryName.toUpperCase()} COLLECTION`;
     } else {
@@ -501,7 +503,8 @@
       holder.hidden = false;
       document.getElementById('tierRowLabel').textContent = category === 'more' ? 'TYPE' : 'TIER';
     }
-    row.innerHTML = shelves.map(shelf => `<a class="${shelf.slug === tier ? 'active' : ''} ${shelf.count ? '' : 'is-empty'}" href="${S.collectionUrl(category, shelf.slug)}"${shelf.slug === tier ? ' aria-current="page"' : ''}>${escapeHtml(shelf.label.toUpperCase())} <small>${shelf.count}</small></a>`).join('');
+    const total = shelves.reduce((sum, shelf) => sum + shelf.count, 0);
+    row.innerHTML = [{ slug: '', label: 'All', count: total }, ...shelves].map(shelf => `<a class="${shelf.slug === tier ? 'active' : ''} ${shelf.count ? '' : 'is-empty'}" href="${S.collectionUrl(category, shelf.slug)}"${shelf.slug === tier ? ' aria-current="page"' : ''}>${escapeHtml(shelf.label.toUpperCase())} <small>${shelf.count}</small></a>`).join('');
   }
 
   function paintState(title, detail, isError) {
@@ -514,7 +517,8 @@
     if (isAll) return [product.grade, product.brand || product.productType].filter(Boolean).join(' · ') || product.productType || 'From the DLC shelf.';
     if (category === 'wellness') return `${product.name} from the DLC wellness range${product.grade ? ` by ${product.grade}` : ''}.`;
     if (category === 'more') return [product.grade, product.brand].filter(Boolean).join(' · ') || product.productType;
-    return `${product.name} from the ${tierName.toLowerCase()} ${category === 'prerolls' ? 'preroll' : 'flower'} collection.`;
+    const productTier = tier ? tierName : tierLabel(S.classify(product).tier);
+    return `${product.name} from the ${productTier ? `${productTier.toLowerCase()} ` : ''}${category === 'prerolls' ? 'preroll' : 'flower'} collection.`;
   }
 
   function paintGrid(items) {
@@ -531,15 +535,14 @@
         ? `<div class="strain-pack dlc-cloud-stage ${packClass}"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)}" width="900" height="900" loading="lazy" decoding="async"></div>`
         : `<div class="strain-pack dlc-cloud-stage placeholder"><span>DLC</span></div>`;
       const low = product.availableQuantity <= 3;
-      // Until the catalogue says which tier has stock, speak about the category.
-      const tierPending = !tier && (category === 'flower' || category === 'prerolls' || category === 'more');
-      const shelf = isAll ? (S.TIERS.find(t => t.slug === place.tier)?.label || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierPending ? 'LOADING…' : tierName.toUpperCase();
+      // On a whole shelf each card names its own tier (or product type).
+      const shelf = isAll || showsAllTiers() ? (tierLabel(place.tier) || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
       const cardLabel = isAll ? CATEGORY_LABEL[place.category] : categoryName.toUpperCase();
       card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${cardLabel}${shelf && shelf !== cardLabel ? ` / ${escapeHtml(shelf)}` : ''}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
       card.tabIndex = 0;
       card.setAttribute('aria-label', `View ${product.name}`);
-      card.dataset.analytics = `${category}_${tier}_${S.slugify(product.name).replace(/-/g, '_')}_click`;
+      card.dataset.analytics = `${category}_${tier || 'all'}_${S.slugify(product.name).replace(/-/g, '_')}_click`;
       const productUrl = S.productUrl(product);
       const prefetchProduct = () => {
         if (image) { const img = new Image(); img.src = image; }
@@ -585,14 +588,13 @@
     let shelves = [];
     if (category === 'flower' || category === 'prerolls') {
       shelves = S.TIERS.map(t => ({ slug: t.slug, label: t.label, count: inCategory.filter(p => S.classify(p).tier === t.slug).length }));
-      if (!tier) {
-        tier = (shelves.find(s => s.count) || shelves[0]).slug;
-        tierName = S.TIERS.find(t => t.slug === tier).label;
-        history.replaceState(null, '', S.collectionUrl(category, tier));
+      if (tier && !shelves.some(s => s.slug === tier)) {
+        tier = '';
+        history.replaceState(null, '', S.collectionUrl(category));
       }
     } else if (category === 'more') {
       // One shelf per product type with stock; none are empty, so the page
-      // never offers a blank shelf. No shelf in the URL yet: open the first.
+      // never offers a blank shelf. No shelf in the URL: show every type.
       const byType = new Map();
       inCategory.forEach(p => {
         const slug = S.classify(p).tier;
@@ -601,15 +603,15 @@
         byType.set(slug, entry);
       });
       shelves = [...byType.values()].sort((a, b) => a.label.localeCompare(b.label));
-      if (!shelves.some(s => s.slug === tier)) {
-        tier = shelves[0]?.slug || '';
-        if (tier) history.replaceState(null, '', S.collectionUrl(category, tier));
+      if (tier && !shelves.some(s => s.slug === tier)) {
+        tier = '';
+        history.replaceState(null, '', S.collectionUrl(category));
       }
-      tierName = shelves.find(s => s.slug === tier)?.label || 'Products';
+      tierName = shelves.find(s => s.slug === tier)?.label || 'All';
     }
     if (shelves.length) paintShelves(shelves);
 
-    const shelfItems = inCategory.filter(p => isAll || category === 'wellness' || S.classify(p).tier === tier);
+    const shelfItems = inCategory.filter(p => isAll || category === 'wellness' || !tier || S.classify(p).tier === tier);
     sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: 0, category, tier }));
 
     // Strain type and sort are applied here, without a reload, and kept in
@@ -662,10 +664,15 @@
       filterToggle.addEventListener('click', () => setFiltersOpen(filterToggle.getAttribute('aria-expanded') !== 'true'));
     }
     const clearButton = document.getElementById('clearFilters');
-    clearButton.addEventListener('click', () => { type = 'all'; sort = 'recommended'; sortSelect.value = sort; remember(); apply(); });
+    // A chosen tier counts as a filter too; clearing it opens the whole category.
+    const tierFiltered = !isAll && category !== 'wellness' && !!tier;
+    clearButton.addEventListener('click', () => {
+      if (tierFiltered) { location.href = S.collectionUrl(category); return; }
+      type = 'all'; sort = 'recommended'; sortSelect.value = sort; remember(); apply();
+    });
     const apply = () => {
-      clearButton.hidden = type === 'all' && sort === 'recommended';
-      const active = (type !== 'all') + (sort !== 'recommended');
+      const active = tierFiltered + (type !== 'all') + (sort !== 'recommended');
+      clearButton.hidden = !active;
       const countBadge = document.getElementById('filterCount');
       countBadge.hidden = !active;
       countBadge.textContent = String(active);
@@ -683,6 +690,7 @@
         const stocked = shelves.filter(s => s.count);
         const suggestions = stocked.length ? ` Try ${stocked.map(s => `<a href="${S.collectionUrl(category, s.slug)}">${escapeHtml(s.label)}</a>`).join(', ')}.` : '';
         if (isAll) paintState('The shelf is empty right now', 'Stock changes through the day, so check back soon.');
+        else if (!tier) paintState(`Nothing on this shelf right now`, `The lounge has no ${categoryName.toLowerCase()} in stock. Stock changes through the day, so check back soon.`);
         else paintState(`Nothing on this shelf right now`, `The lounge has no ${escapeHtml(tierName.toLowerCase())} ${categoryName.toLowerCase()} in stock.${suggestions}`);
         if (featured) featured.hidden = true;
       }
