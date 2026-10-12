@@ -3865,3 +3865,17 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
   .li-hero--referrals .li-code{grid-template-columns:auto}
   .li-hero--referrals .li-code__copy{justify-self:start}
 }
+
+/* ── Page changes: a quick cross-fade, the header holds still ────────────────
+   Browsers with cross-document view transitions fade from one page to the
+   next instead of flashing white; others simply open the next page. The thin
+   bar along the top shows only while a slow page is on its way. */
+@view-transition{navigation:auto}
+.nav{view-transition-name:dlc-header}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s;animation-timing-function:ease}
+.dlc-nav-bar{position:fixed;z-index:99995;left:0;top:0;height:3px;width:100%;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,var(--dlc-sky,#41a8fc),var(--dlc-sky-deep,#1a6ef0));box-shadow:0 0 10px rgba(65,168,252,.6);pointer-events:none}
+.dlc-nav-bar.is-on{transform:scaleX(.85);transition:transform 8s cubic-bezier(.1,.8,.2,1)}
+@media(prefers-reduced-motion:reduce){
+  @view-transition{navigation:none}
+  .dlc-nav-bar.is-on{transition:none;transform:scaleX(.6)}
+}

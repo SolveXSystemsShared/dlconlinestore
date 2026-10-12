@@ -24,6 +24,12 @@
   const ready = new Promise(resolve => { resolveReady = resolve; });
   window.DLCGate = { ready, member: null };
 
+  // Asked for straight away, while the rest of the page is still being read,
+  // so the answer is usually back by the time the page is built.
+  const sessionRequest = fetch('/api/members/session', { credentials: 'same-origin' })
+    .then(response => (response.ok ? response.json() : null))
+    .catch(() => null);
+
   const passed = member => {
     window.DLCGate.member = member;
     write(MEMBER_HINT_KEY, true);
@@ -326,11 +332,7 @@
 
   // Asks the server where this visitor stands and shows the screen that follows.
   async function resolveSession() {
-    let session = null;
-    try {
-      const response = await fetch('/api/members/session', { credentials: 'same-origin' });
-      if (response.ok) session = await response.json();
-    } catch (e) {}
+    const session = await sessionRequest;
 
     // The age cookie lasts a browser session; the device already said yes, so
     // put it back rather than asking again after every restart.
