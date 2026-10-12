@@ -3879,3 +3879,37 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
   @view-transition{navigation:none}
   .dlc-nav-bar.is-on{transition:none;transform:scaleX(.6)}
 }
+
+/* ── "More from" band on the shelf: the same sky as the heroes ───────────────
+   The radial hero gradient, rounded corners, a soft glow and a bank of the
+   layered 3D clouds along the bottom. Buttons are pills: solid white first,
+   glass second. */
+body .collection-band{position:relative;isolation:isolate;overflow:hidden;overflow:clip;border-radius:28px;background:var(--dlc-hero)!important;padding:clamp(30px,4.4vw,52px) clamp(22px,5vw,56px) clamp(78px,8vw,118px);box-shadow:0 24px 60px rgba(26,110,240,.18)}
+body .collection-band::before{content:"";position:absolute;z-index:-1;right:-8%;top:-40%;width:55%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28) 0%,rgba(255,255,255,0) 65%);pointer-events:none}
+body .collection-band::after{content:"";position:absolute;z-index:-1;left:-4%;right:-4%;bottom:-2px;height:clamp(64px,7vw,104px);background:url("assets/sky-clouds-front.svg") center bottom/auto 72% repeat-x,url("assets/sky-clouds-mid.svg") center bottom/auto 100% repeat-x;opacity:.95;pointer-events:none}
+body .collection-band span{opacity:.78}
+body .collection-band h2{color:var(--dlc-navy)}
+body .collection-band__actions a{border-radius:999px;min-height:46px;padding:0 22px;border:1px solid rgba(255,255,255,.75)!important;background:rgba(255,255,255,.22);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 8px 20px rgba(6,33,61,.12)}
+body .collection-band__actions a:first-child{background:#fff;border-color:#fff!important;color:var(--dlc-sky-deep,#1a6ef0)!important}
+body .collection-band__actions a:hover{background:rgba(255,255,255,.4)!important;transform:translateY(-2px)}
+body .collection-band__actions a:first-child:hover{background:#f2f8ff!important}
+@media(max-width:640px){body .collection-band{border-radius:22px;padding-bottom:84px}}
+
+/* ── Header: Flower, Prerolls and Wellness sit under Browse ─────────────────
+   A small white menu that opens on hover or keyboard focus. Browse shows as
+   current on any shelf it holds. The mobile menu lists the four links flat. */
+.nav-drop{position:relative;display:inline-flex}
+.nav-links .nav-drop__top::after{content:"";width:6px;height:6px;margin:-3px 0 0 8px;border:solid currentColor;border-width:0 1.6px 1.6px 0;transform:rotate(45deg);opacity:.7;transition:transform .18s ease}
+.nav-drop:is(:hover,:focus-within) .nav-drop__top::after{transform:translateY(3px) rotate(225deg)}
+.nav-drop__menu{position:absolute;z-index:60;top:100%;left:50%;min-width:200px;padding:8px;margin-top:10px;border-radius:18px;background:#fff;box-shadow:0 18px 44px rgba(6,33,61,.22),0 2px 8px rgba(6,33,61,.08);display:grid;gap:2px;opacity:0;visibility:hidden;transform:translate(-50%,6px);transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s}
+/* Keeps the menu open while the pointer crosses the gap under Browse. */
+.nav-drop__menu::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
+.nav-drop:is(:hover,:focus-within) .nav-drop__menu{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .18s ease,transform .18s ease}
+.nav-links .nav-drop__menu a{justify-content:flex-start;min-height:40px;padding:0 14px;border-radius:12px;color:rgba(6,33,61,.78)!important;background:transparent;box-shadow:none}
+.nav-links .nav-drop__menu a:hover{background:#eaf4ff;color:#1a6ef0!important}
+.nav-links .nav-drop__menu a[aria-current="page"]{background:#eaf4ff;color:#1a6ef0!important;box-shadow:none}
+.nav-links .nav-drop:has(.nav-drop__menu [aria-current="page"]) .nav-drop__top{background:#fff;color:#1a6ef0!important;box-shadow:0 2px 10px rgba(3,5,16,.22)}
+body:is(.product-page,.strains-page,.legal-body) .nav-links .nav-drop:has(.nav-drop__menu [aria-current="page"]) .nav-drop__top{background:#eaf4ff}
+.mobile-nav .nav-drop,.mobile-nav .nav-drop__menu{display:contents;visibility:visible;opacity:1}
+.mobile-nav .nav-drop__top{display:none!important}
+@media(prefers-reduced-motion:reduce){.nav-drop__menu,.nav-links .nav-drop__top::after{transition:none}}

@@ -68,9 +68,8 @@ def mail(key, label):
 
 
 NAV = (
-    '<a href="index.html?home=1">LOUNGE</a><a href="strains.html?category=flower">FLOWER</a>'
-    '<a href="strains.html?category=prerolls">PREROLLS</a><a href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a>'
-    '<a data-global-collection="more" href="strains.html?category=more">MORE</a>'
+    '<a href="index.html?home=1">LOUNGE</a>'
+    '<div class="nav-drop"><a class="nav-drop__top" href="strains.html">BROWSE</a><div class="nav-drop__menu"><a href="strains.html">ALL PRODUCTS</a><a data-global-collection="flower" href="strains.html?category=flower">FLOWER</a><a data-global-collection="prerolls" href="strains.html?category=prerolls">PREROLLS</a><a data-global-collection="wellness" href="strains.html?category=wellness&amp;tier=wellness">WELLNESS</a></div></div>'
     '<a href="packages.html">PACKAGES</a><a href="specials.html">SPECIALS</a>'
 )
 

@@ -628,3 +628,15 @@ html:has(.sf), body:has(.sf) { overflow-x: clip; }
 .sf-nav { view-transition-name: dlc-header; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; animation-timing-function: ease; }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+
+/* Header: Flower, Prerolls and Wellness under Browse, as on the storefront pages (styles.css). */
+.nav-drop { position: relative; display: inline-flex; }
+.sf-nav-links .nav-drop__top::after { content: ""; width: 6px; height: 6px; margin: -3px 0 0 8px; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); opacity: .7; transition: transform .18s ease; }
+.nav-drop:is(:hover, :focus-within) .nav-drop__top::after { transform: translateY(3px) rotate(225deg); }
+.nav-drop__menu { position: absolute; z-index: 60; top: 100%; left: 50%; min-width: 200px; padding: 8px; margin-top: 10px; border-radius: 18px; background: #fff; box-shadow: 0 18px 44px rgba(6,33,61,.22), 0 2px 8px rgba(6,33,61,.08); display: grid; gap: 2px; opacity: 0; visibility: hidden; transform: translate(-50%, 6px); transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+.nav-drop__menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; }
+.nav-drop:is(:hover, :focus-within) .nav-drop__menu { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .18s ease, transform .18s ease; }
+.sf-nav-links .nav-drop__menu a { justify-content: flex-start; min-height: 40px; padding: 0 14px; border-radius: 12px; }
+.sf-mobile-nav .nav-drop, .sf-mobile-nav .nav-drop__menu { display: contents; visibility: visible; opacity: 1; }
+.sf-mobile-nav .nav-drop__top { display: none; }
+@media (prefers-reduced-motion: reduce) { .nav-drop__menu, .sf-nav-links .nav-drop__top::after { transition: none; } }

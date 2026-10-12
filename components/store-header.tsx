@@ -38,10 +38,15 @@ export function StoreHeader({ bagCount, current }: { bagCount?: number; current?
   const count = bagCount ?? fetched ?? 0
   const links = <>
     <a href="/index.html?home=1">LOUNGE</a>
-    <a href="/strains.html?category=flower">FLOWER</a>
-    <a href="/strains.html?category=prerolls">PREROLLS</a>
-    <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>
-    <a href="/strains.html?category=more">MORE</a>
+    <div className="nav-drop">
+      <a className="nav-drop__top" href="/strains.html">BROWSE</a>
+      <div className="nav-drop__menu">
+        <a href="/strains.html">ALL PRODUCTS</a>
+        <a href="/strains.html?category=flower">FLOWER</a>
+        <a href="/strains.html?category=prerolls">PREROLLS</a>
+        <a href="/strains.html?category=wellness&tier=wellness">WELLNESS</a>
+      </div>
+    </div>
     <a href="/packages.html">PACKAGES</a>
     <a href="/specials.html">SPECIALS</a>
     <a href="/account" aria-current={current === "account" ? "page" : undefined}>ACCOUNT</a>
