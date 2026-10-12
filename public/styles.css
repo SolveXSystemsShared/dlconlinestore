@@ -3848,3 +3848,34 @@ body.strains-page,body.lounge-info-page,body.legal-body{overflow-x:clip}
 .store-slow::before,.guidance-hint::before{content:"";position:absolute;left:15px;top:14px;width:18px;height:12px;background:#41a8fc;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 60'%3E%3Crect x='9' y='31' width='122' height='26' rx='13'/%3E%3Ccircle cx='33' cy='33' r='15'/%3E%3Ccircle cx='58' cy='24' r='20'/%3E%3Ccircle cx='87' cy='25' r='17'/%3E%3Ccircle cx='109' cy='35' r='13'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 60'%3E%3Crect x='9' y='31' width='122' height='26' rx='13'/%3E%3Ccircle cx='33' cy='33' r='15'/%3E%3Ccircle cx='58' cy='24' r='20'/%3E%3Ccircle cx='87' cy='25' r='17'/%3E%3Ccircle cx='109' cy='35' r='13'/%3E%3C/svg%3E") center/contain no-repeat}
 @media(prefers-reduced-motion:reduce){.store-loading-line::after{animation:none;background-position:50% 0}}
 .store-loading-line::before{flex-basis:46px;height:46px;background:url("assets/dlc-mascot-small.png") center 70%/30px auto no-repeat,radial-gradient(circle at 34% 28%,#8fd0ff 0%,#41a8fc 55%,#1a6ef0 100%);box-shadow:inset 0 -4px 8px rgba(6,33,61,.18),inset 0 2px 3px rgba(255,255,255,.45),0 6px 14px rgba(26,110,240,.28)}
+
+/* Shorter heroes (packages, referrals): the clouds sit closer under the text, so the sky no longer fills the screen. */
+.li-hero--short .li-hero__text{padding-bottom:clamp(72px,8vw,120px)}
+.li-hero--short .li-sky__layer--back{height:clamp(84px,10vw,156px)}
+.li-hero--short .li-sky__layer--mid{height:clamp(66px,8vw,124px)}
+.li-hero--short .li-sky__layer--front{height:clamp(48px,6vw,92px)}
+.li-hero--short .li-hero__art img{margin-bottom:clamp(18px,2.4vw,40px)}
+@media(max-width:900px){.li-hero--short .li-hero__text{padding-bottom:84px}}
+/* Referrals: the code and copy button share a row on the code card. */
+.li-hero--referrals .li-code{grid-template-columns:auto auto;align-items:center;column-gap:22px;row-gap:4px;margin-top:20px;padding:16px 22px;width:fit-content}
+.li-hero--referrals .li-code__label,.li-hero--referrals .li-code__note{grid-column:1/-1}
+.li-hero--referrals .li-code__copy{margin-top:0}
+.li-hero--referrals .li-code__note{margin-top:4px;max-width:360px;text-wrap:balance}
+@media(max-width:480px){
+  .li-hero--referrals .li-code{grid-template-columns:auto}
+  .li-hero--referrals .li-code__copy{justify-self:start}
+}
+
+/* ── Page changes: a quick cross-fade, the header holds still ────────────────
+   Browsers with cross-document view transitions fade from one page to the
+   next instead of flashing white; others simply open the next page. The thin
+   bar along the top shows only while a slow page is on its way. */
+@view-transition{navigation:auto}
+.nav{view-transition-name:dlc-header}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s;animation-timing-function:ease}
+.dlc-nav-bar{position:fixed;z-index:99995;left:0;top:0;height:3px;width:100%;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,var(--dlc-sky,#41a8fc),var(--dlc-sky-deep,#1a6ef0));box-shadow:0 0 10px rgba(65,168,252,.6);pointer-events:none}
+.dlc-nav-bar.is-on{transform:scaleX(.85);transition:transform 8s cubic-bezier(.1,.8,.2,1)}
+@media(prefers-reduced-motion:reduce){
+  @view-transition{navigation:none}
+  .dlc-nav-bar.is-on{transition:none;transform:scaleX(.6)}
+}

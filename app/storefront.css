@@ -527,6 +527,16 @@ html:has(.sfreg), body:has(.sfreg) { background: #41a8fc; }
 .sfreg__referral summary small { font-weight: 400; color: #6b7a90; }
 .sfreg__referral[open] summary { margin-bottom: 14px; }
 .sfreg__referral .sfreg__field { margin-bottom: 0; }
+.sfreg__credits { padding: 16px 18px; border-radius: 18px; background: var(--g-soft); border: 1px solid var(--g-line); }
+.sfreg__credits p { margin: 0; font-size: 13px; line-height: 1.65; color: #3d5170; }
+.sfreg__credits p + p { margin-top: 8px; font-weight: 900; color: var(--g-navy); }
+.sfreg__rules { display: grid; gap: 8px; margin-bottom: 10px; }
+.sfreg__rule { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--g-line); font-size: 13px; line-height: 1.55; color: #3d5170; cursor: pointer; transition: background .18s ease, border-color .18s ease; }
+.sfreg__rule:hover { background: #f4f9ff; }
+.sfreg__rule.is-on { background: var(--g-soft); border-color: rgba(65,168,252,.5); }
+.sfreg__rule.is-bad { border-color: #e0827b; background: #fff8f7; }
+.sfreg__rule input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 0; accent-color: var(--g-deep); }
+.sfreg__sign ~ .sfreg__hint { margin-top: 2px; }
 .sfreg__sign { border-radius: 22px; overflow: hidden; border: 1px solid var(--g-line); }
 .sfreg__sign.is-bad { border-color: #e0827b; }
 .sfreg__check { display: flex; gap: 12px; align-items: flex-start; margin: 4px 0 16px; font-size: 13px; line-height: 1.55; color: #4a5a70; cursor: pointer; }
@@ -610,3 +620,11 @@ html:has(.sf), body:has(.sf) { overflow-x: clip; }
 .sf-note--ok { border-color: #cfe6c9; background: linear-gradient(135deg, #fff 0%, #f1f9ee 100%); }
 .sf-note--ok::before { background: var(--sf-good, #4f8a45); }
 .sf-loading-line::before { flex-basis: 46px; height: 46px; background: url("/assets/dlc-mascot-small.png") center 70% / 30px auto no-repeat, radial-gradient(circle at 34% 28%, #8fd0ff 0%, #41a8fc 55%, #1a6ef0 100%); box-shadow: inset 0 -4px 8px rgba(6, 33, 61, .18), inset 0 2px 3px rgba(255, 255, 255, .45), 0 6px 14px rgba(26, 110, 240, .28); }
+.sfreg__req { color: #b3261e; font-weight: 900; font-size: max(13px, 1em); line-height: 0; }
+.sfreg__reqnote { margin: 10px 0 0; font-size: 12px; color: #6b7a90; }
+
+/* Page changes: the same cross-fade as the storefront pages (styles.css). */
+@view-transition { navigation: auto; }
+.sf-nav { view-transition-name: dlc-header; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; animation-timing-function: ease; }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }

@@ -1,12 +1,16 @@
 /*
- * Full-page loader and page reveal for the static storefront.
+ * Page changes for the static storefront: fast first, a cover only when slow.
  *
- * Leaving: a click on an internal link (or DLCPageLoader.go(url)) fades a solid
- * cover in over the current page before navigating, so the member never sees a
- * blank screen between pages. Arriving: the same cover is up from the first
- * paint and lists what the page is waiting for — membership, the shelf, the
- * bag — ticking each off as it lands. When the page says it is ready
- * (DLCPageLoader.done()) the cover fades and the page rises into place.
+ * Leaving: an internal link navigates straight away. The current page stays
+ * on screen until the next one is ready (browsers that support cross-document
+ * view transitions cross-fade the two, see styles.css), and a thin bar slides
+ * across the top only if the server is slow to answer. Links are prefetched
+ * when hovered or touched, so most pages are already downloaded by the click.
+ *
+ * Arriving: pages draw their own placeholders (skeleton cards, loading lines).
+ * The full cover, listing what the page is waiting for (membership, the shelf,
+ * the bag), appears only when the page is still not ready after SLOW_MS, which
+ * on a normal connection is never. DLCPageLoader.done() says it is ready.
  *
  * Load after store.js, in <head>:
  *   <script src="page-loader.js" data-context="shelf"></script>
@@ -17,9 +21,11 @@
   const context = script?.dataset.context || 'page';
   const root = document.documentElement;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const FLAG = 'dlcPageLoaderIn';
-  const FLAG_TTL_MS = 10000;
   const REVEAL_MS = reduced ? 0 : 480;
+  // How long a page may take before the full cover goes up.
+  const SLOW_MS = 1200;
+  // How long the next page may take to answer before the top bar shows.
+  const BAR_DELAY_MS = 150;
 
   const STEPS = {
     shelf: [['gate', 'Checking you in'], ['catalog', 'Stocking the shelf'], ['cart', 'Unpacking your bag']],
@@ -68,16 +74,6 @@
     paintSteps();
   }
 
-  // Lines about where the member is headed, when leaving for another page.
-  function linesFor(href) {
-    const path = new URL(href, location.href).pathname;
-    if (/product\.html$/.test(path)) return 'product';
-    if (/strains\.html$/.test(path)) return 'shelf';
-    if (path.startsWith('/bag')) return 'bag';
-    if (path.startsWith('/account') || path.startsWith('/exchange')) return 'account';
-    return 'lounge';
-  }
-
   function show(immediate, lines = LINES[context] || 'lounge') {
     build();
     stopLines();
@@ -109,34 +105,68 @@
     setTimeout(hide, el ? 160 : 0);
   }
 
-  /** Navigate with the cover up, so the next page never opens on a blank screen. */
-  function go(href) {
-    try { sessionStorage.setItem(FLAG, String(Date.now())); } catch (e) {}
-    if (reduced) { location.assign(href); return; }
-    steps.clear();
-    finished = true;
-    show(false, linesFor(href));
-    setTimeout(() => location.assign(href), 200);
+  // ── The thin bar along the top while the next page is on its way ──────
+  let bar = null;
+  let barTimer = 0;
+  function startBar() {
+    clearTimeout(barTimer);
+    barTimer = setTimeout(() => {
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'dlc-nav-bar';
+        bar.setAttribute('aria-hidden', 'true');
+        (document.body || root).appendChild(bar);
+      }
+      requestAnimationFrame(() => bar?.classList.add('is-on'));
+    }, BAR_DELAY_MS);
   }
+  function stopBar() {
+    clearTimeout(barTimer);
+    if (bar) { bar.remove(); bar = null; }
+  }
+
+  /** Navigate now. The page stays put until the next one paints. */
+  function go(href) {
+    startBar();
+    location.assign(href);
+  }
+
+  // ── Prefetch on intent ─────────────────────────────────────────────────
+  // A hover, a touch or keyboard focus on an internal link downloads that page
+  // in the background, so the click usually opens it from the cache. Pages
+  // only, never the API, and each one once.
+  const prefetched = new Set([location.pathname + location.search]);
+  function pageUrl(link) {
+    if (!link || link.target && link.target !== '_self' || link.hasAttribute('download') || link.hasAttribute('data-no-loader')) return null;
+    const raw = link.getAttribute('href');
+    if (!raw || raw.startsWith('#') || /^(mailto|tel|javascript):/i.test(raw)) return null;
+    const url = new URL(link.href, location.href);
+    if (url.origin !== location.origin || url.pathname.startsWith('/api/')) return null;
+    return url;
+  }
+  function prefetch(event) {
+    const url = pageUrl(event.target.closest?.('a[href]'));
+    if (!url) return;
+    const key = url.pathname + url.search;
+    if (prefetched.has(key) || navigator.connection?.saveData) return;
+    prefetched.add(key);
+    const hint = document.createElement('link');
+    hint.rel = 'prefetch';
+    hint.href = url.href;
+    document.head.appendChild(hint);
+  }
+  document.addEventListener('pointerover', prefetch, { passive: true });
+  document.addEventListener('touchstart', prefetch, { passive: true });
+  document.addEventListener('focusin', prefetch);
 
   // ── Arriving ───────────────────────────────────────────────────────────
   if (context !== 'none') {
-    let arrivedByClick = false;
-    try {
-      const at = Number(sessionStorage.getItem(FLAG));
-      arrivedByClick = at && Date.now() - at < FLAG_TTL_MS;
-      sessionStorage.removeItem(FLAG);
-    } catch (e) {}
-    const arriving = arrivedByClick || root.classList.contains('dlc-arriving');
-
     (STEPS[context] || []).forEach(([key, label]) => steps.set(key, { label, state: 'loading' }));
     root.classList.add('dlc-page-loading');
 
-    // Pages that wait on the shelf cover up from the first paint, so nothing
-    // half-loaded shows. Plain pages only if the member clicked through (the
-    // last page's cover is still in their eye) or they are slow to be ready.
-    if (arriving || (STEPS[context] && !finished)) show(true);
-    else setTimeout(() => { if (!finished) show(false); }, 250);
+    // The page's own placeholders carry the first moments. The cover is for a
+    // slow line only, where it says what is still on its way.
+    setTimeout(() => { if (!finished) show(false); }, SLOW_MS);
 
     const gate = window.DLCGate?.ready || Promise.resolve(null);
     const S = window.DLCStore;
@@ -165,18 +195,15 @@
   window.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target.closest?.('a[href]');
-    if (!link || link.target && link.target !== '_self' || link.hasAttribute('download') || link.hasAttribute('data-no-loader')) return;
-    const raw = link.getAttribute('href');
-    if (!raw || raw.startsWith('#') || /^(mailto|tel|javascript):/i.test(raw)) return;
-    const url = new URL(link.href, location.href);
-    if (url.origin !== location.origin) return;
-    if (url.pathname === location.pathname && url.search === location.search) return;
-    event.preventDefault();
-    go(url.href);
+    const url = pageUrl(link);
+    if (!url || url.pathname === location.pathname && url.search === location.search) return;
+    // The browser navigates as normal; only the bar is added for a slow answer.
+    startBar();
   });
 
   // Back/forward can restore this page from memory with the cover still up.
   window.addEventListener('pageshow', event => {
+    stopBar();
     if (!event.persisted) return;
     if (el) { stopLines(); el.remove(); el = null; }
     root.classList.remove('dlc-page-loading', 'dlc-page-reveal');

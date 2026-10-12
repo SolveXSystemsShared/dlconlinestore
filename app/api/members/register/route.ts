@@ -17,9 +17,14 @@ import {
 } from "@/lib/members-schema"
 import { getFulfillmentStoreId } from "@/lib/store-settings"
 import { AcceptanceNotRecorded, acceptanceInput, linkAcceptance, recordAcceptance, staleTermsMessage } from "@/lib/acceptance"
+import { MEMBERSHIP_RULES } from "@/lib/legal"
+import { memberNameProblem } from "@/lib/member-name"
 
 const input = z.object({
-  fullName: z.string().trim().min(2).max(120),
+  fullName: z.string().trim().max(120).superRefine((value, ctx) => {
+    const problem = memberNameProblem(value)
+    if (problem) ctx.addIssue({ code: z.ZodIssueCode.custom, message: problem })
+  }),
   email: z.string().trim().email().max(160),
   // The sign-in PIN is texted to this number, so it must be a real South African
   // mobile — not just something that looks like a phone number.
@@ -36,7 +41,13 @@ const input = z.object({
   marketingOptIn: z.boolean().optional().default(false),
   // Optional: the code of the member who referred this person.
   referralCode: z.string().trim().max(40).optional().default(""),
+  // Every club rule ticked, by key. The wording stored as evidence is the
+  // server's own copy (REGISTRATION_EVIDENCE), never the browser's.
+  acceptedRules: z.array(z.string().max(40)).max(20),
   ...acceptanceInput,
+}).refine((value) => MEMBERSHIP_RULES.every((rule) => value.acceptedRules.includes(rule.key)), {
+  message: "Please confirm each of the club rules.",
+  path: ["acceptedRules"],
 }).refine((value) => value.idNumber.length > 0 || value.foreignPassport.length > 0, {
   message: "An ID number or passport number is required",
   path: ["idNumber"],
