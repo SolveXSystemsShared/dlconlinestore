@@ -37,7 +37,7 @@ export function classify(product: Placeable): Shelf {
 
 // Every product type outside flower, prerolls and wellness, as its own
 // collection, in the lounge row's order (moreShelves in public/store.js).
-const MORE_ORDER = ["concentrates", "shooters", "moonsticks", "edibles", "drinks", "vapes", "rolling-papers", "accessories", "dab-hits"]
+const MORE_ORDER = ["concentrates", "shooters", "moonsticks", "dabsticks", "edibles", "drinks", "vapes", "rolling-papers", "accessories", "dab-hits"]
 export function moreShelves(products: Placeable[]): Array<{ slug: string; label: string }> {
   const types = new Map<string, string>()
   products.forEach((product) => {
@@ -135,7 +135,7 @@ const ART_VERSION = "2026-10-05"
 
 function artFor(product: Placeable & Pick<CatalogProduct, "name">): string | null {
   if (product.slug && PRODUCT_ART.has(product.slug)) return `/assets/webp/products/${product.slug}.webp`
-  if (/moonstick/.test(fold(product.productType))) return "/assets/webp/moonsticks/indoor.webp"
+  if (/moonstick|dabstick/.test(fold(product.productType))) return "/assets/webp/moonsticks/indoor.webp"
   const { category, tier } = classify(product)
   const key = slugify(product.name)
   if (category === "flower") return `/assets/webp/flower/${tier}.webp`

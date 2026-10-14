@@ -36,6 +36,7 @@
     flower: ['FLOWER', 'Dried cannabis flower, available loose by the gram. At DLC it is graded by how it was cultivated. See the tier guide.', shelf('strains.html?category=flower', 'Browse flower')],
     prerolls: ['PREROLLS', 'Cannabis flower already ground and rolled, ready to use. Graded by the same cultivation tiers as flower.', shelf('strains.html?category=prerolls', 'Browse prerolls')],
     moonsticks: ['MOONSTICKS', 'A preroll boosted with concentrate, usually flower infused or coated with extract. Noticeably stronger than a standard preroll, so treat one as more than one.', shelf('strains.html?category=more&tier=moonsticks', 'Browse moonsticks')],
+    dabsticks: ['DABSTICKS', 'A preroll infused with dab concentrate such as wax or badder. Much stronger than a standard preroll, so take it slowly.', shelf('strains.html?category=more&tier=dabsticks', 'Browse dabsticks')],
     shooters: ['SHOOTERS', 'A smaller-format DLC roll, listed by cultivation tier like flower. Ask the team for the current size.', shelf('strains.html?category=more&tier=shooters', 'Browse shooters')],
     edibles: ['EDIBLES', 'Cannabis in food: gummies, chocolates, baked goods. Eaten cannabis is processed by the liver, so it takes longer to arrive and lasts longer than smoking.', shelf('strains.html?category=more&tier=edibles', 'Browse edibles')],
     vapes: ['VAPES', 'Cartridges of cannabis oil heated by a battery rather than burned. Carts need a compatible battery, found under accessories.', shelf('strains.html?category=more&tier=vapes', 'Browse vapes')],
@@ -86,7 +87,7 @@
       tab: 'Formats',
       title: 'EVERY FORMAT ON THE SHELF',
       copy: 'Same plant, different experiences. Pick the format that fits what you want.',
-      items: ['flower', 'prerolls', 'moonsticks', 'shooters', 'edibles', 'vapes', 'concentrates', 'dab-hits', 'wellness', 'drinks', 'rolling-papers'].map(key => FORMATS[key]),
+      items: ['flower', 'prerolls', 'moonsticks', 'dabsticks', 'shooters', 'edibles', 'vapes', 'concentrates', 'dab-hits', 'wellness', 'drinks', 'rolling-papers'].map(key => FORMATS[key]),
     },
     tiers: {
       tab: 'Tiers',
@@ -143,7 +144,7 @@
       items: [
         ['NEW OR RETURNING?', 'Begin with a small amount and a lower-tier or lower-strength product. You can always have more; you cannot have less.'],
         ['EDIBLES TAKE TIME', 'Effects can take 30 minutes to 2 hours to arrive and last several hours. Wait before having more.'],
-        ['STRONGER FORMATS', 'Moonsticks, dab hits and concentrates hit harder than flower. Pace yourself accordingly.'],
+        ['STRONGER FORMATS', 'Moonsticks, dabsticks, dab hits and concentrates hit harder than flower. Pace yourself accordingly.'],
         ['DON’T MIX & DRIVE', 'Avoid combining with alcohol, and never drive or operate machinery under the influence.'],
         ['STORE IT SAFELY', 'Keep products sealed and out of reach of children and pets. Edibles especially can look like ordinary sweets.'],
       ],

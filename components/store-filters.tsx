@@ -13,7 +13,7 @@ export const NO_FILTERS: Filters = { category: "", line: "", search: "" }
  * fifth of stock, so "grade or brand" is one filter rather than two, and the
  * heading changes to match whichever the chosen category actually uses.
  */
-const GRADE_CATEGORIES = new Set(["Buds/Flower", "Pre-rolls", "Moonsticks", "Shooters"])
+const GRADE_CATEGORIES = new Set(["Buds/Flower", "Pre-rolls", "Moonsticks", "Dabsticks", "Shooters"])
 
 export function lineOf(product: CatalogProduct) {
   return (product.grade || product.brand || "").trim()

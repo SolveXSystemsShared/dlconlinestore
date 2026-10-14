@@ -129,7 +129,7 @@
 
   function artFor(product) {
     if (PRODUCT_ART.has(product.slug)) return `assets/webp/products/${product.slug}.webp`;
-    if (/moonstick/.test(fold(product.productType))) return 'assets/webp/moonsticks/indoor.webp';
+    if (/moonstick|dabstick/.test(fold(product.productType))) return 'assets/webp/moonsticks/indoor.webp';
     const { category, tier } = classify(product);
     const key = slugify(product.name);
     if (category === 'flower') return `assets/webp/flower/${tier}.webp`;
@@ -350,7 +350,7 @@
   // Every product type outside flower, prerolls and wellness, as its own
   // collection, in the lounge row's order. Shared by the header's Browse menu
   // and the shelf's collections bar so they always list the same shelves.
-  const MORE_ORDER = ['concentrates', 'shooters', 'moonsticks', 'edibles', 'drinks', 'vapes', 'rolling-papers', 'accessories', 'dab-hits'];
+  const MORE_ORDER = ['concentrates', 'shooters', 'moonsticks', 'dabsticks', 'edibles', 'drinks', 'vapes', 'rolling-papers', 'accessories', 'dab-hits'];
   function moreShelves(products) {
     const types = new Map();
     products.forEach(p => {

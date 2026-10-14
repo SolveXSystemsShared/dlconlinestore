@@ -47,6 +47,19 @@ function strainKey(productType: string, strainName: string) {
   return `${productType.trim().toLowerCase()}|${strainName.trim().toLowerCase()}`
 }
 
+/**
+ * CDASH types dab-infused prerolls as Moonsticks and only says "Dab" in the
+ * grade or the name ("Indoor Dab Infused Preroll", "Dab Moonstick"). Members
+ * know them as dabsticks, so the store shows them as their own collection.
+ * Display only: checkout resolves lines by product id, so the CDASH type still
+ * drives reservation and pricing.
+ */
+function shelfType(product: Pick<CatalogRow, "product_type" | "strain_name" | "grade">) {
+  const type = product.product_type
+  if (/moonstick/i.test(type) && /\bdab/i.test(`${product.grade || ""} ${product.strain_name}`)) return "Dabsticks"
+  return type
+}
+
 /** Same folding for grade, so "Indoor " on a stock row still matches "Indoor". */
 function gradeKey(grade: string | null) {
   return (grade || "").trim().toLowerCase()
@@ -153,7 +166,7 @@ export async function getCatalog(storeIdOverride?: string | null): Promise<Catal
       id: product.id,
       slug: product.slug,
       name: product.display_name,
-      productType: product.product_type,
+      productType: shelfType(product),
       grade: product.grade,
       brand,
       strainType,
