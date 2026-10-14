@@ -24,8 +24,15 @@ export type MemberLookup =
       role?: string | null
       /** The raw CDASH status, so a refusal can say what is actually going on. */
       status?: string | null
-      /** Where the sign-in PIN goes: members.mobile_number, or users.phone for staff. */
+      /** The person's own number: members.mobile_number, or users.phone for staff. */
       mobile?: string | null
+      /**
+       * Where the sign-in PIN goes. Only resolved when asked for (`signin`).
+       * Anyone with a CDASH staff account, including one who also has a
+       * `members` row, is texted where CDASH sends their own login code;
+       * everyone else at `mobile`.
+       */
+      signinMobile?: string | null
     }
 
 /**
@@ -68,7 +75,7 @@ export function memberLookupMessage(lookup: Extract<MemberLookup, { found: true 
  * saved with different casing. `normalizeMemberId` trims and upper-cases the
  * input first, and anything that could act as a wildcard is refused.
  */
-export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
+export async function lookupMember(rawMemberId: string, options: { signin?: boolean } = {}): Promise<MemberLookup> {
   const memberId = normalizeMemberId(rawMemberId)
   // `ilike` treats % and _ (and PostgREST's *) as wildcards, so "DLC-1234-%"
   // would find a member without knowing their ID and text them a PIN. Real
@@ -77,7 +84,7 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
 
   if (isPreviewMode()) {
     if (memberId !== PREVIEW_MEMBER.memberId) return { found: false }
-    return { found: true, memberId: PREVIEW_MEMBER.memberId, name: PREVIEW_MEMBER.name, verdict: "active", source: "member", mobile: "0820000000" }
+    return { found: true, memberId: PREVIEW_MEMBER.memberId, name: PREVIEW_MEMBER.name, verdict: "active", source: "member", mobile: "0820000000", signinMobile: "0820000000" }
   }
 
   const supabase = getSupabaseAdmin()
@@ -93,6 +100,15 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
     // MEMBER_ID_COLUMN is resolved at runtime, so the select string is opaque to
     // supabase-js's literal-type parser.
     const row = memberRow as unknown as Record<string, string | null>
+    let signinMobile: string | null | undefined
+    if (options.signin) {
+      // Staff such as DLC-0001-69 have both rows, and the members row can hold
+      // a different number from the one they chose for login codes in CDASH.
+      // An open staff account decides where the PIN goes, whichever row
+      // matched first.
+      const staff = await findStaff(supabase, memberId)
+      signinMobile = (staff && !staff.deleted_at ? await staffSigninPhone(supabase, staff) : null) || row.mobile_number
+    }
     return {
       found: true,
       memberId: row[MEMBER_ID_COLUMN] ?? memberId,
@@ -101,19 +117,12 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
       source: "member",
       status: row.status,
       mobile: row.mobile_number,
+      signinMobile,
     }
   }
 
-  const { data: staffRow, error: staffError } = await supabase
-    .from(STAFF_TABLE)
-    .select(`${STAFF_ID_COLUMN}, name, role, deleted_at, phone, store_id, otp_phone, otp_phone_type`)
-    .ilike(STAFF_ID_COLUMN, memberId)
-    .maybeSingle()
-  if (staffError) throw new Error(staffError.message)
-  if (!staffRow) return { found: false }
-
-  const staff = staffRow as unknown as Record<string, string | null>
-  const mobile = await staffSigninPhone(supabase, staff)
+  const staff = await findStaff(supabase, memberId)
+  if (!staff) return { found: false }
   // `users` has no status column — CDASH closes a staff account by setting
   // deleted_at, so that is the whole test.
   const deleted = Boolean(staff.deleted_at)
@@ -125,8 +134,19 @@ export async function lookupMember(rawMemberId: string): Promise<MemberLookup> {
     source: "staff",
     role: staff.role,
     status: deleted ? "closed" : "active",
-    mobile,
+    mobile: staff.phone,
+    signinMobile: options.signin ? await staffSigninPhone(supabase, staff) : undefined,
   }
+}
+
+async function findStaff(supabase: ReturnType<typeof getSupabaseAdmin>, memberId: string) {
+  const { data, error } = await supabase
+    .from(STAFF_TABLE)
+    .select(`${STAFF_ID_COLUMN}, name, role, deleted_at, phone, store_id, otp_phone, otp_phone_type`)
+    .ilike(STAFF_ID_COLUMN, memberId)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return data as unknown as Record<string, string | null> | null
 }
 
 /**

@@ -11,10 +11,10 @@ const input = z.object({ memberId: z.string().min(4).max(40) })
 /**
  * Step one of signing in: a Member ID in, a PIN out by SMS.
  *
- * The PIN goes to the mobile number CDASH holds for the member, never to a
- * number typed here, and nothing about the member (not even their name) comes
- * back until the PIN is checked by /api/members/verify-code. No cookie is set
- * at this step.
+ * The PIN goes to the number CDASH texts this person's login codes to (see
+ * `signinMobile` in lib/members), never to a number typed here, and nothing
+ * about the member (not even their name) comes back until the PIN is checked
+ * by /api/members/verify-code. No cookie is set at this step.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ error: "Enter a valid DLC Member ID" }, { status: 400 })
 
-    const member = await lookupMember(parsed.data.memberId)
+    const member = await lookupMember(parsed.data.memberId, { signin: true })
     if (!member.found) {
       recordFailure(client)
       return NextResponse.json({ error: memberLookupMessage(member) }, { status: 404 })
@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
       recordFailure(client)
       return NextResponse.json({ error: memberLookupMessage(member) }, { status: 403 })
     }
-    if (!member.mobile || member.mobile.replace(/\D/g, "").length < 9) {
+    const mobile = member.signinMobile
+    if (!mobile || mobile.replace(/\D/g, "").length < 9) {
       return NextResponse.json({ error: "We do not have a mobile number for your membership, so we cannot send your PIN. Please ask the team at the lounge to add it, or call the store and we will help you." }, { status: 409 })
     }
 
@@ -51,9 +52,9 @@ export async function POST(request: NextRequest) {
     }
 
     recordFailure(`sms:${client}`)
-    await sendSms(member.mobile, `Your Down Low Cannabis sign-in PIN is ${issued.code}. It expires in ${CODE_TTL_MINUTES} minutes. Never share it - the DLC team will never ask for it.`)
+    await sendSms(mobile, `Your Down Low Cannabis sign-in PIN is ${issued.code}. It expires in ${CODE_TTL_MINUTES} minutes. Never share it - the DLC team will never ask for it.`)
 
-    return NextResponse.json({ step: "pin", sentTo: maskMobile(member.mobile), expiresInMinutes: CODE_TTL_MINUTES, resendAfter: RESEND_AFTER_SECONDS })
+    return NextResponse.json({ step: "pin", sentTo: maskMobile(mobile), expiresInMinutes: CODE_TTL_MINUTES, resendAfter: RESEND_AFTER_SECONDS })
   } catch (error) {
     console.error("Member sign-in PIN error", error)
     return NextResponse.json({ error: "We could not send your PIN just now. Please try again in a moment." }, { status: 500 })
