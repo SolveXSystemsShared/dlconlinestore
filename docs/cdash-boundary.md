@@ -69,8 +69,15 @@ settlement, which rejects an order it cannot fill rather than overselling.
 The function and its table are left in place, unused, because dropping them
 would take `cancel_online_order` with them. Nothing calls it.
 
-**Open:** an order that CDASH cannot fill fails at settlement rather than at
-checkout. Closing that needs a stock signal from CDASH, not a hold from us.
+Instead the store reads stock by CDASH's own deduction rule (`lib/stock-check.ts`,
+mirroring `deductInventory`) on the bag, before the exchange is created, and
+again just before Paystack opens. That is a read, inside the boundary. What is
+left is the race for the last unit between two members, which CDASH settles
+first-come and the store answers by returning the second card automatically.
+Keep `SHELF_READY_TYPES` there in step with CDASH.
+
+Unsettled exchanges do not sit in the pending queue: the settlement sweep
+(`lib/settlement-sweep.ts`) closes them through `{action:"cancel"}` after 2 hours.
 
 ## `finalize_online_order` is gone
 

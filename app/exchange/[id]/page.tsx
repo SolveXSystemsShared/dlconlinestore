@@ -9,6 +9,8 @@ import { SettlePanel } from "@/components/settle-panel"
 import { LiveRefresh } from "@/components/live-refresh"
 import { SettledCelebration } from "@/components/settled-celebration"
 import { getCollectionPoint } from "@/lib/store-settings"
+import { UNSETTLED_REASON, maybeRunSettlementSweep } from "@/lib/settlement-sweep"
+import { after } from "next/server"
 
 export const dynamic = "force-dynamic"
 
@@ -37,6 +39,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
     getCollectionPoint(),
   ])
   if (!order) notFound()
+  after(maybeRunSettlementSweep)
 
   type Line = { product_type: string; strain_name: string; grade: string | null; quantity: number }
   const lines = (order.online_order_items || []) as Line[]
@@ -45,6 +48,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   const awaiting = status === "pending_payment"
   const settled = !awaiting && status !== "cancelled" && status !== "expired"
   const returned = status === "cancelled" && String(order.cancellation_reason || "").startsWith("Settlement refused")
+  const timedOut = status === "expired" && order.cancellation_reason === UNSETTLED_REASON
   // The team moves a settled exchange on in CDASH: paid → preparing → ready → completed.
   const preparing = status === "preparing"
   const ready = status === "ready"
@@ -53,7 +57,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   const total = Number(order.total) || 0
 
   const hero = awaiting
-    ? { kicker: `EXCHANGE REQUEST · ${when(order.created_at)}`, title: <>Settle to<br />send it.</>, sub: `Thanks, ${order.member_name}. Settle by card to send your request to the DLC team. They start preparing it as soon as it is settled.` }
+    ? { kicker: `EXCHANGE REQUEST · ${when(order.created_at)}`, title: <>Settle to<br />send it.</>, sub: `Thanks, ${order.member_name}. Settle by card within 2 hours to send your request to the DLC team. They start preparing it as soon as it is settled.` }
     : collected
       ? { kicker: "COLLECTED", title: <>All<br />yours.</>, sub: `Thanks, ${order.member_name}. Your exchange has been handed over. Enjoy, and thank you for being a member.` }
       : ready
@@ -62,7 +66,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           ? { kicker: "BEING PREPARED", title: <>Getting it<br />ready.</>, sub: `The DLC team is preparing your exchange now. We let you know the moment it is ready to collect.` }
           : settled
             ? { kicker: `SETTLED · ${when(order.paid_at || order.created_at)}`, title: <>We have<br />your request.</>, sub: `Thanks, ${order.member_name}. Your exchange is settled and with the DLC team. We let you know when they start preparing it.` }
-      : { kicker: `EXCHANGE REQUEST · ${exchangeStatus(status).toUpperCase()}`, title: <>Request<br />closed.</>, sub: returned ? "We could not complete this exchange, so your card settlement has been returned to your card. It can take a few working days to show. Please send a new request." : "This exchange request was closed. Send a new request from your bag whenever you are ready." }
+      : { kicker: `EXCHANGE REQUEST · ${exchangeStatus(status).toUpperCase()}`, title: <>Request<br />closed.</>, sub: returned ? "We could not complete this exchange, so your card settlement has been returned to your card. It can take a few working days to show. Please send a new request." : timedOut ? "This exchange request was not settled within 2 hours, so it was closed and nothing was settled. Your items are not held for you. Send a new request from your bag whenever you are ready." : "This exchange request was closed. Send a new request from your bag whenever you are ready." }
 
   return (
     <div className="sf">

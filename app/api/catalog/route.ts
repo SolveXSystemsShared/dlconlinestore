@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
+import { maybeRunSettlementSweep } from "@/lib/settlement-sweep"
 import { getCatalogCached } from "@/lib/catalog"
 import { requireActiveMember } from "@/lib/member-session"
 import { isPreviewMode, previewCatalog } from "@/lib/preview"
@@ -14,6 +15,8 @@ export async function GET() {
     // accepted here: it went unescaped into PostgREST or() filters and each new
     // value added a catalogue cache entry that was never cleared.
     // Shared 20-second copy — see getCatalogCached.
+    // Member traffic keeps the settlement sweep running between scheduled runs.
+    after(maybeRunSettlementSweep)
     const products = await getCatalogCached()
     return NextResponse.json({ products })
   } catch (error) {

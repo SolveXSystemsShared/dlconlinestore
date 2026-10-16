@@ -1,6 +1,7 @@
 import { receiptEmailFor } from "@/lib/receipt-email"
 import { CLOCKED_IN_MESSAGE, isStaffClockedIn } from "@/lib/staff-shift"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse, after } from "next/server"
+import { maybeRunSettlementSweep } from "@/lib/settlement-sweep"
 import { z } from "zod"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { normalizeMemberId } from "@/lib/format"
@@ -9,6 +10,7 @@ import { lookupMember } from "@/lib/members"
 import { collectionRecord, getCollectionPoint, getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, createOnlineOrder, fetchQuote } from "@/lib/cdash"
 import { resolveOrderLines } from "@/lib/order-lines"
+import { findShortages, shortageMessage } from "@/lib/stock-check"
 import { PaystackError } from "@/lib/paystack"
 import { SettlementError, settlementReturnUrl, startSettlement } from "@/lib/settlement"
 import { lockedFor, recordFailure } from "@/lib/rate-limit"
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
   const gate = await requireActiveMember()
   if (!gate.ok) return gate.response
   const access = gate
+  after(maybeRunSettlementSweep)
 
   const params = Object.fromEntries(new URL(request.url).searchParams)
   const parsed = historyQuery.safeParse(params)
@@ -152,6 +155,11 @@ export async function POST(request: NextRequest) {
     // finalize_online_order is gone, so they would leak until they expired. The
     // real guard is CDASH's own atomic deduction at settlement, which rejects
     // the order rather than overselling. See docs/cdash-boundary.md.
+    //
+    // What we can do is check, by CDASH's own rule, before anything is created
+    // or charged — so a sold-out item stops the request here, not after the card.
+    const shortages = await findShortages(lines, storeId)
+    if (shortages.length) return NextResponse.json({ error: shortageMessage(shortages), shortages }, { status: 409 })
 
     // What it costs is CDASH's answer, not ours. The quote is still a preview —
     // it prices our catalogue — but it is the same waterfall the settlement
@@ -228,7 +236,7 @@ export async function POST(request: NextRequest) {
     // offers settlement again — nothing is lost by failing here.
     let settlement: { authorizationUrl: string; amountDue: number } | null = null
     try {
-      settlement = await startSettlement({ ...order, exchange_id: String(exchange.id), member_id: member.memberId }, { email: await receiptEmailFor(member.memberId), callbackUrl: settlementReturnUrl(request.url, order.id) })
+      settlement = await startSettlement({ ...order, exchange_id: String(exchange.id), member_id: member.memberId, fulfillment_store_id: storeId }, { email: await receiptEmailFor(member.memberId), callbackUrl: settlementReturnUrl(request.url, order.id) })
     } catch (error) {
       if (!(error instanceof SettlementError || error instanceof PaystackError || error instanceof CdashError)) throw error
       console.error("Settlement could not be opened for order", order.id, error.message)

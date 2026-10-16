@@ -4,6 +4,7 @@ import { requireActiveMember } from "@/lib/member-session"
 import { getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, fetchQuote } from "@/lib/cdash"
 import { resolveOrderLines } from "@/lib/order-lines"
+import { findShortages, shortageMessage } from "@/lib/stock-check"
 
 const input = z.object({
   dlcCreditsRequested: z.number().min(0).max(100000).optional().default(0),
@@ -30,8 +31,13 @@ export async function POST(request: NextRequest) {
     const parsed = input.safeParse(await request.json())
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid bag" }, { status: 400 })
 
-    const resolved = await resolveOrderLines(parsed.data.items, await getFulfillmentStoreId())
+    const storeId = await getFulfillmentStoreId()
+    const resolved = await resolveOrderLines(parsed.data.items, storeId)
     if ("error" in resolved) return NextResponse.json({ error: resolved.error }, { status: resolved.status })
+
+    // Say so on the bag, before the member gets as far as the card.
+    const shortages = await findShortages(resolved.lines, storeId)
+    if (shortages.length) return NextResponse.json({ error: shortageMessage(shortages), shortages }, { status: 409 })
 
     const quote = await fetchQuote({
       memberId: access.memberId,

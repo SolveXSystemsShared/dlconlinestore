@@ -2,6 +2,7 @@ import { randomBytes } from "crypto"
 import { getSupabaseAdmin } from "./supabase-admin"
 import { CdashError, cancelExchange, fetchSettleQuote, settleExchange } from "./cdash"
 import { lookupMember } from "./members"
+import { findShortages, shortageMessage } from "./stock-check"
 import { PaystackError, initializeTransaction, refundTransaction, toCents, verifyTransaction } from "./paystack"
 
 /**
@@ -34,7 +35,7 @@ export class SettlementError extends Error {
   }
 }
 
-type OrderForSettlement = { id: string; order_number: string; exchange_id: string | null; member_id: string; status: string }
+type OrderForSettlement = { id: string; order_number: string; exchange_id: string | null; member_id: string; status: string; fulfillment_store_id?: string | null }
 
 /**
  * Opens a Paystack checkout for the exchange's binding card amount.
@@ -49,11 +50,22 @@ export async function startSettlement(order: OrderForSettlement, input: { email:
   const amountCents = toCents(quote.amountDue)
   if (amountCents <= 0) throw new SettlementError("There is nothing to settle on this exchange request.", 409)
 
+  // Stock again, right before the card: a member settling from the request's
+  // page may come back hours after sending it. Nothing is charged if it has gone.
+  const supabase = getSupabaseAdmin()
+  const { data: items } = await supabase.from("online_order_items").select("product_type, strain_name, grade, quantity").eq("order_id", order.id)
+  if (items?.length) {
+    const shortages = await findShortages(
+      items.map((item) => ({ productType: item.product_type, strainName: item.strain_name, grade: item.grade, quantity: Number(item.quantity) })),
+      order.fulfillment_store_id ?? null,
+    )
+    if (shortages.length) throw new SettlementError(shortageMessage(shortages).replace("Please update your bag and try again.", "Please send a new request from your bag."), 409)
+  }
+
   const reference = `${order.order_number}-${randomBytes(4).toString("hex")}`.replace(/[^A-Za-z0-9.=-]/g, "")
 
   // Recorded before Paystack hears of it, so a payment can never arrive for a
   // reference we have no row for.
-  const supabase = getSupabaseAdmin()
   const { error: insertError } = await supabase.from("online_payment_attempts").insert({
     reference,
     order_id: order.id,
@@ -192,10 +204,12 @@ async function refund(reference: string, orderId: string, exchangeId: string, re
   if (options.cancelOrder) {
     // Only an order still waiting is closed: if it was settled by another
     // payment (a second checkout that also went through), it stays settled.
+    // One the sweep already closed as unsettled is re-marked, so its page says
+    // the card settlement went back rather than that nothing was settled.
     const { data: closed } = await supabase.from("online_orders")
       .update({ status: "cancelled", cancellation_reason: `Settlement refused: ${reason}` })
       .eq("id", orderId)
-      .eq("status", "pending_payment")
+      .in("status", ["pending_payment", "expired"])
       .select("id")
       .maybeSingle()
     if (closed) await cancelExchange(exchangeId).catch((err) => console.error("CDASH exchange left pending after refund", exchangeId, err))

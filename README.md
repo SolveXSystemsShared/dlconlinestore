@@ -90,16 +90,39 @@ settled itself — CDASH does both. The flow (`lib/settlement.ts`):
    the payment is returned to the card automatically. An outage is retried, not
    refunded.
 
-Every checkout is a row in `online_payment_attempts`. **A row in `paid` or
-`refunding` for more than a few minutes is money taken with no outcome** — look
-at `last_error` and resolve it by hand:
+Before any of that, the bag, the request and the moment Paystack opens all
+check stock by the same rule CDASH deducts with (`lib/stock-check.ts`), so a
+sold-out item stops the member before the card, not after. It is a check, not a
+hold: two members racing for the last unit both pass, and whoever settles second
+is refused by CDASH and returned automatically.
+
+Every checkout is a row in `online_payment_attempts`. The settlement sweep
+(`lib/settlement-sweep.ts`) finishes whatever the webhook and the return left:
+
+- a checkout Paystack took but nobody reported (webhook missed, tab closed) is
+  found and settled;
+- a `paid` row (CDASH was down) is retried until CDASH settles or refuses;
+- a `refunding` row is confirmed with Paystack and the refund sent again if it
+  did not go through;
+- a request not settled within **2 hours** is closed in CDASH and here, so it
+  leaves the team's queue. A payment that lands after that is returned.
+
+It runs off member traffic (at most every 5 minutes per server) and from
+`/api/cron/settlement-sweep`, which Vercel Cron calls daily (`vercel.json`) with
+`CRON_SECRET`. On a Vercel Pro plan, or from any external scheduler sending
+`Authorization: Bearer <CRON_SECRET>`, run it every 10 minutes for quiet hours.
+
+**Nobody needs to watch it.** Only a payment still stuck after an hour of
+retries (Paystack refusing a refund, CDASH down for an hour) is sent to the team
+through `STAFF_NOTIFY_WEBHOOK_URL`, once. To look at one:
 
 ```sql
 select reference, order_id, status, amount_cents, last_error, updated_at
 from online_payment_attempts where status in ('paid', 'refunding') order by updated_at;
 ```
 
-Setup: apply `20261005120000_paystack_settlement.sql`; set `PAYSTACK_SECRET_KEY`
+Setup: apply `20261005120000_paystack_settlement.sql` and
+`20261016120000_settlement_sweep.sql`; set `CRON_SECRET`; set `PAYSTACK_SECRET_KEY`
 here **and** in CDASH; deploy the CDASH `/api/store/exchanges/:id/settle` route;
 set the Paystack webhook URL. Test with Paystack test keys and card
 4084 0840 8408 4081.

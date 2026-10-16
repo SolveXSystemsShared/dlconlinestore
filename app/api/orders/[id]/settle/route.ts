@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const supabase = getSupabaseAdmin()
   const { data: order } = await supabase
     .from("online_orders")
-    .select("id, order_number, exchange_id, member_id, status")
+    .select("id, order_number, exchange_id, member_id, status, fulfillment_store_id")
     .eq("id", id)
     .eq("member_id", access.memberId)
     .maybeSingle()

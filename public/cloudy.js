@@ -102,6 +102,7 @@
     out_for_delivery: 'is on its way.',
     completed: 'has been collected.',
     cancelled: 'was cancelled.',
+    expired: 'was closed because it was not settled within 2 hours. Send a new request from your bag whenever you are ready.',
   };
 
   const actions = {
