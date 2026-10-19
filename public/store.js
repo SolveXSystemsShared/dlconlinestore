@@ -29,6 +29,21 @@
     return TIERS.find(tier => tier.grades.includes(g))?.slug || null;
   }
 
+  // Infused products (dabsticks) carry their grade as free text: "Executive
+  // Greenhouse Dab Infused", "Indoor Dab Infused Preroll". The grade leads and
+  // the name is the fallback (grade "Dab Stick", name "Greenhouse Dab Infused
+  // Moonstick"). Longest names first, so Executive Greenhouse never reads as
+  // plain Greenhouse.
+  const TIER_WORDS = TIERS.flatMap(tier => tier.grades.map(word => [word, tier.slug])).sort((a, b) => b[0].length - a[0].length);
+  function infusedTier(product) {
+    for (const text of [product.grade, product.name]) {
+      const t = fold(text);
+      const hit = TIER_WORDS.find(([word]) => new RegExp(`(^|[^a-z])${word}($|[^a-z])`).test(t));
+      if (hit) return hit[1];
+    }
+    return null;
+  }
+
   /**
    * Where a product sits on the site: flower and prerolls by cultivation tier,
    * wellness as one shelf, and everything else (edibles, vapes, concentrates…)
@@ -154,9 +169,10 @@
     return `product.html?category=${encodeURIComponent(category)}&tier=${encodeURIComponent(tier)}&id=${encodeURIComponent(product.id)}`;
   }
 
-  function collectionUrl(category, tier) {
+  /** `grade` narrows an infused shelf (dabsticks) to one cultivation tier. */
+  function collectionUrl(category, tier, grade) {
     if (category === 'wellness') return 'strains.html?category=wellness&tier=wellness';
-    return `strains.html?category=${encodeURIComponent(category)}${tier ? `&tier=${encodeURIComponent(tier)}` : ''}`;
+    return `strains.html?category=${encodeURIComponent(category)}${tier ? `&tier=${encodeURIComponent(tier)}` : ''}${grade ? `&grade=${encodeURIComponent(grade)}` : ''}`;
   }
 
   // ── Loading bar ────────────────────────────────────────────────────────
@@ -364,12 +380,118 @@
     return [...types.values()].sort((a, b) => rank(a.slug) - rank(b.slug) || a.label.localeCompare(b.label));
   }
 
+  // ── In-store specials ──────────────────────────────────────────────────
+  // Run by the till, not the bag (see lib/specials.ts): shown on the shelf so a
+  // member knows what to ask for, never added to a bag from here.
+  let specialsPromise = null;
+  function specials() {
+    if (!specialsPromise) {
+      specialsPromise = api('/api/specials').then(data => data.specials || []);
+      specialsPromise.catch(() => { specialsPromise = null; });
+    }
+    return specialsPromise;
+  }
+
+  /** Where one line of a special sits on the site, read the way a product is. */
+  function lineShelf(line) {
+    const type = fold(line.productType);
+    // Same rule as shelfType in lib/catalog.ts: dab-infused moonsticks are dabsticks.
+    const dab = /moonstick/.test(type) && /\bdab/.test(fold(`${line.grade || ''} ${line.name || ''}`));
+    const place = classify({ productType: dab ? 'Dabsticks' : line.productType, grade: line.grade });
+    // A flower or preroll line with no grade means any tier of it.
+    if (place.category === 'more' && /flower|bud/.test(type)) return { category: 'flower', tier: null };
+    if (place.category === 'more' && /^pre-?rolls?$/.test(type)) return { category: 'prerolls', tier: null };
+    if (dab) return { ...place, grade: infusedTier(line) };
+    return place;
+  }
+
+  /** The specials with at least one line on this shelf. No category: all of them. */
+  function specialsOn(list, category, tier, grade) {
+    if (!category || category === 'all') return list;
+    return list.filter(sp => sp.lines.some(line => {
+      const place = lineShelf(line);
+      if (place.category !== category) return false;
+      if (tier && place.tier && place.tier !== tier) return false;
+      return !grade || !place.grade || place.grade === grade;
+    }));
+  }
+
+  // A bundle listing every flavour of one product type means "pick one", the
+  // same reading the Specials page gives it.
+  const isChoice = sp => sp.lines.length > 1 && sp.lines.every(l => l.name && l.productType === sp.lines[0].productType && l.quantity === 1);
+
+  /** What a special holds, in one plain line: "1× Outdoor preroll + 1× any drink". */
+  function specialItems(sp) {
+    if (isChoice(sp)) return `Pick one: ${sp.lines.map(l => l.name).join(', ')}`;
+    return sp.lines.map(l => {
+      const type = l.productType.replace(/^pre-?rolls?$/i, 'preroll').replace(/s$/i, '').toLowerCase();
+      return `${l.quantity}× ${l.name || `${l.grade ? `${l.grade} ` : 'any '}${type}`}`;
+    }).join(' + ');
+  }
+
+  /** The picture for one line: its own pack shot, else the closest shelf artwork. */
+  function lineImage(line, products) {
+    const place = lineShelf(line);
+    // "Any outdoor preroll" is the tier, not one strain: the tier artwork says that.
+    // The preroll tier shots are cropped tight for bundles (assets/webp/bundle):
+    // the shelf versions sit on a tall canvas and would look tiny beside a pack shot.
+    if (!line.name && place.category === 'prerolls' && place.tier) return `assets/webp/bundle/preroll-${place.tier}.webp?v=${ART_VERSION}`;
+    if (!line.name && place.category === 'flower' && place.tier) return imageFor({ productType: line.productType, grade: line.grade, name: '', slug: '' });
+    const onShelf = products.filter(p => {
+      const at = classify(p);
+      return at.category === place.category && (!place.tier || at.tier === place.tier);
+    });
+    // Till names and shelf names are typed differently ("Watermelon Gummie",
+    // "Gummies (Peach/Watermelon)"), so they are compared word by word.
+    const words = value => fold(value).split(/[^a-z0-9]+/).filter(w => w.length > 2).map(w => w.replace(/(ies|es|s)$/, ''));
+    const wanted = words(line.name);
+    const score = p => { const have = words(p.name); return wanted.filter(w => have.some(h => h.startsWith(w) || w.startsWith(h))).length; };
+    // Every word must match, with at most one word to spare, so "Tropical"
+    // never borrows the picture of "Tropical Sour Cubes".
+    const named = wanted.length ? onShelf.filter(p => score(p) === wanted.length && words(p.name).length <= wanted.length + 1) : [];
+    const graded = line.grade ? onShelf.filter(p => fold(p.grade) === fold(line.grade)) : [];
+    // Outside flower, the grade is the brand ("Awaken", "Awaken Carts"): any
+    // product of that brand stands in, never one from another brand.
+    const brand = fold(line.grade).split(/\s+/)[0];
+    const branded = brand ? onShelf.filter(p => fold(p.grade).split(/\s+/)[0] === brand) : [];
+    const pick = [named, graded, branded, line.name || line.grade ? [] : onShelf]
+      .map(set => set.find(p => p.imageUrl || PRODUCT_ART.has(p.slug)) || set.find(p => imageFor(p)))
+      .find(Boolean);
+    return pick ? imageFor(pick) : imageFor({ productType: line.productType, grade: line.grade, name: line.name || '', slug: '' });
+  }
+
+  /**
+   * The special's products side by side on one cloud: each line's picture,
+   * repeated for its quantity, up to four. A "pick one" bundle shows one.
+   */
+  function bundleArt(sp, products) {
+    const pictured = sp.lines.map(line => ({ line, src: lineImage(line, products) }));
+    // A "pick one" bundle shows one flavour: the first that has a picture.
+    const lines = isChoice(sp) ? [pictured.find(x => x.src) || pictured[0]] : pictured;
+    const pieces = [];
+    lines.forEach(({ line, src }) => {
+      for (let i = 0; i < Math.min(line.quantity, 4); i++) pieces.push({ src, label: line.name || line.grade || line.productType });
+    });
+    const shown = pieces.slice(0, 4);
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const centre = (shown.length - 1) / 2;
+    const items = shown.map((piece, i) => {
+      const off = i - centre;
+      const style = `--off:${off.toFixed(2)};--lift:${Math.abs(off).toFixed(2)};z-index:${10 - Math.round(Math.abs(off) * 2)}`;
+      return piece.src
+        ? `<img class="bundle-art__piece" style="${style}" src="${esc(piece.src)}" alt="" loading="lazy" decoding="async">`
+        : `<span class="bundle-art__piece bundle-art__piece--blank" style="${style}">${esc(piece.label)}</span>`;
+    }).join('');
+    return `<div class="bundle-art dlc-cloud-stage" data-count="${shown.length}" aria-hidden="true"><div class="bundle-art__set">${items}</div></div>`;
+  }
+
   // As soon as the member is confirmed, start the catalogue and bag downloads
   // — on a slow line every page needs them, so waiting to be asked wastes time.
   gateReady.then(member => { if (member) { cart().catch(() => {}); catalog().catch(() => {}); } });
 
   window.DLCStore = {
-    TIERS, classify, tierForGrade, imageFor, price, productUrl, collectionUrl, slugify, moreShelves,
+    TIERS, classify, tierForGrade, infusedTier, imageFor, price, productUrl, collectionUrl, slugify, moreShelves,
+    specials, specialsOn, specialItems, bundleArt, isChoice,
     catalog, cart, setQuantity, addToCart, inCart, slowConnection, api,
   };
 })();

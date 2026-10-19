@@ -471,8 +471,9 @@
 
   function renderCategory(category, animate = true){
     const items = categoryProducts[category] || categoryProducts.flower;
-    const fiveUp = items.length === 5;
+    const fiveUp = items.length >= 4;
     document.getElementById('productDock').classList.toggle('five-up', fiveUp);
+    document.getElementById('productDock').classList.toggle('four-up', items.length === 4);
     document.getElementById('productDock').classList.toggle('three-up', !fiveUp);
 
     cards.forEach((card, i) => {
@@ -644,11 +645,29 @@
       if (!shelf) return;
       shown++;
       const label = shelf.label.toUpperCase();
+      const allTile = [label, `All ${shelf.label.toLowerCase()}`, S.collectionUrl('more', btn.dataset.category), null, `VIEW ALL ${shelf.items.length} →`];
+      // Dabsticks are chosen by the grade of the flower that was infused, not
+      // by strain: one cloud per grade on the shelf, each opening that grade.
+      if (btn.dataset.category === 'dabsticks') {
+        const grades = S.TIERS
+          .map(tier => ({ tier, items: shelf.items.filter(p => S.infusedTier(p) === tier.slug) }))
+          .filter(g => g.items.length);
+        if (grades.length) {
+          categoryProducts.dabsticks = [
+            ...grades.slice(0, 4).map(g => {
+              const pick = [...g.items].sort((a, b) => b.availableQuantity - a.availableQuantity)[0];
+              return [label, g.tier.label, S.collectionUrl('more', 'dabsticks', g.tier.slug), S.imageFor(pick), `VIEW ${g.items.length} →`];
+            }),
+            allTile,
+          ];
+          return;
+        }
+      }
       const picks = [...shelf.items].sort((a, b) => b.availableQuantity - a.availableQuantity);
       const count = picks.length >= 4 ? 4 : picks.length >= 2 ? 2 : 1;
       categoryProducts[btn.dataset.category] = [
         ...picks.slice(0, count).map(p => [label, p.name, S.productUrl(p), S.imageFor(p)]),
-        [label, `All ${shelf.label.toLowerCase()}`, S.collectionUrl('more', btn.dataset.category), null, `VIEW ALL ${shelf.items.length} →`],
+        allTile,
       ];
     });
     document.querySelector('.category-row')?.classList.toggle('is-extended', shown > 0);

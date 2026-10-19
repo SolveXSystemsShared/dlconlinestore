@@ -3945,3 +3945,60 @@ body .product-exchange-band h2{color:var(--dlc-navy);font-size:clamp(44px,6.4vw,
 body .product-exchange-band__copy a{gap:12px;min-height:46px;padding:0 22px;border:1px solid #fff!important;border-radius:999px;background:#fff;color:var(--dlc-sky-deep,#1a6ef0)!important;box-shadow:0 8px 20px rgba(6,33,61,.12);transition:transform .18s ease,background .18s ease}
 body .product-exchange-band__copy a:hover{background:#f2f8ff!important;transform:translateY(-2px)}
 @media(max-width:640px){body .product-exchange-band{border-radius:22px;padding:30px 20px 88px!important}}
+
+/* Four clouds on the lounge table (dabsticks by infused grade, plus All):
+   the five-up sizing, with the four spread evenly instead of leaving a gap. */
+.product-dock.five-up.four-up .card-a{left:4%}
+.product-dock.five-up.four-up .card-b{left:28%}
+.product-dock.five-up.four-up .card-c{left:52%}
+.product-dock.five-up.four-up .card-d{left:auto;right:4%}
+@media (max-width:640px) and (orientation:portrait){
+  .product-dock.five-up.four-up .card-d{grid-column:3 / span 2 !important}
+}
+@media (min-width:641px) and (max-width:1024px) and (orientation:portrait){
+  .product-dock.five-up.four-up .card-d{grid-column:3 / span 2 !important}
+}
+
+/* ── Specials: a special's products together on one cloud ───────────────
+   Built by bundleArt() in store.js. The pieces overlap and fan out from the
+   middle, so a bundle reads as one set rather than a row of separate items. */
+.bundle-art{height:230px;width:100%;--w:150px;--h:150px;--overlap:-14px}
+.bundle-art[data-count="2"]{--w:118px;--h:142px;--overlap:-18px}
+.bundle-art[data-count="3"]{--w:96px;--h:132px;--overlap:-18px}
+.bundle-art[data-count="4"]{--w:80px;--h:124px;--overlap:-16px}
+.bundle-art__set{align-self:end;display:flex;align-items:flex-end;justify-content:center;margin-bottom:13%}
+.bundle-art__piece{display:block;flex:0 0 auto;width:var(--w);height:var(--h);max-width:none;object-fit:contain;object-position:50% 100%;margin-left:var(--overlap);position:relative;
+  transform:translateY(calc(var(--lift) * 6px)) rotate(calc(var(--off) * 6deg));transform-origin:50% 100%;
+  filter:drop-shadow(0 12px 14px rgba(21,31,45,.16));transition:transform .3s ease}
+.bundle-art__piece:first-child{margin-left:0}
+.bundle-art__piece--blank{display:grid;place-items:center;align-content:center;gap:6px;height:auto;aspect-ratio:3/4;width:calc(var(--w) * .82);padding:10px 8px;border-radius:16px;border:1px solid #d6e6f7;background:linear-gradient(160deg,#fff 30%,#e4f2ff);color:var(--dlc-navy,#06213d);font-size:9px;font-weight:900;letter-spacing:.8px;line-height:1.25;text-align:center;text-transform:uppercase;overflow-wrap:break-word;box-shadow:0 10px 22px rgba(26,110,240,.14);filter:none}
+.bundle-art[data-count="3"] .bundle-art__piece--blank,.bundle-art[data-count="4"] .bundle-art__piece--blank{font-size:8px;letter-spacing:.4px;padding:8px 5px}
+.bundle-art__piece--blank::before{content:"";width:28px;height:16px;background:url("assets/dlc-logo.svg") center/contain no-repeat;opacity:.7}
+.special-card:hover .bundle-art__piece,.li-card:hover .bundle-art__piece{transform:translateY(calc(var(--lift) * 6px - 6px)) rotate(calc(var(--off) * 9deg))}
+@media(prefers-reduced-motion:reduce){.bundle-art__piece{transition:none}}
+
+.shelf-specials{width:min(1380px,calc(100% - clamp(36px,8vw,120px)));margin:0 auto 26px}
+.shelf-specials__head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px 24px;flex-wrap:wrap;margin-bottom:14px}
+.shelf-specials__head .strains-kicker{margin-bottom:6px;color:var(--dlc-sky-deep,#1a6ef0)}
+.shelf-specials__head h2{margin:0;font-size:clamp(24px,2.8vw,36px);line-height:.95;letter-spacing:-.04em;text-transform:uppercase;color:#11131a}
+.shelf-specials__head p{flex:1 1 260px;margin:0;max-width:440px;font-size:12px;line-height:1.55;color:#636872}
+.shelf-specials__head a{font-size:9px;font-weight:950;letter-spacing:1.2px;color:var(--dlc-sky-deep,#1a6ef0);white-space:nowrap}
+.shelf-specials__track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,320px);gap:12px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:2px 2px 12px}
+.shelf-specials__track::-webkit-scrollbar{display:none}
+.special-card{scroll-snap-align:start;display:flex;flex-direction:column;min-width:0;border:1px solid #d6e6f7;border-radius:22px;background:linear-gradient(180deg,#f3f9ff 0%,#fff 62%);color:#11131a;text-decoration:none;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.special-card:hover{transform:translateY(-4px);border-color:#b9d8f7;box-shadow:0 18px 34px rgba(6,33,61,.08)}
+.special-card .bundle-art{height:200px}
+.special-card__meta{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:12px;padding:0 18px 18px}
+.special-card__tags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.special-card__tag{padding:4px 8px;border-radius:999px;background:#e4f2ff;color:var(--dlc-sky-deep,#1a6ef0);font-size:8px;font-weight:950;letter-spacing:1.1px}
+.special-card__tag--cash{background:#fff4e5;color:#a35a00}
+.special-card h3{margin:0;min-width:0;font-size:17px;line-height:1.05;letter-spacing:-.03em;text-transform:uppercase}
+.special-card strong{font-size:15px;font-weight:950;white-space:nowrap}
+.special-card p{grid-column:1/-1;margin:10px 0 0;font-size:12px;line-height:1.55;color:#636872}
+.li-card .bundle-art{height:210px;margin:-6px 0 12px}
+@media(max-width:640px){
+  .shelf-specials{width:calc(100% - 2rem)}
+  .shelf-specials__track{grid-auto-columns:minmax(78vw,1fr)}
+  .special-card .bundle-art{height:190px}
+}
+.li-card.is-linked{border-color:var(--dlc-sky,#41a8fc);box-shadow:0 0 0 3px rgba(65,168,252,.28),0 18px 44px rgba(6,33,61,.07)}

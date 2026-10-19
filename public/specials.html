@@ -82,7 +82,7 @@
     return `${l.grade ? `${esc(l.grade)} ` : 'Any '}${esc(type)}${l.grade ? ' <small>any strain</small>' : ''}`;
   }
 
-  function card(sp) {
+  function cardFor(sp, products) {
     const amount = sp.credits != null
       ? `<p class="li-card__credits"><strong>${S.price(sp.credits)}</strong></p>`
       : sp.percentOff != null ? `<p class="li-card__credits"><strong>${esc(sp.percentOff)}% off</strong></p>` : '';
@@ -103,10 +103,12 @@
       body = `<ul class="li-perks li-perks--items">${sp.lines.map(l => `<li><b>${esc(l.quantity)}×</b> ${lineText(l)}</li>`).join('')}</ul>`;
     }
     if (sp.cashOnly) body += `<p class="li-card__note">${sp.percentOff != null ? `${esc(sp.percentOff)}% off` : 'This special'} applies when the exchange is settled in cash. Settled by card, the usual credits apply.</p>`;
-    return `<article class="li-card"><div class="li-tags">${tags}</div><h3>${esc(sp.name)}</h3>${amount}${body}</article>`;
+    return `<article class="li-card" id="special-${esc(sp.id)}">${S.bundleArt(sp, products)}<div class="li-tags">${tags}</div><h3>${esc(sp.name)}</h3>${amount}${body}</article>`;
   }
 
-  S.api('/api/specials').then(({ specials }) => {
+  // The catalogue only supplies pictures, so a failed download never hides a special.
+  Promise.all([S.specials(), S.catalog().catch(() => [])]).then(([specials, products]) => {
+    const card = sp => cardFor(sp, products);
     const bundles = specials.filter(s => s.kind === 'bundle');
     const singles = specials.filter(s => s.kind !== 'bundle');
     const bundlesEl = document.getElementById('bundles');
@@ -120,6 +122,9 @@
       document.getElementById('singles').innerHTML = singles.map(card).join('');
       document.getElementById('offSection').hidden = false;
     }
+    // Arrived from a special on a shelf: bring that card into view.
+    const target = location.hash.startsWith('#special-') && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (target) { target.classList.add('is-linked'); requestAnimationFrame(() => target.scrollIntoView({ block: 'center' })); }
   }).catch(() => {
     const el = document.getElementById('bundles');
     el.removeAttribute('aria-busy');

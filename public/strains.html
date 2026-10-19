@@ -345,6 +345,15 @@
     </div>
   </div>
 
+  <section class="shelf-specials" id="shelfSpecials" aria-labelledby="shelfSpecialsTitle" hidden>
+    <div class="shelf-specials__head">
+      <div><p class="strains-kicker">AT THE COUNTER</p><h2 id="shelfSpecialsTitle">Specials</h2></div>
+      <p>Rung up at the lounge on your next visit. Specials cannot go in your online bag.</p>
+      <a href="specials.html">ALL SPECIALS →</a>
+    </div>
+    <div class="shelf-specials__track" id="shelfSpecialsTrack"></div>
+  </section>
+
   <section class="strains-grid-shell">
     <section class="strain-grid" id="strainGrid" aria-label="Available strains"></section>
   </section>
@@ -385,6 +394,10 @@
   const CATEGORY_LABEL = { flower: 'FLOWER', prerolls: 'PREROLLS', wellness: 'WELLNESS', more: 'MORE' };
   let tierName = tierLabel(tier) || titleCase(tier || 'all');
   const showsAllTiers = () => !isAll && category !== 'wellness' && !tier;
+  // Dabsticks are picked by the grade of the flower that was infused, so that
+  // shelf gets grade chips (see infusedTier in store.js).
+  const infused = () => category === 'more' && tier === 'dabsticks';
+  let grade = S.TIERS.some(t => t.slug === params.get('grade')) ? params.get('grade') : '';
 
   const COLLECTION_STATE_KEY = 'dlcCollectionState';
   const COLLECTION_SCROLL_KEY = 'dlcCollectionCrossScroll';
@@ -496,6 +509,11 @@
       setText('pageDescription', 'The DLC wellness range. Open a product for its format, measured serving and credits.');
       setText('bandCopy', 'Open any product above for its full details.');
       intro.textContent = 'WELLNESS COLLECTION';
+    } else if (category === 'more' && grade) {
+      setText('pageDescription', `Dabsticks infused with ${tierLabel(grade).toLowerCase()} flower. Pick another grade to switch.`);
+      setText('bandCopy', 'Open any dabstick above for its details, or try another grade.');
+      intro.textContent = 'FULL MENU';
+      intro.href = '/menu';
     } else if (category === 'more' && !allTiers) {
       setText('pageDescription', `Browsing ${tierName.toLowerCase()} on the DLC shelf. Pick another collection to switch.`);
       setText('bandCopy', 'Want one list you can filter and search? Open the full menu.');
@@ -515,21 +533,21 @@
     setText('introCopy', 'Credits and stock are live from the DLC lounge. Add to your bag from any product page; your bag is saved to your Member ID.');
   }
 
-  /** Tier chips for flower/prerolls, product-type chips for "more". */
-  function paintShelves(shelves) {
+  /** Tier chips for flower/prerolls, grade chips for dabsticks. */
+  function paintShelves(shelves, current = tier, href = slug => S.collectionUrl(category, slug), rowLabel = 'TIER') {
     let row = document.getElementById('tierJump');
     if (!row) {
       row = document.createElement('nav');
       row.id = 'tierJump';
       row.className = 'tier-jump';
-      row.setAttribute('aria-label', category === 'more' ? 'Product types' : 'Cultivation tiers');
+      row.setAttribute('aria-label', rowLabel === 'TIER' ? 'Cultivation tiers' : 'Infused grades');
       const holder = document.getElementById('tierRow');
       holder.appendChild(row);
       holder.hidden = false;
-      document.getElementById('tierRowLabel').textContent = category === 'more' ? 'TYPE' : 'TIER';
+      document.getElementById('tierRowLabel').textContent = rowLabel;
     }
     const total = shelves.reduce((sum, shelf) => sum + shelf.count, 0);
-    row.innerHTML = [{ slug: '', label: 'All', count: total }, ...shelves].map(shelf => `<a class="${shelf.slug === tier ? 'active' : ''} ${shelf.count ? '' : 'is-empty'}" href="${S.collectionUrl(category, shelf.slug)}"${shelf.slug === tier ? ' aria-current="page"' : ''}>${escapeHtml(shelf.label.toUpperCase())} <small>${shelf.count}</small></a>`).join('');
+    row.innerHTML = [{ slug: '', label: 'All', count: total }, ...shelves].map(shelf => `<a class="${shelf.slug === current ? 'active' : ''} ${shelf.count ? '' : 'is-empty'}" href="${href(shelf.slug)}"${shelf.slug === current ? ' aria-current="page"' : ''}>${escapeHtml(shelf.label.toUpperCase())} <small>${shelf.count}</small></a>`).join('');
   }
 
   function paintState(title, detail, isError) {
@@ -561,7 +579,7 @@
         : `<div class="strain-pack dlc-cloud-stage placeholder"><span>DLC</span></div>`;
       const low = product.availableQuantity <= 3;
       // On a whole shelf each card names its own tier (or product type).
-      const shelf = isAll || showsAllTiers() ? (tierLabel(place.tier) || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
+      const shelf = infused() ? (tierLabel(S.infusedTier(product)) || 'DABSTICKS').toUpperCase() : isAll || showsAllTiers() ? (tierLabel(place.tier) || product.productType || '').toUpperCase() : category === 'wellness' ? 'PRODUCTS' : tierName.toUpperCase();
       const cardLabel = isAll ? CATEGORY_LABEL[place.category] : categoryName.toUpperCase();
       card.innerHTML = `${pack}<div class="strain-meta"><div class="strain-number">${String(index + 1).padStart(2, '0')} / ${cardLabel}${shelf && shelf !== cardLabel ? ` / ${escapeHtml(shelf)}` : ''}</div><h2>${escapeHtml(product.name)}</h2><div class="strain-price">${S.price(product.price)}</div>${product.strainType ? `<span class="strain-type strain-type--${product.strainType}">${product.strainType.toUpperCase()}</span>` : ''}<p>${escapeHtml(describe(product))}</p><span class="strain-stock${low ? ' is-low' : ''}">${low ? `ONLY ${product.availableQuantity} LEFT` : 'IN STOCK'}</span><span class="strain-action">VIEW PRODUCT →</span></div>`;
       card.setAttribute('role', 'link');
@@ -583,6 +601,27 @@
       card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openProduct(); } });
       grid.appendChild(card);
     });
+  }
+
+  // Specials with something from this shelf in them, each shown as its
+  // products together on one cloud. Read-only: they are rung up at the counter.
+  function paintSpecials(products) {
+    const section = document.getElementById('shelfSpecials');
+    S.specials().then(list => {
+      const here = S.specialsOn(list, category, category === 'wellness' ? '' : tier, grade)
+        .sort((a, b) => (b.kind === 'bundle') - (a.kind === 'bundle'));
+      if (!here.length) return;
+      const where = isAll ? 'at the lounge' : category === 'more' && !tier ? 'on these shelves' : category === 'more' ? `with ${tierName.toLowerCase()}` : tier ? `with ${tierName.toLowerCase()} ${categoryName.toLowerCase()}` : `with ${categoryName.toLowerCase()}`;
+      setText('shelfSpecialsTitle', `Specials ${where}`);
+      document.getElementById('shelfSpecialsTrack').innerHTML = here.map(sp => {
+        const amount = sp.credits != null ? S.price(sp.credits) : sp.percentOff != null ? `${sp.percentOff}% off` : '';
+        const tags = [sp.kind === 'bundle' ? 'BUNDLE' : 'SPECIAL', sp.cashOnly ? 'SETTLE IN CASH' : null].filter(Boolean)
+          .map((t, i) => `<span class="special-card__tag${i ? ' special-card__tag--cash' : ''}">${t}</span>`).join('');
+        const items = S.specialItems(sp);
+        return `<a class="special-card" href="specials.html#special-${encodeURIComponent(sp.id)}">${S.bundleArt(sp, products)}<div class="special-card__meta"><div class="special-card__tags">${tags}</div><h3>${escapeHtml(sp.name)}</h3>${amount ? `<strong>${escapeHtml(amount)}</strong>` : ''}<p>${escapeHtml(items)}</p></div></a>`;
+      }).join('');
+      section.hidden = false;
+    }).catch(() => {});
   }
 
   function restoreScroll() {
@@ -636,8 +675,21 @@
       tierName = shelves.find(s => s.slug === tier)?.label || 'All';
     }
     if (shelves.length && category !== 'more') paintShelves(shelves);
+    if (infused()) {
+      const onShelf = inCategory.filter(p => S.classify(p).tier === tier);
+      const grades = S.TIERS.map(t => ({ slug: t.slug, label: t.label, count: onShelf.filter(p => S.infusedTier(p) === t.slug).length })).filter(g => g.count);
+      if (grade && !grades.some(g => g.slug === grade)) {
+        grade = '';
+        history.replaceState(null, '', S.collectionUrl(category, tier));
+      }
+      if (grades.length) paintShelves(grades, grade, slug => S.collectionUrl(category, tier, slug), 'INFUSED GRADE');
+      if (grade) tierName = `${tierLabel(grade)} ${tierName}`;
+    } else {
+      grade = '';
+    }
 
-    const shelfItems = inCategory.filter(p => isAll || category === 'wellness' || !tier || S.classify(p).tier === tier);
+    const shelfItems = inCategory.filter(p => (isAll || category === 'wellness' || !tier || S.classify(p).tier === tier) && (!grade || S.infusedTier(p) === grade));
+    paintSpecials(products);
     sessionStorage.setItem(COLLECTION_STATE_KEY, JSON.stringify({ url: location.href, scrollY: 0, category, tier }));
 
     // Strain type and sort are applied here, without a reload, and kept in
@@ -698,9 +750,9 @@
     }
     const clearButton = document.getElementById('clearFilters');
     // A chosen tier counts as a filter too; clearing it opens the whole category.
-    const tierFiltered = (category === 'flower' || category === 'prerolls') && !!tier;
+    const tierFiltered = ((category === 'flower' || category === 'prerolls') && !!tier) || !!grade;
     clearButton.addEventListener('click', () => {
-      if (tierFiltered) { location.href = S.collectionUrl(category); return; }
+      if (tierFiltered) { location.href = grade ? S.collectionUrl(category, tier) : S.collectionUrl(category); return; }
       type = 'all'; sort = 'recommended'; sortSelect.value = sort; remember(); apply();
     });
     const apply = () => {
