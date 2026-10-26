@@ -23,6 +23,10 @@ the CDASH exchange. They are not a source of truth for money.
 Sign-in PINs live in our own `online_signin_codes`, not CDASH's `otp_codes`.
 The store only reads the member's mobile number (`members.mobile_number`, or
 `users.phone` for staff) and sends through the same SMSPortal account CDASH uses.
+Every text the store sends writes one `audit_logs` row (entity_type `sms`,
+action `online_store.sms`, `details.purpose` + SMSPortal's charge), which is
+how CDASH's SMS Costs page counts the store's texts. Never the text or the
+full number.
 
 ## The order lifecycle
 

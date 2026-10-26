@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
     // screen too.
     let smsSent = false
     try {
-      await sendSms(mobile.stored, `Welcome to DLC, ${body.fullName.split(/\s+/)[0]}! Your Member ID is ${memberNumber}. Keep it safe: to sign in on the website, enter it and we will text a login PIN to this number.`)
+      await sendSms(mobile.stored, `Welcome to DLC, ${body.fullName.split(/\s+/)[0]}! Your Member ID is ${memberNumber}. Keep it safe: to sign in on the website, enter it and we will text a login PIN to this number.`, "online_welcome")
       smsSent = true
     } catch (smsError) {
       console.error("Welcome SMS failed for", memberNumber, smsError)

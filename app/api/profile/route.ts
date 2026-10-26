@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest) {
     // The sign-in PIN now goes to the new number. Tell the old one, so someone
     // who took over a signed-in browser cannot quietly keep the account.
     if (changed.mobileNumber && row.mobile_number) {
-      await sendSms(row.mobile_number as string, "Your DLC sign-in number was just changed on the website. If this was not you, contact the DLC team straight away.")
+      await sendSms(row.mobile_number as string, "Your DLC sign-in number was just changed on the website. If this was not you, contact the DLC team straight away.", "online_number_changed")
         .catch((smsError) => console.error("Number change notice failed for", access.memberId, smsError))
     }
     const profile = await getMemberProfile(access.memberId)

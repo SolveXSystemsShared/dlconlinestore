@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     recordFailure(`sms:${client}`)
-    await sendSms(mobile, `Your Down Low Cannabis sign-in PIN is ${issued.code}. It expires in ${CODE_TTL_MINUTES} minutes. Never share it - the DLC team will never ask for it.`)
+    await sendSms(mobile, `Your Down Low Cannabis sign-in PIN is ${issued.code}. It expires in ${CODE_TTL_MINUTES} minutes. Never share it - the DLC team will never ask for it.`, "online_signin_pin")
 
     return NextResponse.json({ step: "pin", sentTo: maskMobile(mobile), expiresInMinutes: CODE_TTL_MINUTES, resendAfter: RESEND_AFTER_SECONDS })
   } catch (error) {
