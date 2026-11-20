@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 
 /**
  * Slices a list into pages and keeps the page number honest.
@@ -11,10 +11,17 @@ import { useEffect, useMemo, useState } from "react"
  */
 export function usePagination<T>(items: T[], perPage: number, resetKey: string) {
   const [page, setPage] = useState(1)
+  const [pagedKey, setPagedKey] = useState(resetKey)
   const pageCount = Math.max(1, Math.ceil(items.length / perPage))
 
-  useEffect(() => { setPage(1) }, [resetKey])
-  useEffect(() => { if (page > pageCount) setPage(pageCount) }, [page, pageCount])
+  // Adjusted while rendering rather than in an effect, so the stale page never
+  // reaches the screen first.
+  if (pagedKey !== resetKey) {
+    setPagedKey(resetKey)
+    setPage(1)
+  } else if (page > pageCount) {
+    setPage(pageCount)
+  }
 
   const visible = useMemo(() => items.slice((page - 1) * perPage, page * perPage), [items, page, perPage])
   return { page, setPage, pageCount, visible }

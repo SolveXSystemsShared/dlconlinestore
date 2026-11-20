@@ -8,7 +8,7 @@ import { findShortages, shortageMessage } from "@/lib/stock-check"
 
 const input = z.object({
   dlcCreditsRequested: z.number().min(0).max(100000).optional().default(0),
-  items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().int().positive().max(100) })).min(1).max(50),
+  items: z.array(z.object({ productId: z.guid(), quantity: z.number().int().positive().max(100) })).min(1).max(50),
 })
 
 /**

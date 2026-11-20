@@ -120,7 +120,8 @@ export async function getLoungeInfo(): Promise<LoungeInfo> {
     readExtraConsoleTime(),
   ])
   if (configResult.error) console.error("Lounge config read failed, using published defaults", configResult.error)
-  const c = (configResult.data?.config_value ?? {}) as Record<string, any>
+  // Every value inside is still unchecked; it goes through num/pct/bool below.
+  const c = (configResult.data?.config_value ?? {}) as { tiers?: unknown } & Partial<Record<"points" | "spendAccess" | "playstation" | "visitBonus" | "referral", Record<string, unknown> | null>>
 
   const packages = Array.isArray(c.tiers)
     ? c.tiers.map((t: unknown) => (t && typeof t === "object" ? readPackage(t as Record<string, unknown>) : null)).filter((p: LoungePackage | null): p is LoungePackage => Boolean(p))

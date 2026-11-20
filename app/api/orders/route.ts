@@ -20,7 +20,7 @@ const input = z.object({
   memberId: z.string().min(4).max(40),
   phone: z.string().min(7).max(30),
   customerNotes: z.string().max(1000).optional().default(""),
-  items: z.array(z.object({ productId: z.string().uuid(), quantity: z.number().int().positive().max(100) })).min(1).max(50),
+  items: z.array(z.object({ productId: z.guid(), quantity: z.number().int().positive().max(100) })).min(1).max(50),
   ...acceptanceInput,
 })
 

@@ -29,7 +29,8 @@ const toIsoDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth(
 function Modal({ titleId, onClose, children }: { titleId: string; onClose?: () => void; children: ReactNode }) {
   const node = useRef<HTMLDivElement>(null)
   const closeRef = useRef(onClose)
-  closeRef.current = onClose
+  // Kept current after each render (never during it), for the key handler below.
+  useEffect(() => { closeRef.current = onClose })
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null

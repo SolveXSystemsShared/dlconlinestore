@@ -13,6 +13,9 @@ import { getFulfillmentStoreId } from "./store-settings"
  */
 export type SpecialLine = { productType: string; grade: string | null; name: string | null; quantity: number; percentOff: number | null }
 
+/** A `special_items` row as CDASH stores it; numbers may arrive as strings. */
+type SpecialItemRow = { product_type?: string | null; grade?: string | null; strain_name?: string | null; quantity?: number | string | null; discount_percent?: number | string | null }
+
 export type Special = {
   id: string
   name: string
@@ -45,7 +48,7 @@ export async function getSpecials(): Promise<Special[]> {
   if (error) throw new Error(error.message)
 
   const value: Special[] = (data || []).map((row) => {
-    const lines: SpecialLine[] = (row.special_items || []).map((item: Record<string, any>) => ({
+    const lines: SpecialLine[] = (row.special_items || []).map((item: SpecialItemRow) => ({
       productType: String(item.product_type || ""),
       grade: item.grade || null,
       // "__ANY__" is CDASH's wildcard: any strain of that type and grade.
