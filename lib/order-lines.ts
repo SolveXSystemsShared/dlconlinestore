@@ -27,10 +27,34 @@ export type OrderLine = {
 
 export type ResolvedLines = { lines: OrderLine[] } | { error: string; status: number }
 
+type OrderItem = { productId: string; quantity: number }
+
+/**
+ * Product ids are UUIDs, which the input schema accepts in either case but
+ * Postgres always returns in lower case. Lower-casing here keeps the lookup by
+ * id working, and a product listed twice (even differing only in case) is
+ * refused rather than merged, so the quantity a member sees is the one priced.
+ */
+export function normaliseOrderItems(items: OrderItem[]): { items: OrderItem[] } | { error: string; status: number } {
+  const seen = new Set<string>()
+  const normalised: OrderItem[] = []
+  for (const item of items) {
+    const productId = item.productId.toLowerCase()
+    if (seen.has(productId)) return { error: "Each product can only appear once", status: 400 }
+    seen.add(productId)
+    normalised.push({ ...item, productId })
+  }
+  return { items: normalised }
+}
+
 export async function resolveOrderLines(
-  items: Array<{ productId: string; quantity: number }>,
+  rawItems: OrderItem[],
   storeId: string | null,
 ): Promise<ResolvedLines> {
+  const normalised = normaliseOrderItems(rawItems)
+  if ("error" in normalised) return normalised
+  const { items } = normalised
+
   const supabase = getSupabaseAdmin()
   const ids = items.map((item) => item.productId)
 
