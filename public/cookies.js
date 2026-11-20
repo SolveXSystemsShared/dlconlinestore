@@ -50,7 +50,7 @@
   };
 
   const css = `
-  .dlc-consent{position:fixed;z-index:100001;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));margin:0 auto;width:min(760px,100%);background:#fff;color:#11131a;border:1px solid #dfe2e8;box-shadow:0 24px 70px rgba(3,6,40,.28);font-family:Arial,Helvetica,sans-serif;padding:20px 22px;display:grid;gap:14px;transform:translateY(12px);opacity:0;transition:transform .25s ease,opacity .25s ease}
+  .dlc-consent{position:fixed;z-index:100001;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));margin:0 auto;box-sizing:border-box;max-width:760px;background:#fff;color:#11131a;border:1px solid #dfe2e8;box-shadow:0 24px 70px rgba(3,6,40,.28);font-family:Arial,Helvetica,sans-serif;padding:20px 22px;display:grid;gap:14px;transform:translateY(12px);opacity:0;transition:transform .25s ease,opacity .25s ease}
   .dlc-consent.is-in{transform:none;opacity:1}
   .dlc-consent h2{margin:0;font-size:20px;line-height:1;letter-spacing:-.03em;text-transform:uppercase}
   .dlc-consent p{margin:0;font-size:12.5px;line-height:1.6;color:#555b66}
