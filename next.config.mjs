@@ -3,6 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   // Don't advertise the framework (X-Powered-By: Next.js) to scanners.
   poweredByHeader: false,
+  experimental: {
+    // proxy.ts runs on every /api request, so Next buffers each body for it,
+    // up to 10 MB by default. No route accepts more than 1 MB (registration;
+    // lib/request-body.ts), so stop buffering just past that. Past the limit
+    // Next hands the route only what it buffered, which the route's own cap
+    // refuses (413) or which no longer parses (400).
+    proxyClientMaxBodySize: 1024 * 1024 + 1,
+  },
   // The storefront (lounge, collections, product pages) is the static site in
   // public/. It talks to the same /api routes as the React pages, so `/` just
   // serves its lounge; checkout, account and registration stay in app/.

@@ -9,7 +9,18 @@ async function productionHeaders(): Promise<Rule[]> {
   return (config as { headers(): Promise<Rule[]> }).headers()
 }
 
-const cspOf = (rule: Rule) => rule.headers.filter((header) => header.key === "Content-Security-Policy").map((header) => header.value)
+describe("proxy body buffering", () => {
+  it("stops just past the largest route cap", async () => {
+    // @ts-expect-error -- the config is plain JavaScript with no declaration file.
+    const { default: config } = await import("./next.config.mjs")
+    const { MAX_BODY, MAX_REGISTRATION_BODY } = await import("./lib/request-body")
+    const limit = (config as { experimental: { proxyClientMaxBodySize: number } }).experimental.proxyClientMaxBodySize
+    expect(limit).toBe(MAX_REGISTRATION_BODY + 1)
+    expect(limit).toBeGreaterThan(MAX_BODY)
+  })
+})
+
+const cspOf =(rule: Rule) => rule.headers.filter((header) => header.key === "Content-Security-Policy").map((header) => header.value)
 
 describe("Content-Security-Policy", () => {
   afterEach(() => {
