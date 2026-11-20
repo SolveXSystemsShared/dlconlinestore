@@ -1,3 +1,18 @@
+/**
+ * The React app's page routes (app/), the only paths whose Content-Security-
+ * Policy allows inline scripts, which Next's bootstrap needs. Everything else
+ * gets the strict policy. next.config.test.ts walks app/ and fails if a page
+ * is missing here, so add the route when you add a page.
+ */
+export const REACT_ROUTES = [
+  "/account",
+  "/bag",
+  "/exchange/:path*",
+  "/menu",
+  "/register",
+  "/settings/:path*",
+]
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -33,10 +48,11 @@ const nextConfig = {
     // a websocket for hot reload. Everything is locked to this site. Product
     // photos may come from CDASH storage, hence https: for images.
     //
-    // Scripts: the storefront pages in public/ load every script from a file,
-    // so they get script-src 'self' alone and an injected inline script cannot
-    // run there. The React pages still need 'unsafe-inline' for Next's inline
-    // bootstrap scripts, for now.
+    // Scripts: script-src 'self' alone is the default, so an injected inline
+    // script cannot run on the storefront pages in public/ (which load every
+    // script from a file) or anywhere else not named. The React pages in
+    // REACT_ROUTES still need 'unsafe-inline' for Next's inline bootstrap
+    // scripts, for now.
     //
     // No upgrade-insecure-requests: HSTS already keeps the site on HTTPS, and
     // every fetch directive is 'self' or https:, so it added nothing — while
@@ -59,8 +75,8 @@ const nextConfig = {
       "worker-src 'self'",
     ].join("; ")
     const production = process.env.NODE_ENV === "production"
+    const strictCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self'") }] : []
     const reactCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self' 'unsafe-inline'") }] : []
-    const storefrontCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self'") }] : []
     const security = [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -72,20 +88,19 @@ const nextConfig = {
       { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
       { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
-      ...reactCsp,
+      ...strictCsp,
     ]
     // Member data must never be stored by the browser's back button, a shared
     // proxy or a CDN: every API answer and every server-rendered member page.
     const noStore = [{ key: "Cache-Control", value: "private, no-store, max-age=0" }]
     return [
       { source: "/:path*", headers: security },
-      // The storefront's stricter policy. Listed after /:path* so its
-      // Content-Security-Policy replaces the one above instead of adding a
-      // second (Next keeps the last value for a repeated header key).
-      ...(production ? [
-        { source: "/", headers: storefrontCsp },
-        { source: "/:file(.*\\.html)", headers: storefrontCsp },
-      ] : []),
+      // The React pages' policy, listed after /:path* so it replaces the strict
+      // one instead of adding a second (Next keeps the last value for a
+      // repeated header key). Nothing here matches on ".html": the server
+      // decodes %2E before serving a file, so /strains%2Ehtml slipped past
+      // such a rule into the looser policy.
+      ...(production ? REACT_ROUTES.map((source) => ({ source, headers: reactCsp })) : []),
       { source: "/api/:path*", headers: noStore },
       { source: "/exchange/:path*", headers: noStore },
       // Artwork is swapped in place under the same file name, so the browser
