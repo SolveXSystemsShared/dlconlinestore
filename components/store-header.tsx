@@ -1,7 +1,21 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { moreShelves } from "@/lib/storefront"
+
+type Shelf = { slug: string; label: string }
+
+const NAV_SHELVES_KEY = "dlcNavShelves"
+// Session storage raises no event in the tab that writes it, so there is
+// nothing to subscribe to; the list is read on each render.
+const noSubscription = () => () => {}
+const readCachedShelves = () => { try { return sessionStorage.getItem(NAV_SHELVES_KEY) } catch { return null } }
+const parseShelves = (raw: string | null): Shelf[] | null => {
+  try {
+    const cached = JSON.parse(raw || "null")
+    return Array.isArray(cached) ? cached : null
+  } catch { return null }
+}
 
 // Line icons matching the storefront header (public/common.js).
 const iconProps = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true, focusable: false }
@@ -20,23 +34,23 @@ const CloseIcon = () => <svg className="sf-icon" {...iconProps}><path d="M18 6 6
 export function StoreHeader({ bagCount, current }: { bagCount?: number; current?: "account" | "bag" }) {
   const [fetched, setFetched] = useState<number | null>(null)
   const [open, setOpen] = useState(false)
-  const [shelves, setShelves] = useState<Array<{ slug: string; label: string }>>([])
+  const [fetchedShelves, setFetchedShelves] = useState<Shelf[]>([])
 
   // Browse lists the same collections as the lounge row and the shelf. The
   // static pages keep the last list in this tab (public/common.js); with none
   // yet, it comes from the catalogue.
+  const cachedRaw = useSyncExternalStore(noSubscription, readCachedShelves, () => null)
+  const cachedShelves = useMemo(() => parseShelves(cachedRaw), [cachedRaw])
+  const shelves = cachedShelves ?? fetchedShelves
   useEffect(() => {
-    try {
-      const cached = JSON.parse(sessionStorage.getItem("dlcNavShelves") || "null")
-      if (Array.isArray(cached)) { setShelves(cached); return }
-    } catch {}
+    if (parseShelves(readCachedShelves())) return
     fetch("/api/catalog")
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         if (!data?.products) return
         const list = moreShelves(data.products)
-        try { sessionStorage.setItem("dlcNavShelves", JSON.stringify(list)) } catch {}
-        setShelves(list)
+        try { sessionStorage.setItem(NAV_SHELVES_KEY, JSON.stringify(list)) } catch {}
+        setFetchedShelves(list)
       })
       .catch(() => {})
   }, [])
