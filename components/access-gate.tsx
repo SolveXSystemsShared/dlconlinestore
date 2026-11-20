@@ -1,11 +1,21 @@
 "use client"
 
-import { FormEvent, useCallback, useEffect, useState } from "react"
+import { FormEvent, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { formatMemberId, isCompleteMemberId, MEMBER_ID_PREFIX } from "@/lib/format"
 
 type GateState = "checking" | "age" | "member" | "pin" | "allowed" | "blocked"
+type Session = { state: "allowed"; memberName: string } | { state: "member" | "age" }
+
+/** Reads the signed cookies and returns the gate screen they entitle you to. */
+async function readSession(): Promise<Session> {
+  const response = await fetch("/api/members/session")
+  if (!response.ok) return { state: "age" }
+  const data = await response.json()
+  if (data.member) return { state: "allowed", memberName: data.member.name }
+  return { state: data.ageConfirmed ? "member" : "age" }
+}
 
 export function AccessGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -34,26 +44,20 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
     return () => clearInterval(timer)
   }, [state])
 
-  /** Reads the signed cookies and returns the gate screen they entitle you to. */
-  const restoreSession = useCallback(async (): Promise<GateState> => {
-    const response = await fetch("/api/members/session")
-    if (!response.ok) return "age"
-    const data = await response.json()
-    if (data.member) {
-      setMemberName(data.member.name)
-      return "allowed"
-    }
-    return data.ageConfirmed ? "member" : "age"
-  }, [])
+  /** Shows the gate screen a session entitles you to, greeting a member by name. */
+  function enter(session: Session) {
+    if (session.state === "allowed") setMemberName(session.memberName)
+    setState(session.state)
+  }
 
   useEffect(() => {
     let cancelled = false
-    restoreSession()
+    readSession()
       // A failed check must never lock a member out; fall back to the full gate.
-      .catch(() => "age" as GateState)
-      .then((next) => { if (!cancelled) setState(next) })
+      .catch((): Session => ({ state: "age" }))
+      .then((session) => { if (!cancelled) enter(session) })
     return () => { cancelled = true }
-  }, [restoreSession])
+  }, [])
 
   async function confirmAge() {
     setBusy(true)
@@ -62,7 +66,7 @@ export function AccessGate({ children }: { children: React.ReactNode }) {
       const ageResponse = await fetch("/api/access/age", { method: "POST" })
       if (!ageResponse.ok) throw new Error("Age confirmation could not be recorded")
       if (isRegistration) { setState("member"); return }
-      setState(await restoreSession())
+      enter(await readSession())
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Please try again")
     } finally { setBusy(false) }
