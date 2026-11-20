@@ -4,14 +4,6 @@
    DLC mascot and the downlowlanding brand site (hue family 202).
    ========================================================================== */
 
-@font-face {
-  font-family: 'CameraPlainVariable';
-  src: url('https://cdn.gpteng.co/mcp-widgets/v1/fonts/CameraPlainVariable.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   /* Core brand ramp */
   --sky: 202 97% 74%;          /* mascot outline blue */
@@ -35,7 +27,7 @@
   --accent: hsl(var(--primary));
   --on-dark: hsl(202 60% 88%);
 
-  --font: 'CameraPlainVariable', "CameraPlainVariable Fallback", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --max: 1240px;
   --radius: 14px;
 }

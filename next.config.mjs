@@ -48,7 +48,8 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "media-src 'self'",
-      "font-src 'self' data: https://cdn.gpteng.co",
+      // The site uses the system font stack; no web fonts are loaded.
+      "font-src 'self'",
       "connect-src 'self'",
       "frame-ancestors 'none'",
       "base-uri 'self'",

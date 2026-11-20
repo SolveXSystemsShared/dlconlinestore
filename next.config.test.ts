@@ -49,7 +49,8 @@ describe("Content-Security-Policy", () => {
     // Only script-src differs.
     expect(storefront).toBe(react.replace("script-src 'self' 'unsafe-inline';", "script-src 'self';"))
     expect(storefront).toContain("img-src 'self' data: blob: https:")
-    expect(storefront).toContain("font-src 'self' data: https://cdn.gpteng.co")
+    // Fonts come from this site only, with no third-party font host.
+    for (const policy of [react, storefront]) expect(policy).toContain("font-src 'self';")
   })
 
   it("does not ask browsers to upgrade requests (WebKit applies it to http://localhost)", async () => {
