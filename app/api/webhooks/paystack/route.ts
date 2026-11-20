@@ -29,7 +29,14 @@ export async function POST(request: NextRequest) {
   }
   if (!signed) return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
 
-  const event = JSON.parse(raw) as { event?: string; data?: { reference?: string } }
+  // Signed but unreadable is a bad request, not a crash.
+  let event: { event?: string; data?: { reference?: string } }
+  try {
+    event = JSON.parse(raw)
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
+  if (!event || typeof event !== "object") return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   if (event.event !== "charge.success" || !event.data?.reference) return NextResponse.json({ ok: true, ignored: event.event })
 
   try {
