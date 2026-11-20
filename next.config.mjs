@@ -6,10 +6,11 @@ const nextConfig = {
   experimental: {
     // proxy.ts runs on every /api request, so Next buffers each body for it,
     // up to 10 MB by default. No route accepts more than 1 MB (registration;
-    // lib/request-body.ts), so stop buffering just past that. Past the limit
-    // Next hands the route only what it buffered, which the route's own cap
-    // refuses (413) or which no longer parses (400).
-    proxyClientMaxBodySize: 1024 * 1024 + 1,
+    // lib/request-body.ts). Past this limit Next drops the chunk that crosses
+    // it and hands the route only what came before, so the limit sits a full
+    // 1 MB above registration's cap: what is left of a cut-off body is still
+    // over every route's cap, and the route answers 413.
+    proxyClientMaxBodySize: 2 * 1024 * 1024,
   },
   // The storefront (lounge, collections, product pages) is the static site in
   // public/. It talks to the same /api routes as the React pages, so `/` just

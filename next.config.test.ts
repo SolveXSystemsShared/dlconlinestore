@@ -10,17 +10,20 @@ async function productionHeaders(): Promise<Rule[]> {
 }
 
 describe("proxy body buffering", () => {
-  it("stops just past the largest route cap", async () => {
+  it("stops a full 1 MB past the largest route cap, so a cut-off body is still too large", async () => {
     // @ts-expect-error -- the config is plain JavaScript with no declaration file.
     const { default: config } = await import("./next.config.mjs")
     const { MAX_BODY, MAX_REGISTRATION_BODY } = await import("./lib/request-body")
     const limit = (config as { experimental: { proxyClientMaxBodySize: number } }).experimental.proxyClientMaxBodySize
-    expect(limit).toBe(MAX_REGISTRATION_BODY + 1)
+    expect(limit).toBe(2 * 1024 * 1024)
+    // Next drops the chunk that crosses the limit; Node reads sockets in
+    // chunks of at most 64 KB, far less than this margin.
+    expect(limit - MAX_REGISTRATION_BODY).toBeGreaterThanOrEqual(MAX_REGISTRATION_BODY)
     expect(limit).toBeGreaterThan(MAX_BODY)
   })
 })
 
-const cspOf =(rule: Rule) => rule.headers.filter((header) => header.key === "Content-Security-Policy").map((header) => header.value)
+const cspOf = (rule: Rule) => rule.headers.filter((header) => header.key === "Content-Security-Policy").map((header) => header.value)
 
 describe("Content-Security-Policy", () => {
   afterEach(() => {
