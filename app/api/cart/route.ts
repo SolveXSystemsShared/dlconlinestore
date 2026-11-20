@@ -59,7 +59,7 @@ export async function GET() {
 }
 
 const input = z.object({
-  productId: z.string().uuid(),
+  productId: z.guid(),
   // Absolute, not a delta: the page owns the number in the stepper and says
   // what it should be, so a dropped response cannot double an order.
   quantity: z.number().int().min(0).max(100),

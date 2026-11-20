@@ -17,7 +17,7 @@ import {
  * of the terms the page was showing.
  */
 export const acceptanceInput = {
-  acceptedTerms: z.literal(true, { errorMap: () => ({ message: "Please accept the Terms & Conditions to continue." }) }),
+  acceptedTerms: z.literal(true, { error: "Please accept the Terms & Conditions to continue." }),
   termsVersion: z.string().max(40),
 }
 

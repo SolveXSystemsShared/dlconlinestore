@@ -63,7 +63,7 @@ export async function GET() {
   }
 }
 
-const input = z.object({ productId: z.string().uuid() })
+const input = z.object({ productId: z.guid() })
 
 export async function POST(request: NextRequest) {
   const gate = await requireActiveMember({ fresh: true })
