@@ -5,8 +5,10 @@ import { useEffect, useState } from "react"
 /** True once `active` has lasted longer than a fast connection would take. */
 export function useSlowFlag(active: boolean, afterMs = 4000) {
   const [slow, setSlow] = useState(false)
+  // Cleared while rendering, so the notice goes the moment loading ends.
+  if (!active && slow) setSlow(false)
   useEffect(() => {
-    if (!active) { setSlow(false); return }
+    if (!active) return
     const timer = setTimeout(() => setSlow(true), afterMs)
     return () => clearTimeout(timer)
   }, [active, afterMs])
