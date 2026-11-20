@@ -518,18 +518,18 @@
       card.classList.toggle('photo-card', !isFlower && !isPrerolls && !isWellness && Boolean(item[3] || item[4]));
       if (isWellness) {
         const src = wellnessVisuals[tierSlug];
-        pack.innerHTML = src ? `<img class="pack-figure" src="${src}" alt="${item[1]} wellness product" width="520" height="780" decoding="async">` : '<span>DLC</span>';
+        pack.innerHTML = src ? `<img class="pack-figure" src="${escapeHtml(src)}" alt="${escapeHtml(item[1])} wellness product" width="520" height="780" decoding="async">` : '<span>DLC</span>';
       } else if (isFlower) {
         const visual = flowerTierVisuals[tierSlug];
         if (visual) {
-          pack.innerHTML = `<img class="pack-figure" src="${visual.src}" srcset="${visual.small} 300w, ${visual.src} 600w" sizes="(max-width: 600px) 90px, 150px" alt="${visual.alt}" width="600" height="900" decoding="async">`;
+          pack.innerHTML = `<img class="pack-figure" src="${escapeHtml(visual.src)}" srcset="${escapeHtml(visual.small)} 300w, ${escapeHtml(visual.src)} 600w" sizes="(max-width: 600px) 90px, 150px" alt="${escapeHtml(visual.alt)}" width="600" height="900" decoding="async">`;
         } else {
           pack.innerHTML = '<span>DLC</span>';
         }
       } else if (isPrerolls) {
         const visual = prerollTierVisuals[tierSlug];
         if (visual) {
-          pack.innerHTML = `<img class="pack-figure" src="${visual.src}" alt="${visual.alt}" width="520" height="780" decoding="async">`;
+          pack.innerHTML = `<img class="pack-figure" src="${escapeHtml(visual.src)}" alt="${escapeHtml(visual.alt)}" width="520" height="780" decoding="async">`;
         } else {
           pack.innerHTML = '<span>DLC</span>';
         }
