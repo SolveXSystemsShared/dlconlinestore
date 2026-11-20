@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { MAX_REGISTRATION_BODY, readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { AGE_COOKIE, getMemberAccess } from "@/lib/member-access"
 import { notifyStaff } from "@/lib/notify-staff"
@@ -77,7 +78,9 @@ export async function POST(request: NextRequest) {
     if (wait) return NextResponse.json({ error: `Too many registration attempts. Please try again in ${wait} minute${wait === 1 ? "" : "s"}, or ask the team at the lounge.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
     recordFailure(client)
 
-    const parsed = input.safeParse(await request.json())
+    const json = await readJsonBody(request, MAX_REGISTRATION_BODY)
+    if (!json.ok) return json.response
+    const parsed = input.safeParse(json.data)
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Please check the details you entered" }, { status: 400 })
     }

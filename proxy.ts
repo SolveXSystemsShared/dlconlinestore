@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { MAX_BODY, MAX_REGISTRATION_BODY } from "@/lib/request-body"
 
 /**
  * Front door for the API.
@@ -8,15 +9,16 @@ import { NextRequest, NextResponse } from "next/server"
  *   stops most forged requests; checking Origin as well covers older browsers
  *   and same-site subdomains. The catalogue sync and the Paystack webhook are called
  *   server-to-server and authenticate themselves, so they are exempt.
- * - Oversized bodies are refused before a route reads them. Registration
- *   carries the drawn signature, so it gets more room than everything else.
+ * - Oversized bodies are refused before a route reads them, when they say how
+ *   big they are. Registration carries the drawn signature, so it gets more
+ *   room than everything else. A request without Content-Length (a bodiless
+ *   DELETE, HTTP/2) is let through: the route's reader in lib/request-body.ts
+ *   counts the bytes itself and stops at the same limit.
  */
 const UNSAFE = new Set(["POST", "PUT", "PATCH", "DELETE"])
 // Called by another server, not a browser: the sync authenticates with its own
 // token and the Paystack webhook with Paystack's signature.
 const SERVER_TO_SERVER = new Set(["/api/catalog/sync", "/api/webhooks/paystack"])
-const MAX_BODY = 64 * 1024
-const MAX_REGISTRATION_BODY = 1024 * 1024
 
 function sameOrigin(request: NextRequest) {
   const origin = request.headers.get("origin")
@@ -35,10 +37,16 @@ export function proxy(request: NextRequest) {
     return NextResponse.json({ error: "Requests must come from the DLC site" }, { status: 403 })
   }
 
-  const length = Number(request.headers.get("content-length") || 0)
-  const limit = pathname === "/api/members/register" ? MAX_REGISTRATION_BODY : MAX_BODY
-  if (length > limit) {
-    return NextResponse.json({ error: "That request is too large" }, { status: 413 })
+  const declared = request.headers.get("content-length")
+  if (declared !== null) {
+    // Anything but a whole number of bytes is malformed, not "zero".
+    if (!/^\d+$/.test(declared)) {
+      return NextResponse.json({ error: "That request could not be read" }, { status: 400 })
+    }
+    const limit = pathname === "/api/members/register" ? MAX_REGISTRATION_BODY : MAX_BODY
+    if (Number(declared) > limit) {
+      return NextResponse.json({ error: "That request is too large" }, { status: 413 })
+    }
   }
 
   return NextResponse.next()

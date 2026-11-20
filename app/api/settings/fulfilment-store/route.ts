@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { getMemberAccess } from "@/lib/member-access"
 import { lookupMember } from "@/lib/members"
@@ -46,7 +47,9 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   const gate = await requireDirector()
   if (!gate.ok) return gate.response
-  const parsed = input.safeParse(await request.json())
+  const json = await readJsonBody(request)
+  if (!json.ok) return json.response
+  const parsed = input.safeParse(json.data)
   if (!parsed.success) return NextResponse.json({ error: "Choose a store" }, { status: 400 })
 
   const supabase = getSupabaseAdmin()

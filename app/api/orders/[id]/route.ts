@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { requireActiveMember } from "@/lib/member-session"
 import { CdashError, cancelExchange } from "@/lib/cdash"
@@ -23,7 +24,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const gate = await requireActiveMember({ fresh: true })
   if (!gate.ok) return gate.response
   const access = gate
-  const parsed = actionInput.safeParse(await request.json())
+  const json = await readJsonBody(request)
+  if (!json.ok) return json.response
+  const parsed = actionInput.safeParse(json.data)
   if (!parsed.success) return NextResponse.json({ error: "Unsupported exchange request action" }, { status: 400 })
   const supabase = getSupabaseAdmin()
   const { data: order } = await supabase.from("online_orders").select("id, status, exchange_id").eq("id", id).eq("member_id", access.memberId).maybeSingle()

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { requireActiveMember } from "@/lib/member-session"
 import { MEMBER_ID_COLUMN } from "@/lib/members-schema"
@@ -37,7 +38,9 @@ export async function PATCH(request: NextRequest) {
   const access = gate
 
   try {
-    const parsed = patchInput.safeParse(await request.json())
+    const json = await readJsonBody(request)
+    if (!json.ok) return json.response
+    const parsed = patchInput.safeParse(json.data)
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Please check the details you entered" }, { status: 400 })
     }
