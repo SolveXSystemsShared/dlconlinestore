@@ -20,6 +20,7 @@ const PERIODS: Array<{ id: Period; label: string }> = [
   { id: "all", label: "All time" },
   { id: "custom", label: "Custom dates" },
 ]
+const FIRST_PERIOD: Period = "3m"
 
 /** Today in South Africa, as YYYY-MM-DD for the date inputs. */
 const saToday = () => new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -45,7 +46,7 @@ export default function AccountPage() {
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [bagCount, setBagCount] = useState<number | undefined>(undefined)
-  const [period, setPeriod] = useState<Period>("3m")
+  const [period, setPeriod] = useState<Period>(FIRST_PERIOD)
   const [customFrom, setCustomFrom] = useState("")
   const [customTo, setCustomTo] = useState("")
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -72,22 +73,9 @@ export default function AccountPage() {
     try { await navigator.clipboard.writeText(referralCode); setCodeCopied(true); window.setTimeout(() => setCodeCopied(false), 2200) } catch { setCodeCopied(false) }
   }
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/profile").then((r) => r.ok ? r.json() : null),
-      fetch("/api/wishlist").then((r) => r.ok ? r.json() : null),
-    ])
-      .then(([p, w]) => {
-        if (p?.profile) setProfile(p.profile)
-        if (w?.items) setSavedItems(w.items)
-        if (!p?.profile) setError("We could not load your profile. Try reloading the page.")
-      })
-      .catch(() => setError("We could not load your account. Try reloading the page."))
-      .finally(() => setLoading(false))
-  }, [])
-
   // The history is fetched per period, only when the tab is open — nothing is
-  // requested (or held in the page) that the member has not asked to see.
+  // requested (or held in the page) that the member has not asked to see. It
+  // loads from the click that opens the tab or picks a period, not an effect.
   const loadOrders = useCallback(async (which: Period, from = "", to = "") => {
     setOrdersLoading(true)
     setOrdersError("")
@@ -104,13 +92,40 @@ export default function AccountPage() {
   }, [])
 
   useEffect(() => {
-    if (tab === "orders" && period !== "custom") loadOrders(period)
-  }, [tab, period, loadOrders])
+    Promise.all([
+      fetch("/api/profile").then((r) => r.ok ? r.json() : null),
+      fetch("/api/wishlist").then((r) => r.ok ? r.json() : null),
+    ])
+      .then(([p, w]) => {
+        if (p?.profile) setProfile(p.profile)
+        if (w?.items) setSavedItems(w.items)
+        if (!p?.profile) setError("We could not load your profile. Try reloading the page.")
+      })
+      .catch(() => setError("We could not load your account. Try reloading the page."))
+      .finally(() => {
+        // ?tab=exchanges (from an exchange page or an update notification)
+        // opens the history, in place before the page replaces the skeleton.
+        if (new URLSearchParams(window.location.search).get("tab") === "exchanges") {
+          setTab("orders")
+          loadOrders(FIRST_PERIOD)
+        }
+        setLoading(false)
+      })
+  }, [loadOrders])
 
-  // ?tab=exchanges (from an exchange page or an update notification) opens the history.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("tab") === "exchanges") setTab("orders")
-  }, [])
+  function openTab(next: Tab) {
+    if (next === "orders" && tab !== "orders" && period !== "custom") loadOrders(period)
+    setTab(next)
+  }
+
+  function choosePeriod(next: Period) {
+    setPeriod(next)
+    setOrdersError("")
+    if (next === "custom") {
+      setOrders([])
+      if (!customTo) setCustomTo(saToday())
+    } else if (next !== period) loadOrders(next)
+  }
 
   // The team moves exchanges on in CDASH; coming back to the page shows where they are now.
   useEffect(() => {
@@ -216,7 +231,7 @@ export default function AccountPage() {
       <div className="sf-body">
         <div className="sf-tabs" role="tablist" aria-label="Account sections">
           {TABS.map((entry) => (
-            <button key={entry.id} id={`tab-${entry.id}`} role="tab" aria-selected={tab === entry.id} aria-controls={`panel-${entry.id}`} className="sf-tab" onClick={() => { setTab(entry.id); report("") }}>
+            <button key={entry.id} id={`tab-${entry.id}`} role="tab" aria-selected={tab === entry.id} aria-controls={`panel-${entry.id}`} className="sf-tab" onClick={() => { openTab(entry.id); report("") }}>
               {entry.label}
               {entry.id === "saved" && stockedItems.length > 0 && <small>{stockedItems.length}</small>}
             </button>
@@ -260,7 +275,7 @@ export default function AccountPage() {
 
         {tab === "orders" && <section role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
           <div className="sf-periods" role="group" aria-label="Show exchanges from">
-            {PERIODS.map((entry) => <button key={entry.id} type="button" className="sf-chip" aria-pressed={period === entry.id} onClick={() => { setPeriod(entry.id); setOrdersError(""); if (entry.id === "custom") { setOrders([]); if (!customTo) setCustomTo(saToday()) } }}>{entry.label}</button>)}
+            {PERIODS.map((entry) => <button key={entry.id} type="button" className="sf-chip" aria-pressed={period === entry.id} onClick={() => choosePeriod(entry.id)}>{entry.label}</button>)}
           </div>
           {period === "custom" && <form className="sf-panel sf-custom-period" onSubmit={applyCustom}>
             <div className="sf-field"><label htmlFor="h-from">From</label><input id="h-from" type="date" max={customTo || saToday()} value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} required /></div>
