@@ -21,12 +21,16 @@ const nextConfig = {
   // pictures or pairs new pages with old scripts.
   async headers() {
     // Content-Security-Policy only in production: the dev server needs eval and
-    // a websocket for hot reload. The storefront pages use inline scripts, so
-    // 'unsafe-inline' stays; everything else is locked to this site. Product
+    // a websocket for hot reload. Everything is locked to this site. Product
     // photos may come from CDASH storage, hence https: for images.
-    const csp = [
+    //
+    // Scripts: the storefront pages in public/ load every script from a file,
+    // so they get script-src 'self' alone and an injected inline script cannot
+    // run there. The React pages still need 'unsafe-inline' for Next's inline
+    // bootstrap scripts, for now.
+    const cspWith = (scriptSrc) => [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      `script-src ${scriptSrc}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "media-src 'self'",
@@ -40,6 +44,9 @@ const nextConfig = {
       "worker-src 'self'",
       "upgrade-insecure-requests",
     ].join("; ")
+    const production = process.env.NODE_ENV === "production"
+    const reactCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self' 'unsafe-inline'") }] : []
+    const storefrontCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self'") }] : []
     const security = [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -51,13 +58,20 @@ const nextConfig = {
       { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
       { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
-      ...(process.env.NODE_ENV === "production" ? [{ key: "Content-Security-Policy", value: csp }] : []),
+      ...reactCsp,
     ]
     // Member data must never be stored by the browser's back button, a shared
     // proxy or a CDN: every API answer and every server-rendered member page.
     const noStore = [{ key: "Cache-Control", value: "private, no-store, max-age=0" }]
     return [
       { source: "/:path*", headers: security },
+      // The storefront's stricter policy. Listed after /:path* so its
+      // Content-Security-Policy replaces the one above instead of adding a
+      // second (Next keeps the last value for a repeated header key).
+      ...(production ? [
+        { source: "/", headers: storefrontCsp },
+        { source: "/:file(.*\\.html)", headers: storefrontCsp },
+      ] : []),
       { source: "/api/:path*", headers: noStore },
       { source: "/exchange/:path*", headers: noStore },
       // Artwork is swapped in place under the same file name, so the browser
