@@ -67,6 +67,29 @@ describe("readJsonBody", () => {
     expect(result.ok ? 200 : result.response.status).toBe(413)
   })
 
+  it("counts bytes, not characters", async () => {
+    // "é" is 2 bytes in UTF-8: just over 64 KB in bytes, well under in characters.
+    const note = "é".repeat(Math.floor(MAX_BODY / 2) - 5)
+    const text = JSON.stringify({ note })
+    expect(text.length).toBeLessThan(MAX_BODY)
+    expect(encoder.encode(text).byteLength).toBeGreaterThan(MAX_BODY)
+    const { request } = chunkedRequest([encoder.encode(text)])
+    const result = await readJsonBody(request)
+    expect(result.ok ? 200 : result.response.status).toBe(413)
+  })
+
+  it("keeps a character split across two chunks intact", async () => {
+    const bytes = encoder.encode(JSON.stringify({ name: "Zoë 🌿" }))
+    // Split inside the 4-byte emoji, and inside the 2-byte "ë".
+    const emojiAt = bytes.indexOf(0xf0)
+    const eAt = bytes.indexOf(0xc3)
+    const { request } = chunkedRequest([bytes.slice(0, eAt + 1), bytes.slice(eAt + 1, emojiAt + 2), bytes.slice(emojiAt + 2)])
+    expect(await readJsonBody(request)).toEqual({ ok: true, data: { name: "Zoë 🌿" } })
+
+    const raw = chunkedRequest([bytes.slice(0, emojiAt + 1), bytes.slice(emojiAt + 1)])
+    expect(await readTextBody(raw.request)).toEqual({ ok: true, data: JSON.stringify({ name: "Zoë 🌿" }) })
+  })
+
   it("answers 400 for bad JSON", async () => {
     const request = new Request("http://localhost/api/cart", { method: "POST", body: "{not json" })
     const result = await readJsonBody(request)
