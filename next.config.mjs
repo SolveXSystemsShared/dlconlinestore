@@ -28,6 +28,11 @@ const nextConfig = {
     // so they get script-src 'self' alone and an injected inline script cannot
     // run there. The React pages still need 'unsafe-inline' for Next's inline
     // bootstrap scripts, for now.
+    //
+    // No upgrade-insecure-requests: HSTS already keeps the site on HTTPS, and
+    // every fetch directive is 'self' or https:, so it added nothing — while
+    // WebKit applies it to http://localhost, which broke every script and
+    // style on a local production build.
     const cspWith = (scriptSrc) => [
       "default-src 'self'",
       `script-src ${scriptSrc}`,
@@ -42,7 +47,6 @@ const nextConfig = {
       "object-src 'none'",
       "manifest-src 'self'",
       "worker-src 'self'",
-      "upgrade-insecure-requests",
     ].join("; ")
     const production = process.env.NODE_ENV === "production"
     const reactCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self' 'unsafe-inline'") }] : []

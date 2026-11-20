@@ -38,6 +38,11 @@ describe("Content-Security-Policy", () => {
     expect(storefront).toContain("font-src 'self' data: https://cdn.gpteng.co")
   })
 
+  it("does not ask browsers to upgrade requests (WebKit applies it to http://localhost)", async () => {
+    const rules = await productionHeaders()
+    for (const rule of rules) for (const value of cspOf(rule)) expect(value).not.toContain("upgrade-insecure-requests")
+  })
+
   it("sends exactly one policy per matching rule, and only these three rules send one", async () => {
     const rules = await productionHeaders()
     const sending = rules.filter((rule) => cspOf(rule).length)
