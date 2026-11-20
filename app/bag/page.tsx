@@ -23,7 +23,9 @@ function CheckoutForm() {
   const [notes, setNotes] = useState("")
   const [message, setMessage] = useState("")
   const [busy, setBusy] = useState(false)
-  const [quote, setQuote] = useState<CheckoutQuote | null>(null)
+  const [pricedQuote, setQuote] = useState<CheckoutQuote | null>(null)
+  // An empty bag has nothing to settle, whatever the last quote said.
+  const quote = cart.length ? pricedQuote : null
   const [quoteError, setQuoteError] = useState("")
   const [loaded, setLoaded] = useState(false)
   const [accepted, setAccepted] = useState(false)
@@ -87,7 +89,7 @@ function CheckoutForm() {
   // browser says can move a total. No DLC Credits: an online exchange settles
   // by card at the card rate, with no redemption (CDASH settles it that way).
   useEffect(() => {
-    if (!cart.length) { setQuote(null); return }
+    if (!cart.length) return
     let cancelled = false
     const timer = setTimeout(() => {
       fetch("/api/checkout/quote", {
