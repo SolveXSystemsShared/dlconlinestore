@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { requireActiveMember } from "@/lib/member-session"
 import { lookupMember } from "@/lib/members"
 import { notifyStaff } from "@/lib/notify-staff"
@@ -33,7 +34,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const parsed = input.safeParse(await request.json().catch(() => ({})))
+  const json = await readJsonBody(request)
+  if (!json.ok) return json.response
+  const parsed = input.safeParse(json.data)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message || "Please check your question" }, { status: 400 })
   }

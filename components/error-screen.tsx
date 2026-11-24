@@ -6,11 +6,13 @@ import type { ReactNode } from "react"
  * the lounge and shop are the static pages in public/, and a full load is
  * the safest way out of a page that has just failed.
  */
-export function ErrorScreen({ code, bubble, title, copy, children }: {
+export function ErrorScreen({ code, bubble, title, copy, browse = true, children }: {
   code: string
   bubble: string
   title: ReactNode
   copy: ReactNode
+  /** Ends the actions with the shop link; off where the page places its own. */
+  browse?: boolean
   children?: ReactNode
 }) {
   return <main className="sfgate sfgate--error" aria-labelledby="sfErrorTitle">
@@ -28,7 +30,7 @@ export function ErrorScreen({ code, bubble, title, copy, children }: {
         <p className="sfgate__copy">{copy}</p>
         <div className="sfgate__actions">
           {children}
-          <a className="sfgate__btn" href="/strains.html">BROWSE ALL</a>
+          {browse && <a className="sfgate__btn" href="/strains.html">BROWSE ALL</a>}
         </div>
         <p className="sfgate__legal">Need a hand? Ask the team at the lounge.</p>
       </div>

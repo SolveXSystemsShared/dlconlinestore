@@ -3,6 +3,7 @@ import { CLOCKED_IN_MESSAGE, isStaffClockedIn } from "@/lib/staff-shift"
 import { NextRequest, NextResponse, after } from "next/server"
 import { maybeRunSettlementSweep } from "@/lib/settlement-sweep"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { normalizeMemberId } from "@/lib/format"
 import { requireActiveMember } from "@/lib/member-session"
@@ -120,7 +121,9 @@ export async function POST(request: NextRequest) {
     const wait = lockedFor(limitKey)
     if (wait) return NextResponse.json({ error: `You have sent a lot of exchange requests just now. Please try again in ${wait} minute${wait === 1 ? "" : "s"}.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
     recordFailure(limitKey)
-    const parsed = input.safeParse(await request.json())
+    const json = await readJsonBody(request)
+    if (!json.ok) return json.response
+    const parsed = input.safeParse(json.data)
     if (!parsed.success) {
       const termsIssue = parsed.error.issues.find((issue) => issue.path[0] === "acceptedTerms")
       return NextResponse.json({ error: termsIssue?.message || "Please provide valid member, contact and exchange request details" }, { status: 400 })

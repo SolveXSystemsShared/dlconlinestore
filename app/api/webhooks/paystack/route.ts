@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { isPaystackSignature } from "@/lib/paystack"
+import { MAX_WEBHOOK_BODY, readTextBody } from "@/lib/request-body"
 import { completeSettlement } from "@/lib/settlement"
 
 /**
@@ -16,7 +17,9 @@ import { completeSettlement } from "@/lib/settlement"
  * Point the Paystack dashboard's webhook URL at https://<store>/api/webhooks/paystack.
  */
 export async function POST(request: NextRequest) {
-  const raw = await request.text()
+  const body = await readTextBody(request, MAX_WEBHOOK_BODY)
+  if (!body.ok) return body.response
+  const raw = body.data
   let signed = false
   try {
     signed = isPaystackSignature(raw, request.headers.get("x-paystack-signature"))
@@ -26,7 +29,14 @@ export async function POST(request: NextRequest) {
   }
   if (!signed) return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
 
-  const event = JSON.parse(raw) as { event?: string; data?: { reference?: string } }
+  // Signed but unreadable is a bad request, not a crash.
+  let event: { event?: string; data?: { reference?: string } }
+  try {
+    event = JSON.parse(raw)
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
+  if (!event || typeof event !== "object") return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   if (event.event !== "charge.success" || !event.data?.reference) return NextResponse.json({ ok: true, ignored: event.event })
 
   try {

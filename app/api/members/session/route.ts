@@ -9,9 +9,17 @@ import { activeMemberFor } from "@/lib/member-session"
  * member or null — so a returning member with valid cookies is put straight
  * back into the member area instead of being asked to confirm their age and
  * re-enter a Member ID they already proved.
+ *
+ * No member is named until this browser has confirmed it is 18+, so the
+ * member's name never reaches the age screen. The member cookie is left alone:
+ * confirming age (POST /api/access/age) answers with the member, so a returning
+ * member is let straight back in without a new PIN.
  */
 export async function GET() {
   const access = await getMemberAccess()
+  if (!access.ageConfirmed) {
+    return NextResponse.json({ ageConfirmed: false, member: null })
+  }
   if (!access.memberId) {
     return NextResponse.json({ ageConfirmed: access.ageConfirmed, member: null })
   }

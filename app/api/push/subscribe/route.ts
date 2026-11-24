@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { requireActiveMember } from "@/lib/member-session"
 
@@ -34,7 +35,9 @@ export async function POST(request: NextRequest) {
   const gate = await requireActiveMember({ fresh: true })
   if (!gate.ok) return gate.response
   const access = gate
-  const parsed = z.object({ subscription }).safeParse(await request.json().catch(() => null))
+  const json = await readJsonBody(request)
+  if (!json.ok) return json.response
+  const parsed = z.object({ subscription }).safeParse(json.data)
   if (!parsed.success) return NextResponse.json({ error: "That device could not be registered" }, { status: 400 })
 
   const { endpoint, keys } = parsed.data.subscription
@@ -65,7 +68,9 @@ export async function DELETE(request: NextRequest) {
   const gate = await requireActiveMember({ fresh: true })
   if (!gate.ok) return gate.response
   const access = gate
-  const parsed = z.object({ endpoint: z.string().url().max(1000) }).safeParse(await request.json().catch(() => null))
+  const json = await readJsonBody(request)
+  if (!json.ok) return json.response
+  const parsed = z.object({ endpoint: z.string().url().max(1000) }).safeParse(json.data)
   if (!parsed.success) return NextResponse.json({ error: "That device could not be found" }, { status: 400 })
   const { error } = await getSupabaseAdmin().from("store_push_subscriptions").delete().eq("endpoint", parsed.data.endpoint).eq("member_id", access.memberId)
   if (error) return NextResponse.json({ error: "Could not turn off updates just now" }, { status: 500 })

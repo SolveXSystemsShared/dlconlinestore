@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { requireActiveMember } from "@/lib/member-session"
 import { lockedFor, recordFailure } from "@/lib/rate-limit"
@@ -27,7 +28,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const gate = await requireActiveMember({ fresh: true })
   if (!gate.ok) return gate.response
   const access = gate
-  const parsed = input.safeParse(await request.json().catch(() => null))
+  const json = await readJsonBody(request)
+  if (!json.ok) return json.response
+  const parsed = input.safeParse(json.data)
   if (!parsed.success) return NextResponse.json({ error: "Unsupported settlement request" }, { status: 400 })
 
   const supabase = getSupabaseAdmin()

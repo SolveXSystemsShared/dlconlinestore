@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 import { requireActiveMember } from "@/lib/member-session"
 import { getCatalogCached } from "@/lib/catalog"
@@ -70,7 +71,9 @@ export async function POST(request: NextRequest) {
   if (!gate.ok) return gate.response
   const access = gate
   try {
-    const parsed = input.safeParse(await request.json())
+    const json = await readJsonBody(request)
+    if (!json.ok) return json.response
+    const parsed = input.safeParse(json.data)
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid product and quantity" }, { status: 400 })
     const { productId, quantity } = parsed.data
     const supabase = getSupabaseAdmin()

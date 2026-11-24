@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { requireActiveMember } from "@/lib/member-session"
 import { getFulfillmentStoreId } from "@/lib/store-settings"
 import { CdashError, fetchQuote } from "@/lib/cdash"
@@ -28,7 +29,9 @@ export async function POST(request: NextRequest) {
     const gate = await requireActiveMember({ fresh: true })
     if (!gate.ok) return gate.response
     const access = gate
-    const parsed = input.safeParse(await request.json())
+    const json = await readJsonBody(request)
+    if (!json.ok) return json.response
+    const parsed = input.safeParse(json.data)
     if (!parsed.success) return NextResponse.json({ error: "Please provide a valid bag" }, { status: 400 })
 
     const storeId = await getFulfillmentStoreId()

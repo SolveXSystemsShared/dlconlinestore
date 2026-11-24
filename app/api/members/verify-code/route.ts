@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { readJsonBody } from "@/lib/request-body"
 import { AGE_COOKIE, createMemberAccessToken, getMemberAccess, MEMBER_COOKIE, MEMBER_SESSION_SECONDS } from "@/lib/member-access"
 import { lookupMember, memberLookupMessage } from "@/lib/members"
 import { clearFailures, clientKey, lockedFor, recordFailure } from "@/lib/rate-limit"
@@ -20,7 +21,9 @@ export async function POST(request: NextRequest) {
     const wait = lockedFor(client)
     if (wait) return NextResponse.json({ error: `Too many attempts. Please try again in ${wait} minute${wait === 1 ? "" : "s"}, or ask the team at the lounge.` }, { status: 429, headers: { "Retry-After": String(wait * 60) } })
 
-    const parsed = input.safeParse(await request.json())
+    const json = await readJsonBody(request)
+    if (!json.ok) return json.response
+    const parsed = input.safeParse(json.data)
     if (!parsed.success) return NextResponse.json({ error: "Enter the 6-digit PIN from your SMS" }, { status: 400 })
 
     const member = await lookupMember(parsed.data.memberId)

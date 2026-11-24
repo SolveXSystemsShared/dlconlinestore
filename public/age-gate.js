@@ -335,9 +335,19 @@
     const session = await sessionRequest;
 
     // The age cookie lasts a browser session; the device already said yes, so
-    // put it back rather than asking again after every restart.
+    // put it back rather than asking again after every restart. The session
+    // names no member until age is confirmed, so take the member from this
+    // answer: a signed-in member goes straight back in, with no new PIN. If
+    // the server did not record it, ageConfirmed stays false and the age
+    // screen below asks again.
     if (session && !session.ageConfirmed && read(AGE_KEY)) {
-      try { await fetch('/api/access/age', { method: 'POST' }); session.ageConfirmed = true; } catch (e) {}
+      try {
+        const restored = await fetch('/api/access/age', { method: 'POST' });
+        if (restored.ok) {
+          session.ageConfirmed = true;
+          session.member = (await restored.json().catch(() => ({}))).member || null;
+        }
+      } catch (e) {}
     }
 
     if (!session?.ageConfirmed) { write(AGE_KEY, false); write(MEMBER_HINT_KEY, false); mount('age'); return; }
