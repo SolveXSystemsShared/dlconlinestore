@@ -1,23 +1,31 @@
-/**
- * The React app's page routes (app/), the only paths whose Content-Security-
- * Policy allows inline scripts, which Next's bootstrap needs. Everything else
- * gets the strict policy. next.config.test.ts walks app/ and fails if a page
- * is missing here, so add the route when you add a page.
- */
-export const REACT_ROUTES = [
-  "/account",
-  "/bag",
-  "/exchange/:path*",
-  "/menu",
-  "/register",
-  "/settings/:path*",
-]
+import { readdirSync } from "node:fs"
+import { join } from "node:path"
+import { fileURLToPath } from "node:url"
+import { PHASE_PRODUCTION_BUILD } from "next/constants.js"
+
+const PUBLIC_DIR = fileURLToPath(new URL("./public", import.meta.url))
+
+/** Every file in public/, as the URL path it is served at. */
+export function listPublicFiles(dir = PUBLIC_DIR, base = "") {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${base}/${entry.name}`
+    return entry.isDirectory() ? listPublicFiles(join(dir, entry.name), path) : [path]
+  }).sort()
+}
+
+/** The list, or an empty one when public/ cannot be read: lib/csp.ts then falls back to the strict policy. */
+function publicFiles() {
+  try { return listPublicFiles() } catch { return [] }
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   // Don't advertise the framework (X-Powered-By: Next.js) to scanners.
   poweredByHeader: false,
+  // Built into proxy.ts, which tells the static storefront from the React pages
+  // by it, without reading the disk on each request. Public URL paths only.
+  env: { DLC_PUBLIC_FILES: JSON.stringify(publicFiles()) },
   experimental: {
     // proxy.ts runs on every /api request, so Next buffers each body for it,
     // up to 10 MB by default. No route accepts more than 1 MB (registration;
@@ -44,39 +52,7 @@ const nextConfig = {
   // every load (a tiny 304 when unchanged) so a deploy never shows old
   // pictures or pairs new pages with old scripts.
   async headers() {
-    // Content-Security-Policy only in production: the dev server needs eval and
-    // a websocket for hot reload. Everything is locked to this site. Product
-    // photos may come from CDASH storage, hence https: for images.
-    //
-    // Scripts: script-src 'self' alone is the default, so an injected inline
-    // script cannot run on the storefront pages in public/ (which load every
-    // script from a file) or anywhere else not named. The React pages in
-    // REACT_ROUTES still need 'unsafe-inline' for Next's inline bootstrap
-    // scripts, for now.
-    //
-    // No upgrade-insecure-requests: HSTS already keeps the site on HTTPS, and
-    // every fetch directive is 'self' or https:, so it added nothing — while
-    // WebKit applies it to http://localhost, which broke every script and
-    // style on a local production build.
-    const cspWith = (scriptSrc) => [
-      "default-src 'self'",
-      `script-src ${scriptSrc}`,
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
-      "media-src 'self'",
-      // The site uses the system font stack; no web fonts are loaded.
-      "font-src 'self'",
-      "connect-src 'self'",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "object-src 'none'",
-      "manifest-src 'self'",
-      "worker-src 'self'",
-    ].join("; ")
-    const production = process.env.NODE_ENV === "production"
-    const strictCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self'") }] : []
-    const reactCsp = production ? [{ key: "Content-Security-Policy", value: cspWith("'self' 'unsafe-inline'") }] : []
+    // The Content-Security-Policy is sent by proxy.ts (see lib/csp.ts).
     const security = [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -88,19 +64,12 @@ const nextConfig = {
       { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
       { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
-      ...strictCsp,
     ]
     // Member data must never be stored by the browser's back button, a shared
     // proxy or a CDN: every API answer and every server-rendered member page.
     const noStore = [{ key: "Cache-Control", value: "private, no-store, max-age=0" }]
     return [
       { source: "/:path*", headers: security },
-      // The React pages' policy, listed after /:path* so it replaces the strict
-      // one instead of adding a second (Next keeps the last value for a
-      // repeated header key). Nothing here matches on ".html": the server
-      // decodes %2E before serving a file, so /strains%2Ehtml slipped past
-      // such a rule into the looser policy.
-      ...(production ? REACT_ROUTES.map((source) => ({ source, headers: reactCsp })) : []),
       { source: "/api/:path*", headers: noStore },
       { source: "/exchange/:path*", headers: noStore },
       // Artwork is swapped in place under the same file name, so the browser
@@ -115,4 +84,13 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+/**
+ * A build without the list would leave the storefront and the 404 on the
+ * fallback policy, so it stops here instead of shipping that.
+ */
+export default function config(phase) {
+  if (phase === PHASE_PRODUCTION_BUILD && JSON.parse(nextConfig.env.DLC_PUBLIC_FILES).length === 0) {
+    throw new Error("public/ could not be listed, so proxy.ts cannot tell which pages are the storefront")
+  }
+  return nextConfig
+}

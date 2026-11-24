@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import { cspFor, normalisePath, publicFileSet } from "@/lib/csp"
 import { MAX_BODY, MAX_REGISTRATION_BODY } from "@/lib/request-body"
 
 /**
- * Front door for the API.
+ * Front door: the Content-Security-Policy for every response (lib/csp.ts) and,
+ * for the API:
  *
  * - Cross-site requests: anything that changes data (POST, PUT, PATCH, DELETE)
  *   must come from this site. The member cookie is SameSite=Lax, which already
@@ -29,7 +31,7 @@ function sameOrigin(request: NextRequest) {
   return !site || site === "same-origin" || site === "none"
 }
 
-export function proxy(request: NextRequest) {
+function apiDoor(request: NextRequest) {
   const { pathname } = request.nextUrl
   if (!UNSAFE.has(request.method) || SERVER_TO_SERVER.has(pathname)) return NextResponse.next()
 
@@ -52,4 +54,18 @@ export function proxy(request: NextRequest) {
   return NextResponse.next()
 }
 
-export const config = { matcher: "/api/:path*" }
+// Inlined at build time from next.config.mjs.
+const PUBLIC_FILES = publicFileSet(process.env.DLC_PUBLIC_FILES)
+
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const isApi = [pathname, normalisePath(pathname)].some((path) => path === "/api" || path?.startsWith("/api/"))
+  const response = isApi ? apiDoor(request) : NextResponse.next()
+  // Production only: the dev server needs eval and a websocket for hot reload.
+  if (process.env.NODE_ENV === "production") response.headers.set("Content-Security-Policy", cspFor(pathname, PUBLIC_FILES))
+  return response
+}
+
+// Everything but the built files and images Next serves itself, which are never
+// pages. /favicon.ico and the like stay in: here the 404 page answers them.
+export const config = { matcher: "/((?!_next/static/|_next/image$).*)" }
